@@ -1,4 +1,4 @@
-import { LiteGraph, LGraphNode, LGraphCanvas, LGraph } from 'litegraph.js';
+import { LGraphNode, LGraphCanvas } from 'litegraph.js';
 
 class MultilineTextInput extends LGraphNode {
 	private textArea: HTMLTextAreaElement | null = null;
@@ -74,7 +74,7 @@ class MultilineTextInput extends LGraphNode {
 			(window as any).textAreas[this.id] = this.textArea;
 		}
 
-		const graphCanvas = this.graph?.canvas as LGraphCanvas;
+		const graphCanvas = (this as any).graph?.canvas as LGraphCanvas;
 		if (!graphCanvas) {
 			console.error('LGraphCanvas instance not found.');
 			return;
@@ -130,7 +130,7 @@ class MultilineTextInput extends LGraphNode {
 		this.saveText();
 	}
 
-	onDrawBackground(ctx: CanvasRenderingContext2D) {
+	onDrawBackground() {
 		if (this.flags.collapsed) {
 			if (this.textArea && this.textArea.style.visibility !== 'hidden')
 				this.textArea.style.visibility = 'hidden';

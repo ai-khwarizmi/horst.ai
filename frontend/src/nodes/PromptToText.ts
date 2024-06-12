@@ -1,4 +1,4 @@
-import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
+import { LGraphNode } from 'litegraph.js';
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { withSpinner } from './mixins/Spinner';
@@ -24,6 +24,9 @@ class ChatGPTNodeBase extends LGraphNode {
 	lastExecutedValue: string;
 	lastOutputValue: string | null;
 	static title = "ChatGPT";
+
+	declare showSpinner: () => void;
+	declare hideSpinner: () => void;
 
 	constructor() {
 		super();

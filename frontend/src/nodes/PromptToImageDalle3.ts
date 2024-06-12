@@ -1,4 +1,4 @@
-import { LiteGraph, LGraphNode } from 'litegraph.js';
+import { LGraphNode } from 'litegraph.js';
 import { DallEAPIWrapper } from "@langchain/openai";
 import { withSpinner } from './mixins/Spinner';
 import { checkApiKeyPresent } from './mixins/apiKeyCheck';
@@ -15,6 +15,8 @@ class DalleNodeBase extends LGraphNode {
 	url: string | null;
 
 	static title = "DALL-E 3";
+	declare showSpinner: () => void;
+	declare hideSpinner: () => void;
 
 	constructor() {
 		super();

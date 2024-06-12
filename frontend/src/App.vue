@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue';
+import { defineComponent } from 'vue';
 import LiteGraph from './components/LiteGraph.vue';
 import StatusBar from './components/StatusBar.vue';
 import Menu from './components/Menu.vue';

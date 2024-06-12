@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import './index.css'
 import 'litegraph.js/css/litegraph.css';
-import { LiteGraph, LGraphCanvas } from 'litegraph.js';
+import { LiteGraph } from 'litegraph.js';
 
 import PromptToTextChatGpt from './nodes/PromptToText';
 import PromptToImageDalle3 from './nodes/PromptToImageDalle3';

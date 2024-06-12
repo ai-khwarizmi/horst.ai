@@ -1,7 +1,13 @@
+import { LGraphCanvas, LGraphNode } from "litegraph.js"
+
 type Constructor<T = {}> = new (...args: any[]) => T;
-export function withSpinner<TBase extends Constructor>(Base: TBase) {
+export function withSpinner<TBase extends Constructor<LGraphNode>>(Base: TBase) {
 	return class extends Base {
 		spinner: HTMLDivElement | null = null;
+
+		declare graph: any;
+		declare pos: any;
+		declare size: any;
 
 		showSpinner() {
 			console.log('Showing spinner');
@@ -40,8 +46,8 @@ export function withSpinner<TBase extends Constructor>(Base: TBase) {
 			}
 		}
 
-		onDrawForeground(ctx: CanvasRenderingContext2D) {
-			super.onDrawForeground?.call(this, ctx);
+		onDrawForeground(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+			super.onDrawForeground?.call(this, ctx, canvas);
 			this.updateSpinnerPosition();
 		}
 

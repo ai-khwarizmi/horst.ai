@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
+import { LGraph, LGraphCanvas } from 'litegraph.js';
 import 'litegraph.js/css/litegraph.css';  // Import litegraph.css here
 import * as LZString from 'lz-string';
 
