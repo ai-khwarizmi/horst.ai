@@ -8,14 +8,13 @@ const model = new ChatOpenAI({
 });
 
 class ChatGPTNode extends LGraphNode {
-	static title = "ChatGPT";
-	static desc = "Call GPT-4 via LangChain";
 
 	lastExecutedValue: string;
 	lastOutputValue: string | null;
 
 	constructor() {
 		super();
+		this.title = "ChatGPT";
 
 		// Input slots
 		this.addInput("System Prompt", "string");
@@ -40,6 +39,7 @@ class ChatGPTNode extends LGraphNode {
 				return;
 			}
 			this.lastExecutedValue = newValue;
+			this.lastOutputValue = null;
 			const messages = [
 				new SystemMessage(systemPrompt),
 				new HumanMessage(userPrompt),
@@ -59,4 +59,4 @@ class ChatGPTNode extends LGraphNode {
 }
 
 // Register the node type
-LiteGraph.registerNodeType("chatgpt/ChatGPTNode", ChatGPTNode);
+LiteGraph.registerNodeType("openai/ChatGPT", ChatGPTNode);
