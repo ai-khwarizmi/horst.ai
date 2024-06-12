@@ -1,5 +1,6 @@
 import { LiteGraph, LGraphNode } from 'litegraph.js';
 import { DallEAPIWrapper } from "@langchain/openai";
+import { withSpinner } from './mixins/Spinner';
 
 const tool = new DallEAPIWrapper({
 	n: 1, // Default number of images to generate

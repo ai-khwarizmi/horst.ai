@@ -1,14 +1,14 @@
-import { LiteGraph, LGraphNode } from 'litegraph.js';
+import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { withSpinner } from './mixins/Spinner';
 
 const model = new ChatOpenAI({
 	model: "gpt-4",
 	openAIApiKey: window.localStorage.getItem("openai-api-key") || "",
 });
 
-class ChatGPTNode extends LGraphNode {
-
+class ChatGPTNodeBase extends LGraphNode {
 	lastExecutedValue: string;
 	lastOutputValue: string | null;
 
@@ -45,22 +45,22 @@ class ChatGPTNode extends LGraphNode {
 				new HumanMessage(userPrompt),
 			];
 			try {
-
+				this.showSpinner();
 				const response = await model.invoke(messages);
 				console.log("Response from GPT-4: ", response);
 				this.lastOutputValue = response.content as string;
 				this.setOutputData(0, this.lastOutputValue);
-
-				this.connections.forEach((conn) => {
-					conn.isLive = false;
-				});
+				this.hideSpinner();
 			} catch (error) {
 				console.error("Error calling GPT-4: ", error);
+				this.hideSpinner();
 			}
 		} else {
 			this.setOutputData(0, null);
 		}
 	}
 }
+
+const ChatGPTNode = withSpinner(ChatGPTNodeBase);
 
 export default ChatGPTNode;
