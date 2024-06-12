@@ -1,6 +1,7 @@
 import { LiteGraph, LGraphNode } from 'litegraph.js';
 import { DallEAPIWrapper } from "@langchain/openai";
 import { withSpinner } from './mixins/Spinner';
+import { checkApiKeyPresent } from './mixins/apiKeyCheck';
 
 const tool = new DallEAPIWrapper({
 	n: 1, // Default number of images to generate
@@ -30,8 +31,11 @@ class DalleNodeBase extends LGraphNode {
 	}
 
 	async onExecute() {
-		const prompt = this.getInputData(0) as string;
+		if (checkApiKeyPresent(this, 'openai') === false) {
+			return;
+		}
 
+		const prompt = this.getInputData(0) as string;
 
 		if (prompt) {
 			if (prompt === this.lastExecutedValue) {

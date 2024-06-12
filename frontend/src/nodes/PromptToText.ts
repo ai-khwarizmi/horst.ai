@@ -2,11 +2,23 @@ import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { withSpinner } from './mixins/Spinner';
+import { getApiKeys } from '../utils';
+import { checkApiKeyPresent } from './mixins/apiKeyCheck';
 
-const model = new ChatOpenAI({
-	model: "gpt-4",
-	openAIApiKey: window.localStorage.getItem("openai-api-key") || "",
-});
+
+let model: ChatOpenAI;
+
+function getModel() {
+	const apiKeys = getApiKeys();
+	if (!model) {
+		model = new ChatOpenAI({
+			model: "gpt-4",
+			openAIApiKey: apiKeys.openai!
+		});
+	}
+	return model;
+}
+
 
 class ChatGPTNodeBase extends LGraphNode {
 	lastExecutedValue: string;
@@ -25,9 +37,14 @@ class ChatGPTNodeBase extends LGraphNode {
 
 		this.lastExecutedValue = '';
 		this.lastOutputValue = null;
+		this.setSize([250, 50]);
 	}
 
 	async onExecute() {
+		if (checkApiKeyPresent(this, 'openai') === false) {
+			return;
+		}
+
 		const systemPrompt = this.getInputData(0) as string;
 		const userPrompt = this.getInputData(1) as string;
 
@@ -46,7 +63,7 @@ class ChatGPTNodeBase extends LGraphNode {
 			];
 			try {
 				this.showSpinner();
-				const response = await model.invoke(messages);
+				const response = await getModel().invoke(messages);
 				console.log("Response from GPT-4: ", response);
 				this.lastOutputValue = response.content as string;
 				this.setOutputData(0, this.lastOutputValue);
