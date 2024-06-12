@@ -6,6 +6,7 @@ class MultilineTextInput extends LGraphNode {
 
 	constructor() {
 		super();
+		this.title = 'Multiline Text Input';
 		this.addOutput('Text', 'string');
 		this.size = [300, 150];
 	}

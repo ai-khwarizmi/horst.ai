@@ -20,6 +20,7 @@ class DalleNodeBase extends LGraphNode {
 
 	constructor() {
 		super();
+		this.title = "DALL-E 3";
 
 		// Input slots
 		this.addInput("Prompt", "string");

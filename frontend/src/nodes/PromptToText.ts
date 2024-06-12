@@ -30,6 +30,7 @@ class ChatGPTNodeBase extends LGraphNode {
 
 	constructor() {
 		super();
+		this.title = "ChatGPT";
 
 		// Input slots
 		this.addInput("System Prompt", "string");
