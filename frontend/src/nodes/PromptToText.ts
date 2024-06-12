@@ -45,10 +45,15 @@ class ChatGPTNode extends LGraphNode {
 				new HumanMessage(userPrompt),
 			];
 			try {
+
 				const response = await model.invoke(messages);
 				console.log("Response from GPT-4: ", response);
 				this.lastOutputValue = response.content as string;
 				this.setOutputData(0, this.lastOutputValue);
+
+				this.connections.forEach((conn) => {
+					conn.isLive = false;
+				});
 			} catch (error) {
 				console.error("Error calling GPT-4: ", error);
 			}

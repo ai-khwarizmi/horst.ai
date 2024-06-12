@@ -5,7 +5,7 @@ import 'litegraph.js/css/litegraph.css';
 
 import './nodes/PromptToText';
 import './nodes/PromptToImageDalle3';
-import './nodes/ImageDisplay';
+import './nodes/Prompt';
 
 createApp(App).mount('#app')
 

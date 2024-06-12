@@ -69,6 +69,6 @@ class DalleNode extends LGraphNode {
 }
 
 // Register the node type
-LiteGraph.registerNodeType("openai/PromptToImage-Dalle3", DalleNode);
+LiteGraph.registerNodeType("openai/Dalle3", DalleNode);
 
 export default DalleNode;
