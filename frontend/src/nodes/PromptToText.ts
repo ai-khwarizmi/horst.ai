@@ -63,5 +63,4 @@ class ChatGPTNode extends LGraphNode {
 	}
 }
 
-// Register the node type
-LiteGraph.registerNodeType("openai/ChatGPT", ChatGPTNode);
+export default ChatGPTNode;

@@ -1,4 +1,4 @@
-import { LiteGraph, LGraphNode } from 'litegraph.js';
+import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
 
 class MultilineTextInput extends LGraphNode {
 	textArea: HTMLTextAreaElement | null = null;
@@ -8,11 +8,11 @@ class MultilineTextInput extends LGraphNode {
 
 	constructor() {
 		super();
-		this.title = "Multiline Text Input";
+		this.title = 'Multiline Text Input';
+		this.addOutput('Text', 'string');
 
-		this.addOutput("Text", "string");
-
-		this.textValue = "";
+		this.textArea = null;
+		this.textValue = '';
 		this.size = [300, 150];
 	}
 
@@ -26,26 +26,47 @@ class MultilineTextInput extends LGraphNode {
 		}
 
 		if (!this.textArea) {
-			this.textArea = document.createElement("textarea");
+			this.textArea = document.createElement('textarea');
 			this.textArea.style.position = 'absolute';
 			this.textArea.style.resize = 'none';
 			this.textArea.style.boxSizing = 'border-box';
 			this.textArea.style.padding = '4px';
-			this.textArea.addEventListener("input", this.handleInput.bind(this));
+			this.textArea.style.background = 'rgba(255, 255, 255, 0.7)';
+			this.textArea.style.border = '1px solid #ccc';
+			this.textArea.style.borderRadius = '0px';
+			this.textArea.style.zIndex = '10';
+			this.textArea.addEventListener('input', this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
 		}
 
-		if (this.textArea) {
-			const canvasContainer = ctx.canvas.getBoundingClientRect();
-			this.textArea.style.left = `${canvasContainer.left + this.pos[0] + 4}px`;
-			this.textArea.style.top = `${canvasContainer.top + this.pos[1] + 24}px`;
-			this.textArea.style.width = `${this.size[0] - 8}px`;
-			this.textArea.style.height = `${this.size[1] - 28}px`;
+		const graphCanvas = this.graph?.canvas as LGraphCanvas;
+		if (!graphCanvas) {
+			console.error('LGraphCanvas instance not found.');
+			return;
+		}
 
-			// Only update textarea value if not currently typing
-			if (!this.isTyping) {
-				this.textArea.value = this.textValue;
-			}
+		const canvasRect = graphCanvas.canvas.getBoundingClientRect();
+		const zoom = graphCanvas.ds.scale;
+		const offset = graphCanvas.ds.offset;
+		const headerOffset = 24;
+		const headerHeight = headerOffset * zoom;  // Adjusting for header, scaled with zoom
+
+		// Convert the node's position to screen position
+		const absoluteX = canvasRect.left + ((this.pos[0] + offset[0]) * zoom);
+		const absoluteY = canvasRect.top + ((this.pos[1] + offset[1]) * zoom) + headerHeight;
+
+		// Calculate node size considering the zoom level
+		const nodeWidth = this.size[0] * zoom;
+		const nodeHeight = (this.size[1] - headerOffset) * zoom;
+
+		this.textArea.style.left = `${absoluteX}px`;
+		this.textArea.style.top = `${absoluteY}px`;
+		this.textArea.style.width = `${nodeWidth}px`;
+		this.textArea.style.height = `${nodeHeight}px`;
+		this.textArea.style.fontSize = `${14 * zoom}px`; // Adjust font size according to zoom level
+
+		if (!this.isTyping) {
+			this.textArea.value = this.textValue;
 		}
 	}
 
@@ -67,8 +88,9 @@ class MultilineTextInput extends LGraphNode {
 		if (this.flags.collapsed) {
 			return;
 		}
-		ctx.fillStyle = "#FFF";
-		ctx.fillRect(4, 24, this.size[0] - 8, this.size[1] - 28);
+
+		ctx.fillStyle = '#FFF';
+		ctx.fillRect(4, 24, this.size[0] - 8, this.size[1] - 28);  // Adjust for header
 	}
 
 	onResize(width: number, height: number) {
@@ -84,7 +106,5 @@ class MultilineTextInput extends LGraphNode {
 		}
 	}
 }
-
-LiteGraph.registerNodeType("basic/Prompt", MultilineTextInput);
 
 export default MultilineTextInput;

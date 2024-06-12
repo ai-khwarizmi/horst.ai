@@ -29,16 +29,7 @@ export default {
 
 				graph = new LGraph();
 				canvas = new LGraphCanvas(liteGraphCanvas.value, graph);
-
-				const node_const = LiteGraph.createNode("basic/const");
-				node_const.pos = [200, 200];
-				graph.add(node_const);
-				node_const.setValue(4.5);
-
-				const node_watch = LiteGraph.createNode("basic/watch");
-				node_watch.pos = [700, 200];
-				graph.add(node_watch);
-				node_const.connect(0, node_watch, 0);
+				(graph as any).canvas = canvas; // Ensure the graph canvas is set
 
 				graph.start();
 			}
@@ -55,6 +46,19 @@ export default {
 				if (canvas) {
 					canvas.resize(containerWidth, containerHeight);
 				}
+			}
+		};
+
+		(window as any).saveGraph = () => {
+			if (graph) {
+				const data = graph.serialize();
+				const str = JSON.stringify(data, null, 4);
+				const blob = new Blob([str], { type: 'application/json' });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.download = 'graph.json';
+				a.href = url;
+				a.click();
 			}
 		};
 
