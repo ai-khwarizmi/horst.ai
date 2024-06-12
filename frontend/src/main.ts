@@ -14,7 +14,3 @@ LiteGraph.registerNodeType("openai/ChatGPT", PromptToTextChatGpt);
 LiteGraph.registerNodeType("openai/Dalle3", PromptToImageDalle3);
 
 createApp(App).mount('#app')
-
-
-createApp(App).mount('#app')
-

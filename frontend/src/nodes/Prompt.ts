@@ -30,10 +30,6 @@ class MultilineTextInput extends LGraphNode {
 
 		if (!this.textArea) {
 			//some weird bug with re-instating
-			if ((window as any).textAreas && (window as any).textAreas[this.id]) {
-				window.document.body.removeChild((window as any).textAreas[this.id]);
-				delete (window as any).textAreas[this.id];
-			}
 			console.log('Creating text area, as it was not found. Time: ', new Date().getTime())
 			console.log('object id: ', this.id)
 			this.textArea = document.createElement('textarea');
@@ -48,10 +44,6 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.zIndex = '10';
 			this.textArea.addEventListener('input', this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
-
-			if (!(window as any).textAreas)
-				(window as any).textAreas = {};
-			(window as any).textAreas[this.id] = this.textArea;
 		}
 
 		const graphCanvas = this.graph?.canvas as LGraphCanvas;
