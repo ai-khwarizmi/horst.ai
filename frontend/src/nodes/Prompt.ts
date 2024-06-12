@@ -31,12 +31,14 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.resize = 'none';
 			this.textArea.style.boxSizing = 'border-box';
 			this.textArea.style.padding = '4px';
-			this.textArea.style.background = 'rgba(255, 255, 255, 0.7)';
-			this.textArea.style.border = '1px solid #ccc';
+			this.textArea.style.background = 'rgba(255, 255, 255)';
+			this.textArea.style.border = '0';
 			this.textArea.style.borderRadius = '0px';
 			this.textArea.style.zIndex = '10';
 			this.textArea.addEventListener('input', this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
+
+			this.ensureFocus();
 		}
 
 		const graphCanvas = this.graph?.canvas as LGraphCanvas;
@@ -67,6 +69,18 @@ class MultilineTextInput extends LGraphNode {
 
 		if (!this.isTyping) {
 			this.textArea.value = this.textValue;
+		}
+	}
+
+	ensureFocus() {
+		if (this.textArea && document.activeElement !== this.textArea) {
+			console.log('Setting focus to text area');
+			this.textArea.focus();
+			setTimeout(() => {
+				this.ensureFocus();
+			}, 10);
+		} else {
+			console.log('Focus set to text area');
 		}
 	}
 
