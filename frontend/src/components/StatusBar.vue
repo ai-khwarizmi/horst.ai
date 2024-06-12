@@ -2,8 +2,10 @@
 	<div class="w-full bg-gray-800 text-white text-xs p-2 flex justify-between items-center">
 		<div>Horst.ai</div>
 		<div class="flex items-center space-x-2">
-			<button @click="saveGraph">Save</button>
-			<button @click="shareUrl">Share URL</button>
+			<button class="bg-blue-600 text-white p-1 rounded transition duration-200 hover:bg-blue-700"
+				@click="saveGraph">Save to File</button>
+			<button class="bg-blue-600 text-white p-1 rounded transition duration-200 hover:bg-blue-700"
+				@click="shareUrl">Share URL</button>
 
 			<input :class="{ 'flash-green': flashGreen }" v-model="apiKey" type="text" placeholder="OpenAI API Key"
 				class="bg-gray-700 text-white p-1 rounded transition duration-200" />

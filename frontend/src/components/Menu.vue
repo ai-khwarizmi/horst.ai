@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const collapsed = ref(false);
+const collapsed = ref(true);
 
 const collapse = () => {
 	collapsed.value = !collapsed.value;
