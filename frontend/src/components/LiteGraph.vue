@@ -115,6 +115,10 @@ export default {
 				console.log('using Compressed');
 			else
 				console.log('using Uncompressed');
+
+			//copy to clipboard
+
+			navigator.clipboard.writeText(location.href);
 		};
 
 		onMounted(() => {

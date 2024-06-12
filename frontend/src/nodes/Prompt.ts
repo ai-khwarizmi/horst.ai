@@ -1,13 +1,11 @@
-import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
+import { LiteGraph, LGraphNode, LGraphCanvas, LGraph } from 'litegraph.js';
 
 class MultilineTextInput extends LGraphNode {
 	private textArea: HTMLTextAreaElement | null = null;
-	private timeoutID: number | null = null;
-	private isTyping: boolean = false;
+	static title = 'Multiline Text Input';
 
 	constructor() {
 		super();
-		this.title = 'Multiline Text Input';
 		this.addOutput('Text', 'string');
 		this.size = [300, 150];
 	}
@@ -29,7 +27,11 @@ class MultilineTextInput extends LGraphNode {
 		}
 
 		if (!this.textArea) {
-			//some weird bug with re-instating
+			const defaultBackgroundColor = 'rgba(255, 255, 255, 0.7)';
+			const focusedBackgroundColor = 'rgba(255, 255, 255 )';
+
+			this.cleanTextArea();
+
 			console.log('Creating text area, as it was not found. Time: ', new Date().getTime())
 			console.log('object id: ', this.id)
 			this.textArea = document.createElement('textarea');
@@ -37,13 +39,39 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.resize = 'none';
 			this.textArea.style.boxSizing = 'border-box';
 			this.textArea.style.padding = '4px';
-			this.textArea.style.background = 'rgba(255, 255, 255)';
+			this.textArea.style.background = defaultBackgroundColor;
 			this.textArea.style.border = '0';
 			this.textArea.style.visibility = 'hidden';
 			this.textArea.style.borderRadius = '0px 0px 8px 8px';
 			this.textArea.style.zIndex = '10';
-			this.textArea.addEventListener('input', this.handleInput.bind(this));
+			this.textArea.value = this.getTextValue()
 			document.body.appendChild(this.textArea);
+
+			//on focus have transparent background
+			this.textArea.addEventListener('focus', () => {
+				this.textArea!.style.background = focusedBackgroundColor;
+			});
+
+			//listen to cmd+s and ctrl+s to save
+			this.textArea.addEventListener('keydown', (e) => {
+				if (e.keyCode === 83 && (navigator.platform.match('Mac') ? e.metaKey : e.ctrlKey)) {
+					e.preventDefault();
+					this.saveText();
+					//unfocus
+					this.textArea!.blur();
+				}
+			});
+
+			//listen to focus out
+			this.textArea.addEventListener('focusout', () => {
+				this.saveText();
+				this.textArea!.style.background = defaultBackgroundColor;
+			});
+
+			if (!(window as any).textAreas) {
+				(window as any).textAreas = {};
+			}
+			(window as any).textAreas[this.id] = this.textArea;
 		}
 
 		const graphCanvas = this.graph?.canvas as LGraphCanvas;
@@ -77,9 +105,6 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.visibility = 'hidden';
 		}
 
-		if (!this.isTyping) {
-			this.textArea.value = this.getTextValue()
-		}
 	}
 
 	ensureFocus() {
@@ -94,18 +119,15 @@ class MultilineTextInput extends LGraphNode {
 		}
 	}
 
-	handleInput() {
-		if (this.timeoutID !== null) {
-			clearTimeout(this.timeoutID);
+	saveText() {
+		console.log('Saving text');
+		if (this.textArea) {
+			this.setTextValue(this.textArea.value);
 		}
+	}
 
-		this.isTyping = true;
-
-		this.timeoutID = window.setTimeout(() => {
-			this.setTextValue(this.textArea!.value);
-			this.setDirtyCanvas(true, true);
-			this.isTyping = false;
-		}, 500);
+	onDeselected(): void {
+		this.saveText();
 	}
 
 	onDrawBackground(ctx: CanvasRenderingContext2D) {
@@ -115,8 +137,8 @@ class MultilineTextInput extends LGraphNode {
 			return;
 		}
 
-		ctx.fillStyle = '#FFF';
-		ctx.fillRect(4, 24, this.size[0] - 8, this.size[1] - 28);  // Adjust for header
+		//ctx.fillStyle = '#FFF';
+		//ctx.fillRect(4, 24, this.size[0] - 8, this.size[1] - 28);  // Adjust for header
 	}
 
 	onResize(width: number, height: number) {
@@ -126,12 +148,18 @@ class MultilineTextInput extends LGraphNode {
 		}
 	}
 
+	cleanTextArea() {
+		if ((window as any).textAreas && (window as any).textAreas[this.id])
+			document.body.removeChild((window as any).textAreas[this.id]);
+		if ((window as any).textAreas)
+			delete (window as any).textAreas[this.id];
+	}
+
 	onRemoved() {
-		console.log('Removing text area');
 		if (this.textArea) {
 			document.body.removeChild(this.textArea);
-			delete (window as any).textAreas[this.id];
 		}
+		this.cleanTextArea();
 	}
 }
 

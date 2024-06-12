@@ -1,6 +1,6 @@
 <template>
 	<div class="w-full bg-gray-800 text-white text-xs p-2 flex justify-between items-center">
-		<div>Horst.ai</div>
+		<div></div>
 		<div class="flex items-center space-x-2">
 			<button class="bg-blue-600 text-white p-1 rounded transition duration-200 hover:bg-blue-700"
 				@click="saveGraph">Save to File</button>

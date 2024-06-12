@@ -12,7 +12,7 @@ function getModel() {
 	const apiKeys = getApiKeys();
 	if (!model) {
 		model = new ChatOpenAI({
-			model: "gpt-4",
+			model: "gpt-4o",
 			openAIApiKey: apiKeys.openai!
 		});
 	}
@@ -23,10 +23,10 @@ function getModel() {
 class ChatGPTNodeBase extends LGraphNode {
 	lastExecutedValue: string;
 	lastOutputValue: string | null;
+	static title = "ChatGPT";
 
 	constructor() {
 		super();
-		this.title = "ChatGPT";
 
 		// Input slots
 		this.addInput("System Prompt", "string");
@@ -57,6 +57,7 @@ class ChatGPTNodeBase extends LGraphNode {
 			}
 			this.lastExecutedValue = newValue;
 			this.lastOutputValue = null;
+			this.setOutputData(0, null);
 			const messages = [
 				new SystemMessage(systemPrompt),
 				new HumanMessage(userPrompt),

@@ -14,15 +14,16 @@ class DalleNodeBase extends LGraphNode {
 	lastOutputValue: HTMLImageElement | null;
 	url: string | null;
 
+	static title = "DALL-E 3";
+
 	constructor() {
 		super();
-		this.title = "Dalle3 Image Generator";
 
 		// Input slots
 		this.addInput("Prompt", "string");
 
 		// Output slot
-		this.addOutput("Image", "image");
+		this.addOutput("Image URL", "string");
 
 		this.lastExecutedValue = '';
 		this.lastOutputValue = null;
@@ -66,6 +67,8 @@ class DalleNodeBase extends LGraphNode {
 			}
 		} else {
 			this.setOutputData(0, null);
+			this.lastOutputValue = null;
+			this.setDirtyCanvas(true, true);
 		}
 	}
 
