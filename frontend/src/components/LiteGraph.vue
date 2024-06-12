@@ -7,6 +7,7 @@
 <script lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { LGraph, LGraphCanvas, LiteGraph } from 'litegraph.js';
+import 'litegraph.js/css/litegraph.css';  // Import litegraph.css here
 
 export default {
 	name: 'LiteGraph',
@@ -37,7 +38,6 @@ export default {
 				const node_watch = LiteGraph.createNode("basic/watch");
 				node_watch.pos = [700, 200];
 				graph.add(node_watch);
-
 				node_const.connect(0, node_watch, 0);
 
 				graph.start();
