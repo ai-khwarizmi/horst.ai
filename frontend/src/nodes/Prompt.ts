@@ -3,6 +3,8 @@ import { LiteGraph, LGraphNode } from 'litegraph.js';
 class MultilineTextInput extends LGraphNode {
 	textArea: HTMLTextAreaElement | null = null;
 	private textValue: string;
+	private timeoutID: number | null = null;
+	private isTyping: boolean = false;
 
 	constructor() {
 		super();
@@ -29,10 +31,7 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.resize = 'none';
 			this.textArea.style.boxSizing = 'border-box';
 			this.textArea.style.padding = '4px';
-			this.textArea.addEventListener("input", () => {
-				this.textValue = this.textArea!.value;
-				this.setDirtyCanvas(true, true);
-			});
+			this.textArea.addEventListener("input", this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
 		}
 
@@ -42,8 +41,26 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.top = `${canvasContainer.top + this.pos[1] + 24}px`;
 			this.textArea.style.width = `${this.size[0] - 8}px`;
 			this.textArea.style.height = `${this.size[1] - 28}px`;
-			this.textArea.value = this.textValue;
+
+			// Only update textarea value if not currently typing
+			if (!this.isTyping) {
+				this.textArea.value = this.textValue;
+			}
 		}
+	}
+
+	handleInput() {
+		if (this.timeoutID !== null) {
+			clearTimeout(this.timeoutID);
+		}
+
+		this.isTyping = true;
+
+		this.timeoutID = window.setTimeout(() => {
+			this.textValue = this.textArea!.value;
+			this.setDirtyCanvas(true, true);
+			this.isTyping = false;
+		}, 500);
 	}
 
 	onDrawBackground(ctx: CanvasRenderingContext2D) {
