@@ -1,8 +1,7 @@
 import { LiteGraph, LGraphNode, LGraphCanvas } from 'litegraph.js';
 
 class MultilineTextInput extends LGraphNode {
-	textArea: HTMLTextAreaElement | null = null;
-	private textValue: string;
+	private textArea: HTMLTextAreaElement | null = null;
 	private timeoutID: number | null = null;
 	private isTyping: boolean = false;
 
@@ -10,22 +9,33 @@ class MultilineTextInput extends LGraphNode {
 		super();
 		this.title = 'Multiline Text Input';
 		this.addOutput('Text', 'string');
-
-		this.textArea = null;
-		this.textValue = '';
 		this.size = [300, 150];
 	}
 
-	onExecute() {
-		this.setOutputData(0, this.textValue);
+	getTextValue(): string {
+		return this.properties['textValue'] || ''
+	}
+	setTextValue(value: string) {
+		this.properties['textValue'] = value;
 	}
 
-	onDrawForeground(ctx: CanvasRenderingContext2D) {
+	onExecute() {
+		this.setOutputData(0, this.getTextValue());
+	}
+
+	onDrawForeground() {
 		if (this.flags.collapsed) {
 			return;
 		}
 
 		if (!this.textArea) {
+			//some weird bug with re-instating
+			if ((window as any).textAreas && (window as any).textAreas[this.id]) {
+				window.document.body.removeChild((window as any).textAreas[this.id]);
+				delete (window as any).textAreas[this.id];
+			}
+			console.log('Creating text area, as it was not found. Time: ', new Date().getTime())
+			console.log('object id: ', this.id)
 			this.textArea = document.createElement('textarea');
 			this.textArea.style.position = 'absolute';
 			this.textArea.style.resize = 'none';
@@ -39,7 +49,9 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.addEventListener('input', this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
 
-			this.ensureFocus();
+			if (!(window as any).textAreas)
+				(window as any).textAreas = {};
+			(window as any).textAreas[this.id] = this.textArea;
 		}
 
 		const graphCanvas = this.graph?.canvas as LGraphCanvas;
@@ -74,7 +86,7 @@ class MultilineTextInput extends LGraphNode {
 		}
 
 		if (!this.isTyping) {
-			this.textArea.value = this.textValue;
+			this.textArea.value = this.getTextValue()
 		}
 	}
 
@@ -98,7 +110,7 @@ class MultilineTextInput extends LGraphNode {
 		this.isTyping = true;
 
 		this.timeoutID = window.setTimeout(() => {
-			this.textValue = this.textArea!.value;
+			this.setTextValue(this.textArea!.value);
 			this.setDirtyCanvas(true, true);
 			this.isTyping = false;
 		}, 500);
@@ -123,8 +135,10 @@ class MultilineTextInput extends LGraphNode {
 	}
 
 	onRemoved() {
+		console.log('Removing text area');
 		if (this.textArea) {
 			document.body.removeChild(this.textArea);
+			delete (window as any).textAreas[this.id];
 		}
 	}
 }

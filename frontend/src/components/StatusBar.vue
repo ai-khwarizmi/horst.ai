@@ -3,6 +3,7 @@
 		<div>Horst.ai</div>
 		<div class="flex items-center space-x-2">
 			<button @click="saveGraph">Save</button>
+			<button @click="shareUrl">Share URL</button>
 
 			<input :class="{ 'flash-green': flashGreen }" v-model="apiKey" type="text" placeholder="OpenAI API Key"
 				class="bg-gray-700 text-white p-1 rounded transition duration-200" />
@@ -62,6 +63,9 @@ export default defineComponent({
 	methods: {
 		saveGraph() {
 			(window as any).saveGraph();
+		},
+		shareUrl() {
+			(window as any).shareUrl();
 		},
 	},
 });

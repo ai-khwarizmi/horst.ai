@@ -8,7 +8,7 @@ import PromptToTextChatGpt from './nodes/PromptToText';
 import PromptToImageDalle3 from './nodes/PromptToImageDalle3';
 import Prompt from './nodes/Prompt';
 
-LiteGraph.clearRegisteredTypes();
+//LiteGraph.clearRegisteredTypes();
 LiteGraph.registerNodeType("basic/Prompt", Prompt);
 LiteGraph.registerNodeType("openai/ChatGPT", PromptToTextChatGpt);
 LiteGraph.registerNodeType("openai/Dalle3", PromptToImageDalle3);
