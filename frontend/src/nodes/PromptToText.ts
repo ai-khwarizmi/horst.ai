@@ -1,19 +1,21 @@
 import { LiteGraph, LGraphNode } from 'litegraph.js';
-import { OpenAI } from 'langchain';
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+
+const model = new ChatOpenAI({
+	model: "gpt-4",
+	openAIApiKey: window.localStorage.getItem("openai-api-key") || "",
+});
 
 class ChatGPTNode extends LGraphNode {
-	private langChain: OpenAI;
-
 	static title = "ChatGPT";
 	static desc = "Call GPT-4 via LangChain";
 
+	lastExecutedValue: string;
+	lastOutputValue: string | null;
+
 	constructor() {
 		super();
-
-		this.langChain = new OpenAI({
-			apiKey: 'your-openai-api-key',
-			model: 'gpt-4', // Specify the model
-		});
 
 		// Input slots
 		this.addInput("System Prompt", "string");
@@ -21,24 +23,37 @@ class ChatGPTNode extends LGraphNode {
 
 		// Output slot
 		this.addOutput("Response", "string");
+
+		this.lastExecutedValue = '';
+		this.lastOutputValue = null;
 	}
 
 	async onExecute() {
 		const systemPrompt = this.getInputData(0) as string;
 		const userPrompt = this.getInputData(1) as string;
 
-		if (systemPrompt && userPrompt) {
-			try {
-				const response = await this.langChain.chat({
-					systemPrompt,
-					userPrompt,
-				});
+		const newValue = JSON.stringify({ systemPrompt, userPrompt });
 
-				this.setOutputData(0, response.text);
+		if (systemPrompt && userPrompt) {
+			if (newValue === this.lastExecutedValue) {
+				this.setOutputData(0, this.lastOutputValue);
+				return;
+			}
+			this.lastExecutedValue = newValue;
+			const messages = [
+				new SystemMessage(systemPrompt),
+				new HumanMessage(userPrompt),
+			];
+			try {
+				const response = await model.invoke(messages);
+				console.log("Response from GPT-4: ", response);
+				this.lastOutputValue = response.content as string;
+				this.setOutputData(0, this.lastOutputValue);
 			} catch (error) {
 				console.error("Error calling GPT-4: ", error);
-				this.setOutputData(0, "Error: " + error.message);
 			}
+		} else {
+			this.setOutputData(0, null);
 		}
 	}
 }
