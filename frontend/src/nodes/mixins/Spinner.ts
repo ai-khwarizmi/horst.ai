@@ -33,7 +33,7 @@ export function withSpinner<TBase extends Constructor>(Base: TBase) {
 				this.spinner.style.borderWidth = `${4 * zoom}px`;
 
 				const absoluteX = canvasRect.left + ((this.pos[0] + offset[0]) * zoom);
-				const absoluteY = canvasRect.top + ((this.pos[1] + offset[1]) * zoom);
+				const absoluteY = canvasRect.top + ((this.pos[1] + offset[1]) * zoom) - (29 * zoom);
 
 				this.spinner.style.left = `${absoluteX + this.size[0] * zoom - (spinnerSize + 4 * zoom)}px`;
 				this.spinner.style.top = `${absoluteY + 4 * zoom}px`;

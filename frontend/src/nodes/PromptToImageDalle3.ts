@@ -8,7 +8,7 @@ const tool = new DallEAPIWrapper({
 	apiKey: window.localStorage.getItem("openai-api-key") || "", // API key from local storage
 });
 
-class DalleNode extends LGraphNode {
+class DalleNodeBase extends LGraphNode {
 	lastExecutedValue: string;
 	lastOutputValue: HTMLImageElement | null;
 	url: string | null;
@@ -32,6 +32,7 @@ class DalleNode extends LGraphNode {
 	async onExecute() {
 		const prompt = this.getInputData(0) as string;
 
+
 		if (prompt) {
 			if (prompt === this.lastExecutedValue) {
 				this.setOutputData(0, this.lastOutputValue);
@@ -41,6 +42,7 @@ class DalleNode extends LGraphNode {
 			this.lastOutputValue = null;
 			this.url = null;
 			try {
+				this.showSpinner();
 				const imageUrl = await tool.invoke(prompt);
 				console.log("Generated image URL: ", imageUrl);
 				this.url = imageUrl;
@@ -53,7 +55,9 @@ class DalleNode extends LGraphNode {
 					this.setOutputData(0, this.lastOutputValue);
 					this.setDirtyCanvas(true, true);
 				};
+				this.hideSpinner();
 			} catch (error) {
+				this.hideSpinner();
 				console.error("Error calling DALL-E: ", error);
 			}
 		} else {
@@ -68,5 +72,7 @@ class DalleNode extends LGraphNode {
 		}
 	}
 }
+
+const DalleNode = withSpinner(DalleNodeBase);
 
 export default DalleNode;
