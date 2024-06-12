@@ -33,7 +33,8 @@ class MultilineTextInput extends LGraphNode {
 			this.textArea.style.padding = '4px';
 			this.textArea.style.background = 'rgba(255, 255, 255)';
 			this.textArea.style.border = '0';
-			this.textArea.style.borderRadius = '0px';
+			this.textArea.style.visibility = 'hidden';
+			this.textArea.style.borderRadius = '0px 0px 8px 8px';
 			this.textArea.style.zIndex = '10';
 			this.textArea.addEventListener('input', this.handleInput.bind(this));
 			document.body.appendChild(this.textArea);
@@ -66,6 +67,11 @@ class MultilineTextInput extends LGraphNode {
 		this.textArea.style.width = `${nodeWidth}px`;
 		this.textArea.style.height = `${nodeHeight}px`;
 		this.textArea.style.fontSize = `${14 * zoom}px`; // Adjust font size according to zoom level
+		if (this.textArea.style.visibility === 'hidden' && !this.flags.collapsed) {
+			this.textArea.style.visibility = 'visible';
+		} else if (this.flags.collapsed) {
+			this.textArea.style.visibility = 'hidden';
+		}
 
 		if (!this.isTyping) {
 			this.textArea.value = this.textValue;
@@ -100,6 +106,8 @@ class MultilineTextInput extends LGraphNode {
 
 	onDrawBackground(ctx: CanvasRenderingContext2D) {
 		if (this.flags.collapsed) {
+			if (this.textArea && this.textArea.style.visibility !== 'hidden')
+				this.textArea.style.visibility = 'hidden';
 			return;
 		}
 
