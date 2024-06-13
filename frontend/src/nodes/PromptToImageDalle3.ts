@@ -88,7 +88,13 @@ class DalleNodeBase extends LGraphNode {
 	onDrawForeground(ctx: CanvasRenderingContext2D) {
 		if (this.lastOutputValue) {
 			const img = this.lastOutputValue;
-			ctx.drawImage(img, 0, 0, this.size[0], this.size[1]);
+			//draw but keep aspect ratio, center vertically and horizontally
+			const scale = Math.min(this.size[0] / img.width, this.size[1] / img.height);
+			const w = img.width * scale;
+			const h = img.height * scale;
+			const x = (this.size[0] - w) * 0.5;
+			const y = (this.size[1] - h) * 0.5;
+			ctx.drawImage(img, x, y, w, h);
 		}
 	}
 }
