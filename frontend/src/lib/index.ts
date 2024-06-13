@@ -5,17 +5,7 @@ export const nodes = writable<Node[]>([{
     id: '123',
     type: "custom",
     data: {},
-    position: { x: 0, y: 0 },
-}, {
-    id: '234',
-    type: "custom",
-    data: {},
-    position: { x: 0, y: 0 },
-}, {
-    id: '345',
-    type: "custom",
-    data: {},
-    position: { x: 0, y: 0 },
+    position: { x: 150, y: 150 },
 }]);
 export const edges = writable<Edge[]>([]);
 
