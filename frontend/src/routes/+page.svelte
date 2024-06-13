@@ -3,13 +3,16 @@
 	import { SvelteFlow, Background, Controls } from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
+	import { nodes, edges } from '$lib';
+	import CustomNode from '$lib/components/CustomNode.svelte';
 
-	const nodes = writable([]);
-	const edges = writable([]);
+	const nodeTypes = {
+		custom: CustomNode
+	};
 </script>
 
 <main>
-	<SvelteFlow {nodes} {edges}>
+	<SvelteFlow {nodes} {edges} {nodeTypes}>
 		<Background />
 		<Controls />
 	</SvelteFlow>
