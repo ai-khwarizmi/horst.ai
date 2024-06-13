@@ -2,12 +2,25 @@ import { LGraphNode } from 'litegraph.js';
 import { DallEAPIWrapper } from "@langchain/openai";
 import { withSpinner } from './mixins/Spinner';
 import { checkApiKeyPresent } from './mixins/apiKeyCheck';
+import { getApiKeys } from '../utils';
 
-const tool = new DallEAPIWrapper({
-	n: 1, // Default number of images to generate
-	model: "dall-e-3", // Model to use
-	apiKey: window.localStorage.getItem("openai-api-key") || "", // API key from local storage
-});
+
+let tool: DallEAPIWrapper;
+
+function getTool() {
+	const apiKeys = getApiKeys();
+	if (!apiKeys.openai) {
+		console.error("OpenAI API key not found");
+	}
+	tool = new DallEAPIWrapper({
+		n: 1, // Default number of images to generate
+		model: "dall-e-3", // Model to use
+		quality: 'hd',
+		apiKey: apiKeys.openai!
+	});
+	return tool;
+}
+
 
 class DalleNodeBase extends LGraphNode {
 	lastExecutedValue: string;
@@ -22,10 +35,7 @@ class DalleNodeBase extends LGraphNode {
 		super();
 		this.title = "DALL-E 3";
 
-		// Input slots
 		this.addInput("Prompt", "string");
-
-		// Output slot
 		this.addOutput("Image URL", "string");
 
 		this.lastExecutedValue = '';
@@ -51,7 +61,7 @@ class DalleNodeBase extends LGraphNode {
 			this.url = null;
 			try {
 				this.showSpinner();
-				const imageUrl = await tool.invoke(prompt);
+				const imageUrl = await getTool().invoke(prompt);
 				console.log("Generated image URL: ", imageUrl);
 				this.url = imageUrl;
 
