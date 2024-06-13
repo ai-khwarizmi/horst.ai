@@ -5,6 +5,7 @@
       <Menu v-if="!isMobile" />
       <div v-if="!isMobile" class="flex-1 overflow-auto">
         <LiteGraph />
+        <!--<LatexCompiler />-->
       </div>
       <div v-else class="flex-1 flex items-center justify-center text-xl">
         This website doesn't work on mobile.
@@ -18,12 +19,14 @@ import { defineComponent } from 'vue';
 import LiteGraph from './components/LiteGraph.vue';
 import StatusBar from './components/StatusBar.vue';
 import Menu from './components/Menu.vue';
+import LatexCompiler from './components/LatexCompiler.vue';
 
 export default defineComponent({
   components: {
     LiteGraph,
     StatusBar,
     Menu,
+    LatexCompiler
   },
   computed: {
     isMobile() {

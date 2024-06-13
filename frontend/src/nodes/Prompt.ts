@@ -2,11 +2,11 @@ import { LGraphNode, LGraphCanvas } from 'litegraph.js';
 
 class MultilineTextInput extends LGraphNode {
 	private textArea: HTMLTextAreaElement | null = null;
-	static title = 'Multiline Text Input';
+	static title = 'Text Prompt';
 
 	constructor() {
 		super();
-		this.title = 'Multiline Text Input';
+		this.title = 'Text Prompt';
 		this.addOutput('Text', 'string');
 		this.size = [300, 150];
 	}
