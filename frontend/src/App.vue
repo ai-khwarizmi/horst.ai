@@ -3,7 +3,7 @@
     <StatusBar />
     <div class="flex flex-1 overflow-hidden">
       <Menu v-if="!isMobile" />
-      <div v-if="!isMobile" class="flex-1 overflow-auto p-4">
+      <div v-if="!isMobile" class="flex-1 overflow-auto">
         <LiteGraph />
       </div>
       <div v-else class="flex-1 flex items-center justify-center text-xl">
