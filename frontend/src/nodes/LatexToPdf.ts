@@ -1,9 +1,13 @@
 import { ResizableDivNode } from './base/ResizableDivNode';
+import { withSpinner } from './mixins/Spinner';
 
 class LatexToPdfNode extends ResizableDivNode {
 	static title = 'LaTeX to PDF';
 
 	lastCompiledCode: string | null = null;
+
+	declare showSpinner: () => void;
+	declare hideSpinner: () => void;
 
 	constructor() {
 		super();
@@ -11,6 +15,18 @@ class LatexToPdfNode extends ResizableDivNode {
 		this.addInput('LaTeX Code', 'string');
 		this.size = [300, 400];
 
+	}
+
+	extractLatexCode(inputString: string) {
+		// Look for the start of a LaTeX document with \document and capture until the last \end{document}
+		const latexCodePattern = /\\document[\s\S]*?\\end\{document\}/;
+		const match = latexCodePattern.exec(inputString);
+
+		if (match) {
+			return match[0].trim();
+		} else {
+			return inputString
+		}
 	}
 
 	async onExecute() {
@@ -21,7 +37,15 @@ class LatexToPdfNode extends ResizableDivNode {
 		if (latexCode) {
 			console.log('Received LaTeX code:', latexCode);
 			this.lastCompiledCode = latexCode;
-			await this.compileLatex(latexCode);
+
+			const cleanedLatexCode = this.extractLatexCode(latexCode);
+			this.showSpinner();
+			try {
+				await this.compileLatex(cleanedLatexCode);
+			} catch (error) {
+				console.error('Error compiling LaTeX:', error);
+			}
+			this.hideSpinner();
 		}
 	}
 
@@ -57,4 +81,4 @@ class LatexToPdfNode extends ResizableDivNode {
 	}
 }
 
-export default LatexToPdfNode;
+export default withSpinner(LatexToPdfNode);
