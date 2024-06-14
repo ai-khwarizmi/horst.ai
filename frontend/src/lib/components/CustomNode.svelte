@@ -94,10 +94,10 @@
 				<Handle
 					type="target"
 					position={Position.Left}
+					class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
 					style="left:1px; top: {ROW_HEIGHT * (index + 1) +
 						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px; {connected.length &&
-						'background: green;'};"
+						4}px; height: 14px; width: 8px; border-radius: 3px;"
 					id="{input.type}-{index}-i"
 					{isValidConnection}
 					{onconnect}
@@ -118,10 +118,10 @@
 				<Handle
 					type="source"
 					position={Position.Right}
+					class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
 					style="right: 1px; top: {ROW_HEIGHT * (index + 1) +
 						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px; {connected.length &&
-						'background: green;'};"
+						4}px; height: 14px; width: 8px; border-radius: 3px;"
 					{isValidConnection}
 					{onconnect}
 					id="{output.type}-{index}-o"

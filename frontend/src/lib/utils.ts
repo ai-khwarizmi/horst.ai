@@ -4,8 +4,9 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
 import { edges, nodes, openai_key } from "$lib";
-import type { Connection, EdgeTypes } from "@xyflow/svelte";
+import type { Connection, EdgeTypes, XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
+import type { CustomNodeName } from "./nodes";
 
 const FILE_VERSION = 0.1;
 
@@ -190,6 +191,23 @@ export const flyAndScale = (
 		},
 		easing: cubicOut
 	};
+};
+
+export const addNode = (type: CustomNodeName, pos: XYPosition) => {
+	nodes.update((prev) => {
+		const nodes = prev.map(prev => ({
+			...prev,
+			selected: false
+		}))
+		nodes.push({
+			id: Math.random().toString(36).substr(2, 9),
+			type,
+			data: {},
+			selected: true,
+			position: pos
+		});
+		return nodes;
+	});
 };
 
 export const setOutputData = (id: string, handle: number, data: any) => {

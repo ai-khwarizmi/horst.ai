@@ -13,3 +13,4 @@ openai_key.subscribe((key) => {
 
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
+export const commandOpen = writable(false);

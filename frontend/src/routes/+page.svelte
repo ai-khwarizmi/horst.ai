@@ -10,6 +10,7 @@
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import { page } from '$app/stores';
 	import { loadFromHash } from '@/utils';
+	import FullCommand from '@/components/FullCommand.svelte';
 
 	onMount(() => {
 		console.log('onMount');
@@ -32,6 +33,7 @@
 
 <main>
 	<SvelteFlow {nodes} {edges} {nodeTypes}>
+		<FullCommand />
 		<Background />
 		<Controls />
 		<Panel position="top-right">
