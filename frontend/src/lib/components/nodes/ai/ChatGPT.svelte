@@ -5,8 +5,11 @@
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
+	import { Loader } from 'lucide-svelte';
 
 	let model: ChatOpenAI;
+
+	let loading = false;
 
 	function getModel() {
 		const apiKeys = getApiKeys();
@@ -46,13 +49,16 @@
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
 				ratelimit('chatgpt', 10, async () => {
+					loading = true;
 					const response = await getModel().invoke(messages);
 					console.log('Response from GPT-4: ', response);
 					lastOutputValue = response.content as string;
 					setOutputData(id, 0, lastOutputValue);
+					loading = false;
 				});
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
+				loading = false;
 			}
 		} else {
 			setOutputData(id, 0, null);
@@ -69,4 +75,11 @@
 	outputs={[{ type: 'text', label: 'Response' }]}
 	{onExecute}
 	{...$$props}
-/>
+>
+	{#if loading}
+		<div class="flex items-center justify-center">
+			<Loader class="animate-spin w-6 h-6 mr-2" />
+			<span>Loading...</span>
+		</div>
+	{/if}
+</CustomNode>

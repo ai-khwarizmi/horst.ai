@@ -58,7 +58,7 @@
 	class={cn(
 		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full flex flex-col'
 	)}
-	style="min-width: 200px"
+	style="min-width: 200px;"
 >
 	<div
 		class="text-xs w-full bg-black text-white rounded-md text-center p-0.5"
@@ -68,10 +68,12 @@
 	</div>
 	<NodeResizer
 		minWidth={200}
-		minHeight={HEADER_HEIGHT + ROW_HEIGHT * (rows + 1)}
+		minHeight={ROW_HEIGHT * (rows + 2) + HEADER_HEIGHT + 4}
 		isVisible={selected}
 	/>
-	<div class="flex justify-between text-xs uppercase gap-4 pt-[7px] max-w-full overflow-hidden">
+	<div
+		class="flex justify-between text-xs uppercase gap-4 pt-[7px] max-w-full overflow-hidden flex-shrink-0"
+	>
 		<div class="flex flex-col w-1/2">
 			{#each inputs as input, index}
 				{@const connected = inputConnections.filter(
@@ -121,7 +123,7 @@
 			{/each}
 		</div>
 	</div>
-	<div class="flex flex-col h-full">
+	<div class="flex flex-col h-full overflow-auto">
 		<slot />
 	</div>
 </div>

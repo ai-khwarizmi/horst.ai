@@ -19,7 +19,7 @@
 <CustomNode label="Text Input" {outputs} {...$$props}>
 	<Textarea
 		bind:value
-		class="w-full h-full"
+		class="w-full h-full min-h-0 min-w-0"
 		style="resize: none;"
 		on:change={() => {
 			setOutputData(id, 0, value);

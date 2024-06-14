@@ -73,7 +73,7 @@
 >
 	{#if loading}
 		<div class="flex items-center justify-center">
-			<Loader class="w-6 h-6 mr-2" />
+			<Loader class="animate-spin w-6 h-6 mr-2" />
 			<span>Loading...</span>
 		</div>
 	{/if}
