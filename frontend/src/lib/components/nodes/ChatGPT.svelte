@@ -4,6 +4,7 @@
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../utils';
+	import { ratelimit } from '../../utils/ratelimit';
 
 	let model: ChatOpenAI;
 
@@ -23,7 +24,7 @@
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
-	const onExecute = async () => {
+	const onExecute = () => {
 		const apiKeys = getApiKeys();
 		if (!apiKeys.openai) {
 			return;
@@ -44,10 +45,12 @@
 			setOutputData(id, 0, null);
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
-				const response = await getModel().invoke(messages);
-				console.log('Response from GPT-4: ', response);
-				lastOutputValue = response.content as string;
-				setOutputData(id, 0, lastOutputValue);
+				ratelimit('chatgpt', 10, async () => {
+					const response = await getModel().invoke(messages);
+					console.log('Response from GPT-4: ', response);
+					lastOutputValue = response.content as string;
+					setOutputData(id, 0, lastOutputValue);
+				});
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
 			}

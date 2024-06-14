@@ -18,7 +18,7 @@
 
 	export let outputs: Output[] = [];
 
-	export let onExecute: () => void;
+	export let onExecute: () => void = () => {};
 
 	onMount(() => {
 		if (!id) {

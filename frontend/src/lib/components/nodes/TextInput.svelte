@@ -9,12 +9,14 @@
 	const outputs: Output[] = [{ type: 'string', label: 'Text' }];
 
 	export let id: string;
-
-	const onExecute = () => {
-		setOutputData(id, 0, value);
-	};
 </script>
 
-<CustomNode label="Text Input" {outputs} {onExecute} {...$$props}>
-	<Input type="text" bind:value />
+<CustomNode label="Text Input" {outputs} {...$$props}>
+	<Input
+		type="text"
+		bind:value
+		on:change={() => {
+			setOutputData(id, 0, value);
+		}}
+	/>
 </CustomNode>
