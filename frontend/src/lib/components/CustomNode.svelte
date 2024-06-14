@@ -76,9 +76,8 @@
 					position={Position.Left}
 					style="left:1px; top: {ROW_HEIGHT * (index + 1) +
 						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px; background: {connected.length
-						? 'green'
-						: 'red'};"
+						4}px; height: 14px; width: 8px; border-radius: 3px; {connected.length &&
+						'background: green;'};"
 					id="{input.type}-{index}-i"
 					{isValidConnection}
 					{onconnect}
@@ -101,9 +100,8 @@
 					position={Position.Right}
 					style="right: 1px; top: {ROW_HEIGHT * (index + 1) +
 						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px; background: {connected.length
-						? 'green'
-						: 'red'};"
+						4}px; height: 14px; width: 8px; border-radius: 3px; {connected.length &&
+						'background: green;'};"
 					{isValidConnection}
 					{onconnect}
 					id="{output.type}-{index}-o"
