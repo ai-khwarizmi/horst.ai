@@ -56,7 +56,7 @@
 
 <div
 	class={cn(
-		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full overflow-auto'
+		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full flex flex-col'
 	)}
 	style="min-width: 200px"
 >
@@ -66,7 +66,11 @@
 	>
 		{label}
 	</div>
-	<NodeResizer minWidth={200} minHeight={ROW_HEIGHT * (rows + 1)} isVisible={selected} />
+	<NodeResizer
+		minWidth={200}
+		minHeight={HEADER_HEIGHT + ROW_HEIGHT * (rows + 1)}
+		isVisible={selected}
+	/>
 	<div class="flex justify-between text-xs uppercase gap-4 pt-[7px] max-w-full overflow-hidden">
 		<div class="flex flex-col w-1/2">
 			{#each inputs as input, index}
@@ -117,5 +121,7 @@
 			{/each}
 		</div>
 	</div>
-	<slot />
+	<div class="flex flex-col h-full">
+		<slot />
+	</div>
 </div>

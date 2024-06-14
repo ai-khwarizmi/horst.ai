@@ -19,6 +19,8 @@
 <CustomNode label="Text Input" {outputs} {...$$props}>
 	<Textarea
 		bind:value
+		class="w-full h-full"
+		style="resize: none;"
 		on:change={() => {
 			setOutputData(id, 0, value);
 		}}
