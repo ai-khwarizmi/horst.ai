@@ -5,6 +5,7 @@
 	import { nodes, edges, openai_key } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import Input from '@/components/ui/input/input.svelte';
+	import BottomBar from '@/components/BottomBar.svelte';
 </script>
 
 <main>
@@ -12,9 +13,11 @@
 		<Background />
 		<Controls />
 		<Panel position="top-center">
-			<Input bind:value={$openai_key} placeholder="Search" />
+			<Input bind:value={$openai_key} placeholder="Open AI" />
 		</Panel>
-		<Panel position="bottom-center">bottom-center</Panel>
+		<Panel position="bottom-center">
+			<BottomBar />
+		</Panel>
 		<MiniMap nodeStrokeWidth={3} />
 	</SvelteFlow>
 </main>
