@@ -10,6 +10,12 @@
 	}
 </script>
 
-<CustomNode label="Text Display" inputs={[{ type: 'any', label: 'Text' }]} {onExecute} {...$$props}>
+<CustomNode
+	label="Text Display"
+	inputs={[{ type: 'any', label: 'Text' }]}
+	{onExecute}
+	{...$$props}
+	headerType="viewer"
+>
 	{data ?? ''}
 </CustomNode>

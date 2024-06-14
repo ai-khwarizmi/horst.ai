@@ -7,6 +7,8 @@
 	let fullUrls = true;
 
 	const profileRadioValue = 'benoit';
+
+	let viewLegend = false;
 </script>
 
 <Menubar.Root>
@@ -99,3 +101,25 @@
 		</Menubar.Content>
 	</Menubar.Menu>
 </Menubar.Root>
+
+<div class="bg-white rounded-md border mt-2 p-2 text-xs">
+	<div class="font-bold text-center text-sm">Legend</div>
+	<div class="flex flex-col gap-2 p-2">
+		<div class="flex items-center gap-1">
+			<div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+			<div>Input</div>
+		</div>
+		<div class="flex items-center gap-1">
+			<div class="w-2 h-2 bg-green-500 rounded-full"></div>
+			<div>Viewer</div>
+		</div>
+		<div class="flex items-center gap-1">
+			<div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+			<div>Transform</div>
+		</div>
+		<div class="flex items-center gap-1">
+			<div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+			<div>Function</div>
+		</div>
+	</div>
+</div>

@@ -12,6 +12,7 @@
 
 <CustomNode
 	label="Number to Text"
+	headerType="transform"
 	inputs={[{ type: 'number' }]}
 	outputs={[{ type: 'text' }]}
 	{onExecute}

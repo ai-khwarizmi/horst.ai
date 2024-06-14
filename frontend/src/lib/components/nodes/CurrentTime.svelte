@@ -19,6 +19,6 @@
 	};
 </script>
 
-<CustomNode label="Current Time" {outputs} {onExecute} {...$$props}>
+<CustomNode label="Current Time" {outputs} {onExecute} {...$$props} headerType="input">
 	{currentTime.toLocaleString()}
 </CustomNode>

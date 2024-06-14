@@ -1,11 +1,12 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { getInputData, setOutputData } from '$lib/utils';
+	import { getInputData, getOutputData, setOutputData } from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
 	import { Loader } from 'lucide-svelte';
+	import { onMount } from 'svelte';
 
 	let model: ChatOpenAI;
 
@@ -26,6 +27,10 @@
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
+
+	onMount(() => {
+		lastOutputValue = String(getOutputData(id, 0));
+	});
 
 	const onExecute = () => {
 		const apiKeys = getApiKeys();
@@ -68,6 +73,7 @@
 
 <CustomNode
 	label="ChatGPT"
+	headerType="function"
 	inputs={[
 		{ type: 'text', label: 'System Prompt' },
 		{ type: 'text', label: 'User Prompt' }

@@ -16,7 +16,7 @@
 	export let id: string;
 </script>
 
-<CustomNode label="Text Input" {outputs} {...$$props}>
+<CustomNode label="Text Input" {outputs} {...$$props} headerType="input">
 	<Textarea
 		bind:value
 		class="w-full h-full min-h-0 min-w-0"

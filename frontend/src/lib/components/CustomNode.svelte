@@ -12,6 +12,17 @@
 	export let selected: boolean = false;
 
 	export let label = 'Custom Node';
+	export let headerType: 'input' | 'viewer' | 'transform' | 'function' | 'default' = 'default';
+	let headerColor = 'bg-gray-500';
+	if (headerType === 'input') {
+		headerColor = 'bg-blue-500';
+	} else if (headerType === 'viewer') {
+		headerColor = 'bg-green-500';
+	} else if (headerType === 'transform') {
+		headerColor = 'bg-yellow-500';
+	} else if (headerType === 'function') {
+		headerColor = 'bg-purple-500';
+	}
 	export let errors: string[] = [];
 
 	export let inputs: Input[] = [];
@@ -56,12 +67,13 @@
 
 <div
 	class={cn(
-		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full flex flex-col'
+		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full flex flex-col',
+		errors.length && 'border-red-500'
 	)}
 	style="min-width: 200px;"
 >
 	<div
-		class="text-xs w-full bg-black text-white rounded-md text-center p-0.5"
+		class={cn('text-xs w-full bg-black text-white rounded-md text-center p-0.5', headerColor)}
 		bind:clientHeight={HEADER_HEIGHT}
 	>
 		{label}

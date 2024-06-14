@@ -1,6 +1,6 @@
 const isRunning = new Map<string, number>();
 
-export const ratelimit = (key: string, delaySeconds: number, fn: () => Promise<any>) => {
+export const ratelimit = async (key: string, delaySeconds: number, fn: () => Promise<any>) => {
     if (isRunning.has(key)) {
         const blockedUntil = isRunning.get(key);
         if (blockedUntil && blockedUntil > Date.now()) {
@@ -11,7 +11,7 @@ export const ratelimit = (key: string, delaySeconds: number, fn: () => Promise<a
     console.log('ratelimit', key, delaySeconds);
 
     isRunning.set(key, Date.now() + delaySeconds * 1000);
-    fn().catch(err => {
+    await fn().catch(err => {
         throw err
     }).finally(() => {
         isRunning.delete(key);
