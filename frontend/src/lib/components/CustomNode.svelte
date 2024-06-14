@@ -115,6 +115,7 @@
 			{/each}
 		</div>
 	</div>
-
+	<hr />
+	<div class="font-bold text-xs">Output:</div>
 	<slot />
 </div>
