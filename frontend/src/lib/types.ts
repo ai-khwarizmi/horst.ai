@@ -1,11 +1,11 @@
-type NodeValueType = 'string' | 'number'
+export type NodeValueType = 'string' | 'number'
 
-type Input = {
+export type Input = {
     type: NodeValueType;
     label?: string;
 }
 
-type Output = {
+export type Output = {
     type: NodeValueType;
     label?: string;
 }

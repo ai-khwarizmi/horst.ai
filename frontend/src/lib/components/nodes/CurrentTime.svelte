@@ -1,6 +1,7 @@
 <script lang="ts">
-	import CustomNode from './CustomNode.svelte';
+	import CustomNode from '../CustomNode.svelte';
 	import { setOutputData } from '$lib/utils';
+	import type { Output } from '@/types';
 
 	let currentTime = new Date();
 
@@ -18,6 +19,6 @@
 	};
 </script>
 
-<CustomNode {outputs} {onExecute} {...$$props}>
+<CustomNode label="Current Time" {outputs} {onExecute} {...$$props}>
 	{currentTime.toLocaleString()}
 </CustomNode>

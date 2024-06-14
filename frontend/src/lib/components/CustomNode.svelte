@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
+	import type { Input, Output } from '@/types';
 
 	const ROW_HEIGHT = 20;
 
@@ -31,13 +32,14 @@
 	const onconnect = (connections: Connection[]) => {
 		const edgesToRemove: string[] = [];
 		for (const connection of connections) {
+			const conn: Connection & { edgeId?: string } = connection;
 			const e = get(edges);
 			if (!e) return;
 			const edge = e.filter(
 				(edge) =>
-					edge.target === connection.target &&
-					edge.targetHandle === connection.targetHandle &&
-					edge.id !== connection.edgeId
+					edge.target === conn.target &&
+					edge.targetHandle === conn.targetHandle &&
+					edge.id !== conn.edgeId
 			);
 			edgesToRemove.push(...edge.map((edge) => edge.id));
 		}
@@ -115,7 +117,5 @@
 			{/each}
 		</div>
 	</div>
-	<hr />
-	<div class="font-bold text-xs">Output:</div>
 	<slot />
 </div>

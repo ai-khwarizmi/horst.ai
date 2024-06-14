@@ -1,8 +1,8 @@
 import { type Node, type Edge, type NodeTypes } from "@xyflow/svelte";
 import { writable } from "svelte/store";
-import CurrentTime from "./components/CurrentTime.svelte";
-import TextDisplay from "./components/TextDisplay.svelte";
-import NumberToString from "./components/NumberToString.svelte";
+import CurrentTime from "./components/nodes/CurrentTime.svelte";
+import TextDisplay from "./components/nodes/TextDisplay.svelte";
+import NumberToString from "./components/nodes/NumberToString.svelte";
 
 export const nodes = writable<Node[]>([
     {
