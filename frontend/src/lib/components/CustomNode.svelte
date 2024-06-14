@@ -1,42 +1,58 @@
 <script lang="ts">
 	import { customNodes } from '$lib';
-	import { isValidConnection } from '$lib/utils';
-	import { Background, BackgroundVariant, Handle, NodeResizer, Position } from '@xyflow/svelte';
+	import { cn, isValidConnection } from '$lib/utils';
+	import {
+		Background,
+		BackgroundVariant,
+		Handle,
+		NodeResizer,
+		Position,
+		useConnection,
+		useEdges,
+		useHandleConnections,
+		useInternalNode,
+		type NodeProps
+	} from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 
 	const ROW_HEIGHT = 20;
 
-	export let id: string; // Node ID
-	export let type: string;
-	export let selected: boolean;
+	export let id: string | undefined = undefined; // Node ID
+	// export let type: string;
+	export let selected: boolean = false;
+
+	export let errors: string[] = [];
 
 	export let inputs: {
 		type: NodeValueType;
 		label?: string;
-	}[] = [
-		{ label: 'text input lol', type: 'string' },
-		{ type: 'string' },
-		{ type: 'string' },
-		{ type: 'string' }
-	];
+	}[] = [];
 
 	export let outputs: {
 		type: NodeValueType;
 		label?: string;
-	}[] = [{ type: 'string' }, { type: 'string' }];
+	}[] = [];
+
+	export let onExecute: () => void;
 
 	onMount(() => {
-		customNodes[type] = {
-			inputs,
-			outputs
-		};
+		if (!id) {
+			throw new Error('Node ID is required');
+		}
+		setInterval(() => {
+			onExecute();
+		}, 50);
 	});
 
 	$: rows = Math.max(inputs.length, outputs.length);
 </script>
 
+<!-- {JSON.stringify($$props)} -->
+
 <div
-	class="px-1 pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full"
+	class={cn(
+		'px-1 pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full overflow-auto'
+	)}
 	style="min-width: 200px"
 >
 	<NodeResizer minWidth={200} minHeight={ROW_HEIGHT * (rows + 1)} isVisible={selected} />
@@ -53,7 +69,7 @@
 					{isValidConnection}
 				/>
 				<div
-					class="text-ellipsis truncate overflow-hidden w-full"
+					class="text-ellipsis truncate overflow-hidden w-full font-bold"
 					style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 				>
 					{input.label ?? input.type}
@@ -71,7 +87,7 @@
 					id="{output.type}-{index}-o"
 				/>
 				<div
-					class="text-ellipsis truncate overflow-hidden w-full"
+					class="text-ellipsis truncate overflow-hidden w-full font-bold"
 					style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 				>
 					{output.label ?? output.type}
@@ -80,15 +96,7 @@
 		</div>
 	</div>
 
-	<!-- <div
-		class="grid grid-cols-2 pt-[8px]"
-		style="min-width: 100px; min-height: {ROW_HEIGHT * rows}px;"
-	>
-		<div class="h-[10px]" style="line-height: {ROW_HEIGHT}px">1</div>
-		<div class="h-[10px]" style="line-height: {ROW_HEIGHT}px">1</div>
-		<div class="h-[10px]" style="line-height: {ROW_HEIGHT}px">1</div>
-		<div class="h-[10px]" style="line-height: {ROW_HEIGHT}px">1</div>
-	</div> -->
+	<slot />
 </div>
 
 <!-- 
