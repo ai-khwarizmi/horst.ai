@@ -2,6 +2,7 @@ import CurrentTime from "./components/nodes/CurrentTime.svelte";
 import NumberToString from "./components/nodes/NumberToString.svelte";
 import TextDisplay from "./components/nodes/TextDisplay.svelte";
 import TextInput from "./components/nodes/TextInput.svelte";
+import ChatGpt from "./components/nodes/ChatGPT.svelte";
 
 const nodes = {
     // Generics
@@ -14,6 +15,7 @@ const nodes = {
     // Number Tools
     num2str: NumberToString as any,
 
+    chatGpt: ChatGpt as any,
 
     // GPT
     // etc.

@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 
-import { edges, nodes } from "$lib";
+import { edges, nodes, openai_key } from "$lib";
 import type { Connection, EdgeTypes } from "@xyflow/svelte";
 import { get } from "svelte/store";
 
@@ -121,4 +121,15 @@ export const getInputData = (id: string, handle: number) => {
 	const sourceHandle = parseInt(sourceHandleString);
 	if (isNaN(sourceHandle)) return;
 	return node.data[sourceHandle]
+}
+
+
+export type ApiKeys = {
+	openai: string | null
+}
+
+export function getApiKeys(): ApiKeys {
+	return {
+		openai: get(openai_key)
+	}
 }

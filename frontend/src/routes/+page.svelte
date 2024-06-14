@@ -6,6 +6,17 @@
 	import { nodeTypes } from '@/nodes';
 	import Input from '@/components/ui/input/input.svelte';
 	import BottomBar from '@/components/BottomBar.svelte';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		console.log('onMount');
+		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
+		console.log('existingOpenaiApiKey', existingOpenaiApiKey);
+		if (existingOpenaiApiKey) {
+			console.log('setting existingOpenaiApiKey');
+			openai_key.set(existingOpenaiApiKey);
+		}
+	});
 </script>
 
 <main>
