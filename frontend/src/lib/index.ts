@@ -1,6 +1,8 @@
 import { type Node, type Edge, type NodeTypes } from "@xyflow/svelte";
 import { writable } from "svelte/store";
 
+export const openai_key = writable('');
+
 export const nodes = writable<Node[]>([
     {
         id: '123',
