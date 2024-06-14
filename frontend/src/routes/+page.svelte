@@ -1,17 +1,9 @@
 <script lang="ts">
-	import { writable } from 'svelte/store';
-	import {
-		SvelteFlow,
-		Background,
-		Controls,
-		type NodeTypes,
-		NodeToolbar,
-		Panel,
-		MiniMap
-	} from '@xyflow/svelte';
+	import { SvelteFlow, Background, Controls, Panel, MiniMap } from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, nodeTypes } from '$lib';
+	import { nodes, edges } from '$lib';
+	import { nodeTypes } from '@/nodes';
 </script>
 
 <main>

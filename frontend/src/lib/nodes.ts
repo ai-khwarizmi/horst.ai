@@ -3,7 +3,7 @@ import NumberToString from "./components/nodes/NumberToString.svelte";
 import TextDisplay from "./components/nodes/TextDisplay.svelte";
 import TextInput from "./components/nodes/TextInput.svelte";
 
-export const nodeTypes = {
+const nodes = {
     // Generics
     currentTime: CurrentTime,
 
@@ -18,3 +18,8 @@ export const nodeTypes = {
     // GPT
     // etc.
 }
+
+
+export type CustomNodeName = keyof typeof nodeTypes;
+
+export const nodeTypes = nodes as Record<string, any>
