@@ -1,18 +1,6 @@
 <script lang="ts">
-	import { customNodes } from '$lib';
 	import { cn, isValidConnection } from '$lib/utils';
-	import {
-		Background,
-		BackgroundVariant,
-		Handle,
-		NodeResizer,
-		Position,
-		useConnection,
-		useEdges,
-		useHandleConnections,
-		useInternalNode,
-		type NodeProps
-	} from '@xyflow/svelte';
+	import { Handle, NodeResizer, Position } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 
 	const ROW_HEIGHT = 20;
@@ -23,15 +11,9 @@
 
 	export let errors: string[] = [];
 
-	export let inputs: {
-		type: NodeValueType;
-		label?: string;
-	}[] = [];
+	export let inputs: Input[] = [];
 
-	export let outputs: {
-		type: NodeValueType;
-		label?: string;
-	}[] = [];
+	export let outputs: Output[] = [];
 
 	export let onExecute: () => void;
 

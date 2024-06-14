@@ -1,10 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import CustomNode from './CustomNode.svelte';
-	import { useInternalNode } from '@xyflow/svelte';
+	import { NodeToolbar, useInternalNode } from '@xyflow/svelte';
 	import { setOutputData } from '$lib/utils';
 
 	let currentTime = new Date();
+
+	const outputs: Output[] = [
+		{ type: 'string', label: 'Current Date' },
+		{ type: 'number', label: 'current ms' }
+	];
 
 	export let id: string;
 
@@ -17,13 +22,6 @@
 	};
 </script>
 
-<CustomNode
-	outputs={[
-		{ type: 'string', label: 'Current Date' },
-		{ type: 'number', label: 'current ms' }
-	]}
-	{onExecute}
-	{...$$props}
->
+<CustomNode {outputs} {onExecute} {...$$props}>
 	{currentTime.toLocaleString()}
 </CustomNode>

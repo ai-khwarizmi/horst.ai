@@ -34,10 +34,10 @@ export const nodes = writable<Node[]>([
 ]);
 export const edges = writable<Edge[]>([]);
 
-export const customNodes: Record<string, any> = {};
-
-export const nodeTypes: NodeTypes = {
+export const nodeTypes = {
     currentTime: CurrentTime as any,
     textDisplay: TextDisplay as any,
     num2str: NumberToString as any,
-};
+} as const
+
+export type CustomNodeType = keyof typeof nodeTypes;
