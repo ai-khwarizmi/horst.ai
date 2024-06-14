@@ -7,19 +7,13 @@
 	import {
 		AlignLeft,
 		Bot,
-		BoxIcon,
 		CalendarCog,
 		GitCompareArrows,
 		ImagePlus,
-		ImageUp,
-		TextCursor,
 		TextCursorInput
 	} from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { commandOpen } from '..';
-
-	let mousePos: XYPosition = { x: 0, y: 0 };
-	let pos: XYPosition | null = null;
 
 	onMount(() => {
 		function handleKeydown(e: KeyboardEvent) {
@@ -27,16 +21,16 @@
 			// 	e.preventDefault();
 			// 	commandOpen.update((prev) => !prev);
 			// }
+			const { activeElement } = document;
+			if (activeElement) {
+				if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+					return;
+				}
+			}
 			if (e.code === 'Space') {
 				if (!$commandOpen) {
 					e.preventDefault();
 					commandOpen.set(true);
-					pos = browser
-						? screenToFlowPosition(mousePos)
-						: {
-								x: 0,
-								y: 0
-							};
 				}
 			}
 			if (e.key === 'Escape') {
@@ -64,8 +58,6 @@
 		commandOpen.set(false);
 	};
 </script>
-
-<svelte:window on:mousemove={(e) => (mousePos = { x: e.clientX, y: e.clientY })} />
 
 <Command.Dialog bind:open={$commandOpen}>
 	<Command.Input placeholder="Search" />
