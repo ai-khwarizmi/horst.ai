@@ -33,6 +33,12 @@ export const nodes = writable<Node[]>([
         type: "textInput",
         data: {},
         position: { x: 150, y: 150 },
+    },
+    {
+        id: '146161461461a4',
+        type: "chatGpt",
+        data: {},
+        position: { x: 350, y: 150 },
     }
 ]);
 export const edges = writable<Edge[]>([]);

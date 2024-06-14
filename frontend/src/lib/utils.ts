@@ -122,3 +122,14 @@ export const getInputData = (id: string, handle: number) => {
 	if (isNaN(sourceHandle)) return;
 	return node.data[sourceHandle]
 }
+
+
+export type ApiKeys = {
+	openai: string | null
+}
+
+export function getApiKeys(): ApiKeys {
+	return {
+		openai: window.localStorage.getItem('openai-api-key')
+	}
+}
