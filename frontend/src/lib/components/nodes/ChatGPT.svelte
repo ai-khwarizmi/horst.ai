@@ -4,7 +4,6 @@
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../utils';
-	import { writable } from 'svelte/store';
 
 	let model: ChatOpenAI;
 
@@ -21,13 +20,12 @@
 
 	export let id: string;
 
-	const lastExecutedValue = writable('');
-	const lastOutputValue = writable<string | null>(null);
+	let lastExecutedValue: null | string = null;
+	let lastOutputValue: null | string = '';
 
 	const onExecute = async () => {
 		const apiKeys = getApiKeys();
 		if (!apiKeys.openai) {
-			console.error('OpenAI API key is missing');
 			return;
 		}
 
@@ -37,19 +35,19 @@
 		const newValue = JSON.stringify({ systemPrompt, userPrompt });
 
 		if (systemPrompt && userPrompt) {
-			if (newValue === $lastExecutedValue) {
-				setOutputData(id, 0, $lastOutputValue);
+			if (newValue === lastExecutedValue) {
+				setOutputData(id, 0, lastOutputValue);
 				return;
 			}
-			lastExecutedValue.set(newValue);
-			lastOutputValue.set(null);
+			lastOutputValue = null;
+			lastExecutedValue = newValue;
 			setOutputData(id, 0, null);
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
 				const response = await getModel().invoke(messages);
 				console.log('Response from GPT-4: ', response);
-				lastOutputValue.set(response.content as string);
-				setOutputData(id, 0, $lastOutputValue);
+				lastOutputValue = response.content as string;
+				setOutputData(id, 0, lastOutputValue);
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
 			}
