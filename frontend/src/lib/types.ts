@@ -1,4 +1,4 @@
-export type NodeValueType = 'string' | 'number'
+export type NodeValueType = 'any' | 'string' | 'number'
 
 export type Input = {
     type: NodeValueType;

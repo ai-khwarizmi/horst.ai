@@ -10,11 +10,6 @@
 	}
 </script>
 
-<CustomNode
-	label="Text Display"
-	inputs={[{ type: 'string', label: 'Text' }]}
-	{onExecute}
-	{...$$props}
->
+<CustomNode label="Text Display" inputs={[{ type: 'any', label: 'Text' }]} {onExecute} {...$$props}>
 	{data ?? ''}
 </CustomNode>

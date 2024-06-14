@@ -19,7 +19,7 @@ export const isValidConnection = (connection: any): boolean => {
 	}
 	const [sourceType] = connection.sourceHandle.split('-');
 	const [targetType] = connection.targetHandle.split('-');
-	if (sourceType !== targetType) {
+	if (sourceType !== targetType && targetType !== 'any') {
 		return false;
 	}
 	const e = get(edges);

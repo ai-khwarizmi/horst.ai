@@ -30,11 +30,11 @@
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
 		"typescript-eslint": "^8.0.0-alpha.20",
-		"vite": "^5.0.3"
+		"vite": "^5.0.3",
+		"wrangler": "2.1.15"
 	},
 	"type": "module",
 	"dependencies": {
-		"@sveltejs/adapter-cloudflare": "^4.4.1",
 		"@sveltejs/adapter-static": "^3.0.2",
 		"@xyflow/svelte": "^0.1.6",
 		"clsx": "^2.1.1",
