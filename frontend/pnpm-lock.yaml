@@ -32,6 +32,9 @@ importers:
       lucide-svelte:
         specifier: ^0.394.0
         version: 0.394.0(svelte@4.2.18)
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -1657,6 +1660,10 @@ packages:
     resolution: {integrity: sha512-txlzIrP/uTF5dIg0byuzbfYIwL/4lhkPOMukr/RoZsSeSExRdbGHq/i/oMiDx0XhaaJHQF6w04XpvBXrmObGVA==}
     peerDependencies:
       svelte: ^3 || ^4 || ^5.0.0-next.42
+
+  lz-string@1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
+    hasBin: true
 
   magic-string@0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
@@ -3866,6 +3873,8 @@ snapshots:
   lucide-svelte@0.394.0(svelte@4.2.18):
     dependencies:
       svelte: 4.2.18
+
+  lz-string@1.5.0: {}
 
   magic-string@0.25.9:
     dependencies:

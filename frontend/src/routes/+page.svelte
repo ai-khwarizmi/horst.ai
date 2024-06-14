@@ -7,6 +7,9 @@
 	import Input from '@/components/ui/input/input.svelte';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import { onMount } from 'svelte';
+	import TopMenuBar from '@/components/TopMenuBar.svelte';
+	import { page } from '$app/stores';
+	import { loadFromHash } from '@/utils';
 
 	onMount(() => {
 		console.log('onMount');
@@ -16,6 +19,14 @@
 			console.log('setting existingOpenaiApiKey');
 			openai_key.set(existingOpenaiApiKey);
 		}
+
+		// load hash
+		if ($page.url.hash) {
+			const hash = $page.url.hash;
+			if (hash.length > 1) {
+				loadFromHash();
+			}
+		}
 	});
 </script>
 
@@ -23,8 +34,11 @@
 	<SvelteFlow {nodes} {edges} {nodeTypes}>
 		<Background />
 		<Controls />
-		<Panel position="top-center">
+		<Panel position="top-right">
 			<Input bind:value={$openai_key} placeholder="Open AI" />
+		</Panel>
+		<Panel position="top-left">
+			<TopMenuBar />
 		</Panel>
 		<Panel position="bottom-center">
 			<BottomBar />

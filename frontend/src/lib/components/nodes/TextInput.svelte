@@ -1,19 +1,23 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
-	import { setOutputData } from '$lib/utils';
+	import { getInputData, getOutputData, setOutputData } from '$lib/utils';
 	import type { Output } from '@/types';
-	import { Input } from '$lib/components/ui/input';
+	import Textarea from '../ui/textarea/textarea.svelte';
+	import { onMount } from 'svelte';
 
 	let value = '';
 
-	const outputs: Output[] = [{ type: 'string', label: 'Text' }];
+	onMount(() => {
+		value = String(getOutputData(id, 0));
+	});
+
+	const outputs: Output[] = [{ type: 'text' }];
 
 	export let id: string;
 </script>
 
 <CustomNode label="Text Input" {outputs} {...$$props}>
-	<Input
-		type="text"
+	<Textarea
 		bind:value
 		on:change={() => {
 			setOutputData(id, 0, value);

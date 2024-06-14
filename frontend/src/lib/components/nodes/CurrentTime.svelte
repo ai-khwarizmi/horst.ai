@@ -6,7 +6,7 @@
 	let currentTime = new Date();
 
 	const outputs: Output[] = [
-		{ type: 'string', label: 'Current Date' },
+		{ type: 'text', label: 'Current Date' },
 		{ type: 'number', label: 'current ms' }
 	];
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getInputData, setOutputData } from '@/utils';
-	import CustomNode from '../CustomNode.svelte';
+	import CustomNode from '../../CustomNode.svelte';
 
 	export let id: string;
 
@@ -11,9 +11,9 @@
 </script>
 
 <CustomNode
-	label="Number to String"
-	inputs={[{ type: 'number', label: 'Number' }]}
-	outputs={[{ type: 'string', label: 'String' }]}
+	label="Number to Text"
+	inputs={[{ type: 'number' }]}
+	outputs={[{ type: 'text' }]}
 	{onExecute}
 	{...$$props}
 />

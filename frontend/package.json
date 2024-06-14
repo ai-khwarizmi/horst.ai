@@ -43,6 +43,7 @@
 		"clsx": "^2.1.1",
 		"langchain": "^0.2.5",
 		"lucide-svelte": "^0.394.0",
+		"lz-string": "^1.5.0",
 		"tailwind-merge": "^2.3.0",
 		"tailwind-variants": "^0.2.1"
 	}

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import CustomNode from '../CustomNode.svelte';
+	import CustomNode from '../../CustomNode.svelte';
 	import { getInputData, setOutputData } from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-	import { getApiKeys } from '../../utils';
-	import { ratelimit } from '../../utils/ratelimit';
+	import { getApiKeys } from '../../../utils';
+	import { ratelimit } from '../../../utils/ratelimit';
 
 	let model: ChatOpenAI;
 
@@ -63,10 +63,10 @@
 <CustomNode
 	label="ChatGPT"
 	inputs={[
-		{ type: 'string', label: 'System Prompt' },
-		{ type: 'string', label: 'User Prompt' }
+		{ type: 'text', label: 'System Prompt' },
+		{ type: 'text', label: 'User Prompt' }
 	]}
-	outputs={[{ type: 'string', label: 'Response' }]}
+	outputs={[{ type: 'text', label: 'Response' }]}
 	{onExecute}
 	{...$$props}
 />

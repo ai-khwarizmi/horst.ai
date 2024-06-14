@@ -2,10 +2,12 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-
+import * as LZString from 'lz-string';
 import { edges, nodes, openai_key } from "$lib";
 import type { Connection, EdgeTypes } from "@xyflow/svelte";
 import { get } from "svelte/store";
+
+const FILE_VERSION = 0.1;
 
 export const isValidConnection = (connection: any): boolean => {
 	if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
@@ -35,7 +37,98 @@ export const isValidConnection = (connection: any): boolean => {
 	return true;
 }
 
+export const saveGraph = () => {
+	const n = get(nodes);
+	const e = get(edges);
 
+	const graph = {
+		version: FILE_VERSION,
+		nodes: n,
+		edges: e
+	};
+
+	const str = JSON.stringify(graph, null, 4);
+	const blob = new Blob([str], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.download = 'graph.json';
+	a.href = url;
+	a.click();
+}
+
+export const shareUrl = () => {
+	const n = get(nodes);
+	const e = get(edges);
+
+	const version = 0.1;
+
+	const graph = {
+		version: FILE_VERSION,
+		nodes: n,
+		edges: e
+	};
+
+	const str = JSON.stringify(graph);
+
+	//uncompressed base64
+	const base64 = btoa(str);
+
+	//compress
+	const compressed = LZString.compressToBase64(str);
+	console.log('compression ratio:', compressed.length / base64.length);
+	console.log('before:', base64.length, ' after:', compressed.length);
+
+	const shorterVersion = compressed.length < base64.length ? compressed : base64;
+	//set as hash
+	location.hash = shorterVersion;
+	if (shorterVersion == compressed)
+		console.log('using Compressed');
+	else
+		console.log('using Uncompressed');
+
+	//copy to clipboard
+
+	navigator.clipboard.writeText(location.href);
+}
+
+export const loadFromHash = () => {
+	const hash = location.hash;
+	if (!hash) return;
+	const str = LZString.decompressFromBase64(hash.slice(1));
+	if (!str) return;
+	const graph = JSON.parse(str);
+	if (graph.version !== FILE_VERSION) {
+		// TODO: improve
+		console.error('version mismatch');
+		return;
+	}
+	nodes.set(graph.nodes);
+	edges.set(graph.edges);
+}
+
+
+export const loadGraph = async () => {
+	const input = document.createElement('input');
+	input.type = 'file';
+	input.accept = '.json';
+	input.onchange = async (e) => {
+		const target = e.target as HTMLInputElement;
+		if (!target.files) return alert('no file selected');
+		const file = target.files[0];
+		const text = await file.text();
+		const graph = JSON.parse(text);
+		if (graph.version !== FILE_VERSION) {
+			alert('version mismatch');
+			return
+		}
+
+		console.log(graph)
+		nodes.set(graph.nodes);
+		edges.set(graph.edges);
+		alert('loaded');
+	};
+	input.click();
+}
 
 export const removeEdgeByIds = (...ids: string[]) => {
 	edges.update(e => e.filter(edge => !ids.includes(edge.id)));
@@ -104,6 +197,13 @@ export const setOutputData = (id: string, handle: number, data: any) => {
 	const node = n.find(n => n.id === id);
 	if (!node) return;
 	node.data[handle] = data;
+}
+
+export const getOutputData = (id: string, handle: number) => {
+	const n = get(nodes);
+	const node = n.find(n => n.id === id);
+	if (!node) return;
+	return node.data[handle];
 }
 
 export const getInputData = (id: string, handle: number) => {
