@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
-	import { loadGraph, saveGraph, shareUrl } from '@/utils';
-	import { Download, Upload } from 'lucide-svelte';
+	import { loadGraph, resetGraph, saveGraph, shareUrl } from '@/utils';
+	import { Download, File, Upload } from 'lucide-svelte';
 
 	let bookmarks = false;
 	let fullUrls = true;
@@ -15,6 +15,11 @@
 	<Menubar.Menu>
 		<Menubar.Trigger>File</Menubar.Trigger>
 		<Menubar.Content>
+			<Menubar.Item on:click={resetGraph}>
+				<File class="mr-2 size-3.5" />
+				New Graph
+			</Menubar.Item>
+			<Menubar.Separator />
 			<Menubar.Item on:click={loadGraph}>
 				<Upload class="mr-2 size-3.5" />
 				Upload

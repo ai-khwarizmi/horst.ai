@@ -107,6 +107,11 @@ export const loadFromHash = () => {
 	edges.set(graph.edges);
 }
 
+export const resetGraph = () => {
+	window.location.hash = '';
+	nodes.set([]);
+	edges.set([]);
+}
 
 export const loadGraph = async () => {
 	const input = document.createElement('input');
