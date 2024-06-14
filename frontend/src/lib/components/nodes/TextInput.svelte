@@ -8,7 +8,10 @@
 	let value = '';
 
 	onMount(() => {
-		value = String(getOutputData(id, 0));
+		const data = getOutputData(id, 0);
+		if (data) {
+			value = String(data);
+		}
 	});
 
 	const outputs: Output[] = [{ type: 'text' }];
