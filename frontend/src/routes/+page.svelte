@@ -6,7 +6,8 @@
 		Controls,
 		type NodeTypes,
 		NodeToolbar,
-		Panel
+		Panel,
+		MiniMap
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
@@ -18,6 +19,7 @@
 		<Background />
 		<Controls />
 		<Panel position="bottom-center">bottom-center</Panel>
+		<MiniMap nodeStrokeWidth={3} />
 	</SvelteFlow>
 </main>
 

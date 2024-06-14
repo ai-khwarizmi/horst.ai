@@ -1,7 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import CustomNode from './CustomNode.svelte';
-	import { NodeToolbar, useInternalNode } from '@xyflow/svelte';
 	import { setOutputData } from '$lib/utils';
 
 	let currentTime = new Date();
@@ -12,8 +10,6 @@
 	];
 
 	export let id: string;
-
-	$: node = useInternalNode(id);
 
 	const onExecute = () => {
 		currentTime = new Date();

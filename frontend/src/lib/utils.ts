@@ -24,15 +24,21 @@ export const isValidConnection = (connection: any): boolean => {
 	}
 	const e = get(edges);
 	// check if target already has a connection
-	const hasConnection = e.some(edge => {
-		console.log(edge, connection)
-		return edge.targetHandle === connection.targetHandle && edge.target === connection.target;
-	});
+	// const hasConnection = e.some(edge => {
+	// 	console.log(edge, connection)
+	// 	return edge.targetHandle === connection.targetHandle && edge.target === connection.target;
+	// });
 
-	if (hasConnection) {
-		return false;
-	}
+	// if (hasConnection) {
+	// 	return false;
+	// }
 	return true;
+}
+
+
+
+export const removeEdgeByIds = (...ids: string[]) => {
+	edges.update(e => e.filter(edge => !ids.includes(edge.id)));
 }
 
 export function cn(...inputs: ClassValue[]) {
