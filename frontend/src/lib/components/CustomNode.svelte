@@ -5,7 +5,9 @@
 		isValidConnection,
 		removeEdgeByIds,
 		type OnExecuteCallbacks,
-		type NodeStatus
+		type NodeStatus,
+		type NodeStatusWithoutError,
+		type NodeError
 	} from '$lib/utils';
 	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
@@ -13,15 +15,8 @@
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
-	import {
-		RefreshCw,
-		Circle,
-		LoaderCircle,
-		Loader,
-		TriangleAlert,
-		Check,
-		AlignCenter
-	} from 'lucide-svelte';
+	import * as HoverCard from '$lib/components/ui/hover-card';
+	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -40,15 +35,17 @@
 
 	let status: NodeStatus = 'idle';
 
-	export let errors: string[] = [];
+	let errors: NodeError[] = [];
 	export let inputs: Input[] = [];
 	export let outputs: Output[] = [];
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
-		setStatus: (newStatus: NodeStatus) => {
+		setStatus: (newStatus: NodeStatusWithoutError) => {
+			errors = [];
 			status = newStatus;
 		},
-		setErrors: (newErrors: string[]) => {
+		setErrors: (newErrors: NodeError[]) => {
+			status = 'error';
 			errors = newErrors;
 		}
 	};
@@ -91,21 +88,49 @@
 
 	$: rows = Math.max(inputs.length, outputs.length);
 
+	$: hasContent = !!$$slots['default'];
+
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
 
-	$: minHeight = HEADER_HEIGHT + ROW_HEIGHT * rows + ROW_GAP * rows + BORDER_WIDTH * 2 + 4 + 5;
-	$: hasContent = !!$$slots['default'];
+	$: minHeight =
+		HEADER_HEIGHT +
+		ROW_HEIGHT * rows +
+		ROW_GAP * rows +
+		BORDER_WIDTH * 2 +
+		4 +
+		5 +
+		(hasContent ? 20 : 0);
 </script>
 
-<div class={cn('flex flex-col h-full gap-1 overflow-hidden')} style="min-width: 200px">
+<div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between w-full">
-			<div class="flex items-center space-x-2">
+			<div class="relative flex items-center space-x-2">
 				{#if status === 'loading'}
 					<LoaderCircle class="animate-spin w-6 h-6" />
 				{:else if status === 'error'}
-					<TriangleAlert class="w-6 h-6 text-red-500" />
+					<HoverCard.Root openDelay={50}>
+						<HoverCard.Trigger>
+							<TriangleAlert class="w-6 h-6 text-red-500" />
+						</HoverCard.Trigger>
+						<HoverCard.Content class="p-2 text-xs">
+							<ul class="list-disc list-inside">
+								{#each errors as error}
+									{#if typeof error === 'string'}
+										<li>{error}</li>
+									{:else}
+										<li>
+											{error.message}
+											<button class="text-blue-500 hover:underline" on:click={error.resolve}>
+												Resolve
+											</button>
+										</li>
+									{/if}
+								{/each}
+							</ul>
+						</HoverCard.Content>
+					</HoverCard.Root>
 				{:else if status === 'idle'}
 					<Circle class="w-6 h-6 invisible" />
 				{:else if status === 'success'}
@@ -126,7 +151,6 @@
 	<NodeResizer
 		minWidth={200}
 		{minHeight}
-		maxHeight={hasContent ? undefined : minHeight}
 		isVisible={selected}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
@@ -149,7 +173,15 @@
 		)}
 		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 	>
-		<div class={cn('rounded-t-sm py-2 text-black border-b-2', colors.background, colors.text)}>
+		<div
+			class={cn(
+				'rounded-sm py-2 text-black',
+				hasContent && 'border-b-2 rounded-b-none',
+				colors.background,
+				colors.text,
+				colors.border
+			)}
+		>
 			<div
 				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
@@ -205,8 +237,8 @@
 				</div>
 			</div>
 		</div>
-		{#if $$slots['default']}
-			<div class="flex flex-col overflow-auto p-2">
+		{#if hasContent}
+			<div class="flex flex-col overflow-auto p-2 flex-grow">
 				<slot />
 			</div>
 		{/if}

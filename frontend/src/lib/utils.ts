@@ -9,6 +9,7 @@ import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
 import { NodeType } from "./types";
+import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
 
 export const FILE_VERSION = 0.1;
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
@@ -106,32 +107,6 @@ export const saveToLocalStorage = () => {
 	const graph = getSaveData();
 	const str = JSON.stringify(graph);
 	window.localStorage.setItem(LOCALSTORAGE_KEY, str);
-}
-
-export const shareUrl = () => {
-	const graph = getSaveData();
-
-	const str = JSON.stringify(graph);
-
-	//uncompressed base64
-	const base64 = btoa(str);
-
-	//compress
-	const compressed = LZString.compressToBase64(str);
-	console.log('compression ratio:', compressed.length / base64.length);
-	console.log('before:', base64.length, ' after:', compressed.length);
-
-	const shorterVersion = compressed.length < base64.length ? compressed : base64;
-	//set as hash
-	location.hash = shorterVersion;
-	if (shorterVersion == compressed)
-		console.log('using Compressed');
-	else
-		console.log('using Uncompressed');
-
-	//copy to clipboard
-
-	navigator.clipboard.writeText(location.href);
 }
 
 export const loadFromHash = (): boolean => {
@@ -319,8 +294,18 @@ export function getApiKeys(): ApiKeys {
 	}
 }
 
-export type NodeStatus = 'idle' | 'loading' | 'success' | 'error';
+export type NodeError = string | {
+	message: string;
+	resolve?: () => void;
+}
+export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
+export type NodeStatus = NodeStatusWithoutError | 'error';
 export type OnExecuteCallbacks = {
-	setStatus: (newStatus: NodeStatus) => void;
-	setErrors: (newErrors: string[]) => void;
+	setStatus: (newStatus: NodeStatusWithoutError) => void;
+	setErrors: (newErrors: NodeError[]) => void;
 };
+
+export const OPENAI_KEY_MISSING: NodeError = {
+	message: 'OpenAI key missing. Please add your key in the settings tab.',
+	resolve: openApiKeySettings
+}
