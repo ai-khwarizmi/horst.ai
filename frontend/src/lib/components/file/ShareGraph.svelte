@@ -2,7 +2,7 @@
 	import { get, writable } from 'svelte/store';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { edges, nodes } from '@/index';
-	import { FILE_VERSION } from '@/utils';
+	import { FILE_VERSION, getSaveData } from '@/utils';
 	import * as LZString from 'lz-string';
 	import Input from '../ui/input/input.svelte';
 	import { toast } from 'svelte-sonner';
@@ -18,7 +18,7 @@
 </script>
 
 <script lang="ts">
-	let includeData = false;
+	let includeData = true;
 	let sizeByes = 0;
 
 	$: url = $open ? generateUrl(includeData) : '';
@@ -31,11 +31,7 @@
 			return url.href;
 		}
 
-		const graph = {
-			version: FILE_VERSION,
-			nodes: includeData ? $nodes : $nodes.map((node) => ({ ...node, data: {} })),
-			edges: $edges
-		};
+		const graph = getSaveData(includeData);
 
 		const str = JSON.stringify(graph);
 

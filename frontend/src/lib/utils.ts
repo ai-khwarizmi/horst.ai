@@ -6,7 +6,7 @@ import * as LZString from 'lz-string';
 import { edges, nodes, openai_key, viewport } from "$lib";
 import { type Connection, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
-import type { CustomNodeName } from "./nodes";
+import { registeredNodes, type CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
 import { NodeType, type Input } from "./types";
 import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
@@ -120,22 +120,34 @@ export const isValidConnection: IsValidConnection = (connection) => {
 	return true;
 }
 
-function getSaveData(): {
+export function getSaveData(includeData: boolean): {
 	nodes: any; edges: any, version: number, viewport: any
 } {
 	const n = get(nodes);
 	const e = get(edges);
 	const v = get(viewport);
-	return {
+	const json = JSON.parse(JSON.stringify({
 		nodes: n,
 		edges: e,
 		viewport: v,
 		version: FILE_VERSION
-	};
+	}));
+
+	json.nodes = json.nodes.map((node: any) => {
+		const nodeType = registeredNodes[node.type].nodeType;
+		if (includeData && nodeType === 'input') {
+			return node;
+		}
+		return {
+			...node,
+			data: {}
+		}
+	});
+	return json;
 }
 
 export const saveGraph = () => {
-	const graph = getSaveData();
+	const graph = getSaveData(true);
 
 	const str = JSON.stringify(graph, null, 4);
 	const blob = new Blob([str], { type: 'application/json' });
@@ -148,7 +160,7 @@ export const saveGraph = () => {
 
 export const saveToLocalStorage = () => {
 	if (typeof window === 'undefined') return;
-	const graph = getSaveData();
+	const graph = getSaveData(true);
 	const str = JSON.stringify(graph);
 	window.localStorage.setItem(LOCALSTORAGE_KEY, str);
 }

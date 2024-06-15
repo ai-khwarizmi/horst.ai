@@ -49,6 +49,7 @@
 			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
+			lastExecutedValue = newValue;
 			if (!apiKeys.openai) {
 				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
@@ -71,7 +72,10 @@
 				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 			}
 		} else {
-			io.setOutputData('response', null);
+			if (lastOutputValue !== null) {
+				lastOutputValue = null;
+				io.setOutputData('response', null);
+			}
 		}
 	};
 </script>

@@ -42,11 +42,11 @@
 			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
+			lastExecutedValue = newValue;
 			if (!apiKeys.openai) {
 				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
 			}
-			lastExecutedValue = newValue;
 			lastOutputValue = null;
 			io.setOutputData('image_url', null);
 			try {
