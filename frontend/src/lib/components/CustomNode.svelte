@@ -8,7 +8,8 @@
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
 	const HANDLE_WIDTH = 8;
-	const ROW_HEIGHT = 30;
+	const ROW_HEIGHT = 20;
+	const ROW_GAP = 4;
 	const BORDER_WIDTH = 2;
 
 	export let id: string | undefined = undefined; // Node ID
@@ -60,7 +61,8 @@
 
 	let HEADER_HEIGHT = 0;
 	// idk what 0.65 is for but it works
-	$: top = (index: number) => ROW_HEIGHT * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
+	$: top = (index: number) =>
+		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
 </script>
 
 <div
@@ -92,7 +94,7 @@
 		<div
 			class="flex justify-between text-xs uppercase gap-4 max-w-full overflow-hidden flex-shrink-0"
 		>
-			<div class={cn('flex flex-col w-1/2', colors.text)}>
+			<div class={cn('flex flex-col w-1/2', colors.text)} style="gap: {ROW_GAP}px">
 				{#each inputs as input, index}
 					{@const connected = inputConnections.filter(
 						(edge) => edge.targetHandle === `${input.type}-${index}-i`
@@ -126,7 +128,9 @@
 						type="source"
 						position={Position.Right}
 						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-						style="right: 1px; top: {top(index)}px; height: 14px; width: 8px; border-radius: 3px;"
+						style="right:1px; top: {top(
+							index
+						)}px; height: {ROW_HEIGHT}px; border-radius: {HANDLE_WIDTH / 2}px;"
 						{isValidConnection}
 						{onconnect}
 						id="{output.type}-{index}-o"
