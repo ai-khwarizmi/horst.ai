@@ -10,6 +10,7 @@ import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
 
 export const FILE_VERSION = 0.1;
+const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -33,15 +34,18 @@ export const isValidConnection = (connection: any): boolean => {
 	return true;
 }
 
-export const saveGraph = () => {
+function getSaveData(): { nodes: any; edges: any, version: number } {
 	const n = get(nodes);
 	const e = get(edges);
-
-	const graph = {
-		version: FILE_VERSION,
+	return {
 		nodes: n,
-		edges: e
+		edges: e,
+		version: FILE_VERSION
 	};
+}
+
+export const saveGraph = () => {
+	const graph = getSaveData();
 
 	const str = JSON.stringify(graph, null, 4);
 	const blob = new Blob([str], { type: 'application/json' });
@@ -52,14 +56,62 @@ export const saveGraph = () => {
 	a.click();
 }
 
-export const loadFromHash = () => {
-	const hash = location.hash;
-	if (!hash) return;
+export const saveToLocalStorage = () => {
+	if (typeof window === 'undefined') return;
+	const graph = getSaveData();
+	const str = JSON.stringify(graph);
+	window.localStorage.setItem(LOCALSTORAGE_KEY, str);
+}
+
+export const shareUrl = () => {
+	const graph = getSaveData();
+
+	const str = JSON.stringify(graph);
+
+	//uncompressed base64
+	const base64 = btoa(str);
+
+	//compress
+	const compressed = LZString.compressToBase64(str);
+	console.log('compression ratio:', compressed.length / base64.length);
+	console.log('before:', base64.length, ' after:', compressed.length);
+
+	const shorterVersion = compressed.length < base64.length ? compressed : base64;
+	//set as hash
+	location.hash = shorterVersion;
+	if (shorterVersion == compressed)
+		console.log('using Compressed');
+	else
+		console.log('using Uncompressed');
+
+	//copy to clipboard
+
+	navigator.clipboard.writeText(location.href);
+}
+
+export const loadFromHash = (): boolean => {
+	if (typeof window === 'undefined') return false;
+	const hash = window.location.hash;
+	if (!hash) return false;
 	const str = LZString.decompressFromBase64(hash.slice(1));
-	if (!str) return;
+	if (!str) return false;
 	const graph = JSON.parse(str);
 	if (graph.version !== FILE_VERSION) {
 		// TODO: improve
+		console.error('version mismatch');
+		return false;
+	}
+	nodes.set(graph.nodes);
+	edges.set(graph.edges);
+	return true;
+}
+
+export const loadFromLocalStorage = () => {
+	if (typeof window === 'undefined') return;
+	const str = window.localStorage.getItem(LOCALSTORAGE_KEY);
+	if (!str) return;
+	const graph = JSON.parse(str);
+	if (graph.version !== FILE_VERSION) {
 		console.error('version mismatch');
 		return;
 	}

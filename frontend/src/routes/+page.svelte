@@ -8,7 +8,7 @@
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import { page } from '$app/stores';
-	import { loadFromHash } from '@/utils';
+	import { loadFromHash, loadFromLocalStorage } from '@/utils';
 	import FullCommand from '@/components/FullCommand.svelte';
 	import ShareGraph from '@/components/file/ShareGraph.svelte';
 	import { onMount } from 'svelte';
@@ -17,14 +17,6 @@
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
 		if (existingOpenaiApiKey) {
 			openai_key.set(existingOpenaiApiKey);
-		}
-
-		// load hash
-		if ($page.url.hash) {
-			const hash = $page.url.hash;
-			if (hash.length > 1) {
-				loadFromHash();
-			}
 		}
 	});
 </script>
