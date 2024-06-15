@@ -16,7 +16,8 @@
 	import { Circle, LoaderCircle, Loader, TriangleAlert, Check } from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 8;
-	const ROW_HEIGHT = 30;
+	const ROW_HEIGHT = 20;
+	const ROW_GAP = 10;
 	const BORDER_WIDTH = 2;
 
 	export let id: string | undefined = undefined; // Node ID
@@ -78,13 +79,15 @@
 
 	let HEADER_HEIGHT = 0;
 	// idk what 0.65 is for but it works
-	$: top = (index: number) => ROW_HEIGHT * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
+	$: top = (index: number) =>
+		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
 </script>
 
 <div
 	class={cn(
 		'pb-2 shadow-md rounded-md bg-white border-stone-400 h-full flex flex-col',
-		errors.length && 'border-red-500'
+		errors.length && 'border-red-500',
+		colors.border
 	)}
 	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 >
@@ -106,7 +109,7 @@
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
 	/>
-	<div class={cn('rounded-t-sm', colors.background, colors.text)}>
+	<div class={cn('rounded-t-sm pb-2', colors.background, colors.text)}>
 		<div bind:clientHeight={HEADER_HEIGHT} class={cn('pb-1')}>
 			<div
 				class={cn(
@@ -117,10 +120,8 @@
 				{label}
 			</div>
 		</div>
-		<div
-			class="flex justify-between text-xs uppercase gap-4 max-w-full overflow-hidden flex-shrink-0"
-		>
-			<div class={cn('flex flex-col w-1/2', colors.text)}>
+		<div class="flex justify-between text-xs gap-4 max-w-full overflow-hidden flex-shrink-0">
+			<div class={cn('flex flex-col w-1/2', colors.text)} style="gap: {ROW_GAP}px">
 				{#each inputs as input, index}
 					{@const connected = inputConnections.filter(
 						(edge) => edge.targetHandle === `${input.type}-${index}-i`
@@ -138,7 +139,7 @@
 						{onconnect}
 					/>
 					<div
-						class="text-ellipsis truncate overflow-hidden w-full font-bold pl-2"
+						class="text-ellipsis truncate overflow-hidden w-full font-semibold pl-2 leading-none -mt-[1px]"
 						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 					>
 						{input.label ?? input.type}
@@ -154,13 +155,15 @@
 						type="source"
 						position={Position.Right}
 						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-						style="right: 1px; top: {top(index)}px; height: 14px; width: 8px; border-radius: 3px;"
+						style="right:1px; top: {top(
+							index
+						)}px; height: {ROW_HEIGHT}px; border-radius: {HANDLE_WIDTH / 2}px;"
 						{isValidConnection}
 						{onconnect}
 						id="{output.type}-{index}-o"
 					/>
 					<div
-						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-bold"
+						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-semibold leading-none -mt-[1px]"
 						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 					>
 						{output.label ?? output.type}
