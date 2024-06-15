@@ -85,14 +85,7 @@
 	$: hasContent = !!$$slots['default'];
 </script>
 
-<div
-	class={cn(
-		'flex flex-col h-full gap-1 overflow-hidden',
-		colors.border,
-		errors.length && 'border-red-500'
-	)}
-	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
->
+<div class={cn('flex flex-col h-full gap-1 overflow-hidden')} style="min-width: 200px">
 	<NodeToolbar isVisible>
 		{#if status === 'loading'}
 			<LoaderCircle class="animate-spin w-6 h-6 m-2" />
@@ -121,22 +114,16 @@
 	>
 		{label}
 	</div>
+
 	<div
 		class={cn(
 			'shadow-md rounded-md bg-white border-stone-400 flex flex-col flex-grow',
-			errors.length && 'border-red-500',
-			colors.border
+			colors.border,
+			errors.length && 'border-red-500'
 		)}
 		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 	>
-		<div
-			class={cn(
-				'rounded-t-sm py-2 text-black border-b-2',
-				colors.background,
-				colors.text,
-				colors.border
-			)}
-		>
+		<div class={cn('rounded-t-sm py-2 text-black border-b-2', colors.background, colors.text)}>
 			<div
 				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
