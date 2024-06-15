@@ -5,7 +5,8 @@
 		isValidConnection,
 		removeEdgeByIds,
 		type OnExecuteCallbacks,
-		type NodeStatus
+		type NodeStatus,
+		type NodeStatusWithoutError
 	} from '$lib/utils';
 	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
@@ -40,15 +41,17 @@
 
 	let status: NodeStatus = 'idle';
 
-	export let errors: string[] = [];
+	let errors: string[] = [];
 	export let inputs: Input[] = [];
 	export let outputs: Output[] = [];
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
-		setStatus: (newStatus: NodeStatus) => {
+		setStatus: (newStatus: NodeStatusWithoutError) => {
+			errors = [];
 			status = newStatus;
 		},
 		setErrors: (newErrors: string[]) => {
+			status = 'error';
 			errors = newErrors;
 		}
 	};
@@ -101,11 +104,22 @@
 <div class={cn('flex flex-col h-full gap-1 overflow-hidden')} style="min-width: 200px">
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between w-full">
-			<div class="flex items-center space-x-2">
+			<div class="relative flex items-center space-x-2">
 				{#if status === 'loading'}
 					<LoaderCircle class="animate-spin w-6 h-6" />
 				{:else if status === 'error'}
-					<TriangleAlert class="w-6 h-6 text-red-500" />
+					<div class="relative group">
+						<TriangleAlert class="w-6 h-6 text-red-500" />
+						<div
+							class="absolute hidden group-hover:block z-10 bg-white border border-gray-300 shadow-lg rounded-md p-2 text-xs max-w-xs w-max top-full left-1/2 -translate-x-1/2 mt-1"
+						>
+							<ul class="list-disc list-inside">
+								{#each errors as error}
+									<li>{error}</li>
+								{/each}
+							</ul>
+						</div>
+					</div>
 				{:else if status === 'idle'}
 					<Circle class="w-6 h-6 invisible" />
 				{:else if status === 'success'}

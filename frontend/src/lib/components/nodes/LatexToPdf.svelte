@@ -19,7 +19,7 @@
 		}
 	}
 
-	async function compileLatex(latexCode: string): Promise<boolean> {
+	async function compileLatex(latexCode: string): Promise<{ success: boolean; errorLogs?: any }> {
 		console.log('Compiling LaTeX:', latexCode);
 		const globalEn = new (window as any).XeTeXEngine();
 		const dvipdfmxEn = new (window as any).DvipdfmxEngine();
@@ -39,10 +39,15 @@
 			const _pdfUrl = URL.createObjectURL(pdfBlob);
 
 			pdfUrl.set(_pdfUrl);
-			return true;
+			return {
+				success: true
+			};
 		} else {
 			console.error('LaTeX compilation failed:', result.log);
-			return false;
+			return {
+				success: false,
+				errorLogs: result.log
+			};
 		}
 	}
 
@@ -58,15 +63,16 @@
 			try {
 				callbacks.setStatus('loading');
 				const result = await compileLatex(cleanedLatexCode);
-				if (result) {
+				if (result.success) {
 					callbacks.setStatus('success');
 				} else {
-					callbacks.setStatus('error');
+					console.error('Error compiling LaTeX:', result.errorLogs);
+					callbacks.setErrors(['Error compiling LaTeX', result.errorLogs]);
 					pdfUrl.set(null);
 				}
 			} catch (error) {
 				console.error('Error compiling LaTeX:', error);
-				callbacks.setStatus('error');
+				callbacks.setErrors(['Error compiling LaTeX', JSON.stringify(error)]);
 				pdfUrl.set(null);
 			}
 		} else {

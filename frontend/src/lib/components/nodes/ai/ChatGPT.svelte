@@ -32,17 +32,17 @@
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
-		if (!apiKeys.openai) {
-			return;
-		}
-
 		const systemPrompt = getInputData(id, 0) as string;
 		const userPrompt = getInputData(id, 1) as string;
 
-		const newValue = JSON.stringify({ systemPrompt, userPrompt });
+		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKeys.openai });
 
 		if (systemPrompt && userPrompt) {
 			if (!forceExecute && newValue === lastExecutedValue) {
+				return;
+			}
+			if (!apiKeys.openai) {
+				callbacks.setErrors(['OpenAI API key not found']);
 				return;
 			}
 			lastOutputValue = null;
@@ -60,7 +60,7 @@
 				});
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
-				callbacks.setStatus('error');
+				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 			}
 		} else {
 			setOutputData(id, 0, null);

@@ -29,17 +29,19 @@
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
-		if (!apiKeys.openai) {
-			return;
-		}
 
 		const prompt = getInputData(id, 0) as string;
+		const newValue = JSON.stringify({ prompt, apiKey: apiKeys.openai });
 
 		if (prompt) {
-			if (!forceExecute && prompt === lastExecutedValue) {
+			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
-			lastExecutedValue = prompt;
+			if (!apiKeys.openai) {
+				callbacks.setErrors(['OpenAI API key not found']);
+				return;
+			}
+			lastExecutedValue = newValue;
 			lastOutputValue = null;
 			setOutputData(id, 0, null);
 			try {
@@ -51,8 +53,8 @@
 					setOutputData(id, 0, lastOutputValue);
 					callbacks.setStatus('success');
 				});
-			} catch (error) {
-				callbacks.setStatus('error');
+			} catch (error: any) {
+				callbacks.setErrors(['Error calling DALL-E', error.message]);
 				console.error('Error calling DALL-E: ', error);
 			}
 		} else {

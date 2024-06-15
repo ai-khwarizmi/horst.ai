@@ -319,8 +319,9 @@ export function getApiKeys(): ApiKeys {
 	}
 }
 
-export type NodeStatus = 'idle' | 'loading' | 'success' | 'error';
+export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
+export type NodeStatus = NodeStatusWithoutError | 'error';
 export type OnExecuteCallbacks = {
-	setStatus: (newStatus: NodeStatus) => void;
+	setStatus: (newStatus: NodeStatusWithoutError) => void;
 	setErrors: (newErrors: string[]) => void;
 };
