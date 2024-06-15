@@ -4,12 +4,12 @@
 	import '@xyflow/svelte/dist/style.css';
 	import { nodes, edges, openai_key, viewport } from '$lib';
 	import { nodeTypes } from '@/nodes';
-	import Input from '@/components/ui/input/input.svelte';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import FullCommand from '@/components/FullCommand.svelte';
 	import ShareGraph from '@/components/file/ShareGraph.svelte';
 	import { onMount } from 'svelte';
+	import Apikeys from '@/components/settings/APIKeys.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -21,6 +21,7 @@
 
 <main>
 	<ShareGraph />
+	<Apikeys />
 	<SvelteFlow
 		{nodes}
 		{edges}
@@ -34,9 +35,6 @@
 		<FullCommand />
 		<Background />
 		<Controls />
-		<Panel position="top-right">
-			<Input bind:value={$openai_key} placeholder="Open AI" />
-		</Panel>
 		<Panel position="top-left">
 			<TopMenuBar />
 		</Panel>

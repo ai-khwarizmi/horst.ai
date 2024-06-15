@@ -1,8 +1,9 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { clearData, loadGraph, resetGraph, saveGraph } from '@/utils';
-	import { InfoIcon, Download, Upload, Eraser, Share2, FilePlus, Book } from 'lucide-svelte';
+	import { Download, Upload, Eraser, Share2, FilePlus, Book, KeyIcon } from 'lucide-svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
+	import { openApiKeySettings } from './settings/APIKeys.svelte';
 </script>
 
 <Menubar.Root>
@@ -35,6 +36,15 @@
 			<Menubar.Item on:click={clearData}>
 				<Eraser class="mr-2 size-3.5" />
 				Clear Data
+			</Menubar.Item>
+		</Menubar.Content>
+	</Menubar.Menu>
+	<Menubar.Menu>
+		<Menubar.Trigger>Settings</Menubar.Trigger>
+		<Menubar.Content>
+			<Menubar.Item on:click={openApiKeySettings}>
+				<KeyIcon class="mr-2 size-3.5" />
+				API Keys
 			</Menubar.Item>
 		</Menubar.Content>
 	</Menubar.Menu>
