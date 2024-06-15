@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { getInputData, setOutputData, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
 	import { writable } from 'svelte/store';
 	import CustomNode from '../CustomNode.svelte';
 
 	export let id: string;
+
+	const io = new NodeIOHandler(id, [{ id: 'code', type: 'text', label: 'LaTeX code' }], []);
+
 	let lastCompiledCode: string | null = null;
 	let pdfUrl = writable<string | null>(null);
 
@@ -52,7 +54,7 @@
 	}
 
 	async function onExecute(callbacks: OnExecuteCallbacks) {
-		const latexCode = getInputData(id, 0) as string;
+		const latexCode = io.getInputData('code') as string;
 		if (lastCompiledCode === latexCode) {
 			return;
 		}
@@ -81,7 +83,7 @@
 	}
 </script>
 
-<CustomNode inputs={[{ type: 'text', label: 'LaTeX code' }]} {onExecute} {...$$props}>
+<CustomNode {io} {onExecute} {...$$props}>
 	{#if $pdfUrl}
 		<iframe src={$pdfUrl} title="latex-to-pdf" width="100%" height="100%" style="border: none;"
 		></iframe>

@@ -4,11 +4,11 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
 import { edges, nodes, openai_key, viewport } from "$lib";
-import { type XYPosition } from "@xyflow/svelte";
+import { type Connection, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
-import { NodeType } from "./types";
+import { NodeType, type Input } from "./types";
 import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
 
 export const FILE_VERSION = 0.1;
@@ -58,7 +58,41 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 	}
 }
 
-export const isValidConnection = (connection: any): boolean => {
+
+const nodeIOHandlers = new Map<string, NodeIOHandler<any, any>>()
+
+export class NodeIOHandler<TInput extends string, TOutput extends string> {
+
+	// TODO store these in a writable so the CustomNode can process it dynamically
+
+	constructor(
+		public nodeId: string,
+		public inputs: Input<TInput>[] = [],
+		public outputs: Input<TOutput>[] = []
+	) {
+		nodeIOHandlers.set(nodeId, this);
+	}
+
+	destroy = () => {
+		nodeIOHandlers.delete(this.nodeId);
+	}
+
+	setOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id'], data: any) => {
+		_setNodeOutputData(this.nodeId, {
+			[handle]: data
+		})
+	}
+
+	getOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id']) => {
+		return _getNodeOutputData(this.nodeId, handle);
+	}
+
+	getInputData = (handle: this['inputs'] extends [] ? never : this['inputs'][number]['id']) => {
+		return _getNodeInputData(this.nodeId, handle);
+	}
+}
+
+export const isValidConnection: IsValidConnection = (connection) => {
 	if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
 		return false;
 	}
@@ -68,9 +102,19 @@ export const isValidConnection = (connection: any): boolean => {
 	if (connection.source === connection.target) {
 		return false;
 	}
-	const [sourceType] = connection.sourceHandle.split('-');
-	const [targetType] = connection.targetHandle.split('-');
-	if (sourceType !== targetType && targetType !== 'any') {
+
+	// check if the connection type is valid using nodeIOHandlers
+	const sourceNode = nodeIOHandlers.get(connection.source);
+	const targetNode = nodeIOHandlers.get(connection.target);
+	if (!sourceNode || !targetNode) return false;
+
+	const sourceOutput = sourceNode.outputs.find(o => o.id === connection.sourceHandle);
+	const targetInput = targetNode.inputs.find(i => i.id === connection.targetHandle);
+
+	if (!sourceOutput || !targetInput) return false;
+
+	// for now allow "any", though we should clean this up
+	if (sourceOutput.type !== targetInput.type && targetInput.type !== 'any') {
 		return false;
 	}
 	return true;
@@ -254,25 +298,25 @@ export const addNode = (type: CustomNodeName, pos: XYPosition) => {
 	});
 };
 
-export const setOutputData = (id: string, handle: number, data: any) => {
+export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
 	nodes.update(n => {
 		const node = n.find(n => n.id === id);
 		if (!node) return n;
-		node.data[handle] = data;
+		node.data = { ...node.data, ...data };
 		return n;
 	});
 }
 
-export const getOutputData = (id: string, handle: number) => {
+export const _getNodeOutputData = (id: string, handle: string) => {
 	const n = get(nodes);
 	const node = n.find(n => n.id === id);
 	if (!node) return;
 	return node.data[handle];
 }
 
-export const getInputData = (id: string, handle: number) => {
+export const _getNodeInputData = (id: string, handle: string) => {
 	const e = get(edges);
-	const edge = e.find(e => e.target === id && e.targetHandle?.endsWith(`${handle}-i`));
+	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 
 	const n = get(nodes);
@@ -281,10 +325,7 @@ export const getInputData = (id: string, handle: number) => {
 
 	if (!edge.sourceHandle) return;
 
-	const [, sourceHandleString] = edge.sourceHandle.split('-');
-	const sourceHandle = parseInt(sourceHandleString);
-	if (isNaN(sourceHandle)) return;
-	return node.data[sourceHandle]
+	return node.data[edge.sourceHandle]
 }
 
 

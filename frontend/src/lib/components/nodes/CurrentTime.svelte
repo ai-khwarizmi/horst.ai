@@ -1,29 +1,27 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
-	import { setOutputData } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
 	import { type Output } from '@/types';
+
+	export let id: string;
 
 	let currentTime = new Date();
 
-	export let type: string;
-
-	const outputs: Output[] = [
-		{ type: 'text', label: 'Current Date' },
-		{ type: 'number', label: 'current ms' }
-	];
-
-	export let id: string;
+	const io = new NodeIOHandler(id, undefined, [
+		{ id: 'text', type: 'text', label: 'Date' },
+		{ id: 'num', type: 'number', label: 'Milliseconds' }
+	]);
 
 	const onExecute = () => {
 		const date = new Date();
 		date.setMilliseconds(0);
 		date.setSeconds(0);
 		currentTime = date;
-		setOutputData(id, 0, currentTime.toLocaleString());
-		setOutputData(id, 1, currentTime.getTime());
+		io.setOutputData('text', currentTime.toLocaleString());
+		io.setOutputData('num', currentTime.getTime());
 	};
 </script>
 
-<CustomNode {outputs} {onExecute} {...$$props}>
+<CustomNode {io} {onExecute} {...$$props}>
 	{currentTime.toLocaleString()}
 </CustomNode>

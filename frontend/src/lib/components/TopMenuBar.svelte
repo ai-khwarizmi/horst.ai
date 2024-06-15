@@ -12,7 +12,7 @@
 <div class="flex items-center gap-2">
 	<Dialog.Root bind:open={newFileOpen}>
 		<Dialog.Trigger>
-			<Button size="sm">
+			<Button size="sm" class="pointer-events-auto">
 				<FilePlus class="mr-2 size-3.5" />
 				New
 			</Button>

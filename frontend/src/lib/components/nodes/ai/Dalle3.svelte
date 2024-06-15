@@ -1,11 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import {
-		OPENAI_KEY_MISSING,
-		getInputData,
-		setOutputData,
-		type OnExecuteCallbacks
-	} from '$lib/utils';
+	import { NodeIOHandler, OPENAI_KEY_MISSING, type OnExecuteCallbacks } from '$lib/utils';
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
@@ -28,13 +23,19 @@
 
 	export let id: string;
 
+	const io = new NodeIOHandler(
+		id,
+		[{ id: 'prompt', type: 'text', label: 'Prompt' }],
+		[{ id: 'image_url', type: 'text', label: 'Image URL' }]
+	);
+
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
 
-		const prompt = getInputData(id, 0) as string;
+		const prompt = io.getInputData('prompt') as string;
 		const newValue = JSON.stringify({ prompt, apiKey: apiKeys.openai });
 
 		if (prompt) {
@@ -47,14 +48,14 @@
 			}
 			lastExecutedValue = newValue;
 			lastOutputValue = null;
-			setOutputData(id, 0, null);
+			io.setOutputData('image_url', null);
 			try {
 				await ratelimit('dalle', 10, async () => {
 					callbacks.setStatus('loading');
 					const imageUrl = await getTool().invoke(prompt);
 					console.log('Generated image URL: ', imageUrl);
 					lastOutputValue = imageUrl;
-					setOutputData(id, 0, lastOutputValue);
+					io.setOutputData('image_url', lastOutputValue);
 					callbacks.setStatus('success');
 				});
 			} catch (error: any) {
@@ -63,18 +64,13 @@
 			}
 		} else {
 			callbacks.setStatus('idle');
-			setOutputData(id, 0, null);
+			io.setOutputData('image_url', null);
 			lastOutputValue = null;
 		}
 	};
 </script>
 
-<CustomNode
-	inputs={[{ type: 'text', label: 'Prompt' }]}
-	outputs={[{ type: 'text', label: 'Image URL' }]}
-	{onExecute}
-	{...$$props}
->
+<CustomNode {io} {onExecute} {...$$props}>
 	{#if lastOutputValue}
 		<img src={lastOutputValue} alt="Dalle3 Result" class="object-contain max-w-full max-h-full" />
 	{/if}

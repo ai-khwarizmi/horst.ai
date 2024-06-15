@@ -1,12 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import {
-		OPENAI_KEY_MISSING,
-		getInputData,
-		getOutputData,
-		setOutputData,
-		type OnExecuteCallbacks
-	} from '$lib/utils';
+	import { NodeIOHandler, OPENAI_KEY_MISSING, type OnExecuteCallbacks } from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
@@ -28,17 +22,26 @@
 
 	export let id: string;
 
+	const io = new NodeIOHandler(
+		id,
+		[
+			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
+		],
+		[{ id: 'response', type: 'text', label: 'Response' }]
+	);
+
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	onMount(() => {
-		lastOutputValue = String(getOutputData(id, 0));
+		lastOutputValue = String(io.getOutputData('response'));
 	});
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
-		const systemPrompt = getInputData(id, 0) as string;
-		const userPrompt = getInputData(id, 1) as string;
+		const systemPrompt = io.getInputData('prompt_system') as string;
+		const userPrompt = io.getInputData('prompt_user') as string;
 
 		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKeys.openai });
 
@@ -52,7 +55,7 @@
 			}
 			lastOutputValue = null;
 			lastExecutedValue = newValue;
-			setOutputData(id, 0, null);
+			io.setOutputData('response', null);
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
 				callbacks.setStatus('loading');
@@ -60,7 +63,7 @@
 					const response = await getModel().invoke(messages);
 					console.log('Response from GPT-4: ', response);
 					lastOutputValue = response.content as string;
-					setOutputData(id, 0, lastOutputValue);
+					io.setOutputData('response', lastOutputValue);
 					callbacks.setStatus('success');
 				});
 			} catch (error) {
@@ -68,17 +71,9 @@
 				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 			}
 		} else {
-			setOutputData(id, 0, null);
+			io.setOutputData('response', null);
 		}
 	};
 </script>
 
-<CustomNode
-	inputs={[
-		{ type: 'text', label: 'System Prompt' },
-		{ type: 'text', label: 'User Prompt' }
-	]}
-	outputs={[{ type: 'text', label: 'Response' }]}
-	{onExecute}
-	{...$$props}
-></CustomNode>
+<CustomNode {io} {onExecute} {...$$props}></CustomNode>

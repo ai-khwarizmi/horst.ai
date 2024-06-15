@@ -1,15 +1,17 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
-	import { getInputData } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
 
 	export let id: string;
 	let data: any;
 
+	const io = new NodeIOHandler(id, [{ id: 'text', type: 'text' }]);
+
 	function onExecute() {
-		data = getInputData(id, 0);
+		data = io.getInputData('text');
 	}
 </script>
 
-<CustomNode inputs={[{ type: 'any', label: 'Text' }]} {onExecute} {...$$props}>
-	{data ?? ''}
+<CustomNode {io} {onExecute} {...$$props}>
+	{data}
 </CustomNode>

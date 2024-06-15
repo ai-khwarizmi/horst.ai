@@ -7,7 +7,8 @@
 		type OnExecuteCallbacks,
 		type NodeStatus,
 		type NodeStatusWithoutError,
-		type NodeError
+		type NodeError,
+		NodeIOHandler
 	} from '$lib/utils';
 	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
@@ -36,8 +37,7 @@
 	let status: NodeStatus = 'idle';
 
 	let errors: NodeError[] = [];
-	export let inputs: Input[] = [];
-	export let outputs: Output[] = [];
+	export let io: NodeIOHandler<any, any>;
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
@@ -86,7 +86,7 @@
 	$: outputConnections = $edges.filter((edge) => edge.source === id);
 	$: inputConnections = $edges.filter((edge) => edge.target === id);
 
-	$: rows = Math.max(inputs.length, outputs.length);
+	$: rows = Math.max(io.inputs.length, io.outputs.length);
 
 	$: hasContent = !!$$slots['default'];
 
@@ -186,7 +186,7 @@
 				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
 				<div class={cn('flex flex-col w-1/2')} style="gap: {ROW_GAP}px">
-					{#each inputs as input, index}
+					{#each io.inputs as input, index}
 						{@const connected = inputConnections.filter(
 							(edge) => edge.targetHandle === `${input.type}-${index}-i`
 						)}
@@ -198,7 +198,7 @@
 								index
 							)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
 								2}px;"
-							id="{input.type}-{index}-i"
+							id={input.id}
 							{isValidConnection}
 							{onconnect}
 						/>
@@ -206,12 +206,16 @@
 							class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
 							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 						>
-							{input.label ?? input.type}
+							{#if input.label}
+								{input.label} ({input.type})
+							{:else}
+								{input.type}
+							{/if}
 						</div>
 					{/each}
 				</div>
 				<div class={cn('flex flex-col text-end w-1/2')} style="gap: {ROW_GAP}px">
-					{#each outputs as output, index}
+					{#each io.outputs as output, index}
 						{@const connected = outputConnections.filter(
 							(edge) => edge.sourceHandle === `${output.type}-${index}-o`
 						)}
@@ -225,13 +229,17 @@
 								2}px;"
 							{isValidConnection}
 							{onconnect}
-							id="{output.type}-{index}-o"
+							id={output.id}
 						/>
 						<div
 							class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
 							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 						>
-							{output.label ?? output.type}
+							{#if output.label}
+								{output.label} ({output.type})
+							{:else}
+								{output.type}
+							{/if}
 						</div>
 					{/each}
 				</div>
