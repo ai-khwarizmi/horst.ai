@@ -72,7 +72,6 @@
 	)}
 	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 >
-	<NodeToolbar isVisible>asd</NodeToolbar>
 	<NodeResizer
 		minWidth={200}
 		minHeight={ROW_HEIGHT * rows + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + 2 * BORDER_WIDTH}
