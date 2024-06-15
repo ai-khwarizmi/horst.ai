@@ -9,7 +9,7 @@
 	import { onMount } from 'svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import { page } from '$app/stores';
-	import { loadFromHash } from '@/utils';
+	import { loadFromHash, loadFromLocalStorage } from '@/utils';
 	import FullCommand from '@/components/FullCommand.svelte';
 
 	onMount(() => {
@@ -19,14 +19,6 @@
 		if (existingOpenaiApiKey) {
 			console.log('setting existingOpenaiApiKey');
 			openai_key.set(existingOpenaiApiKey);
-		}
-
-		// load hash
-		if ($page.url.hash) {
-			const hash = $page.url.hash;
-			if (hash.length > 1) {
-				loadFromHash();
-			}
 		}
 	});
 </script>

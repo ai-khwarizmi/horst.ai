@@ -9,6 +9,7 @@ import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 
 const FILE_VERSION = 0.1;
+const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
 export const isValidConnection = (connection: any): boolean => {
 	if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
@@ -38,15 +39,18 @@ export const isValidConnection = (connection: any): boolean => {
 	return true;
 }
 
-export const saveGraph = () => {
+function getSaveData(): { nodes: any; edges: any, version: number } {
 	const n = get(nodes);
 	const e = get(edges);
-
-	const graph = {
-		version: FILE_VERSION,
+	return {
 		nodes: n,
-		edges: e
+		edges: e,
+		version: FILE_VERSION
 	};
+}
+
+export const saveGraph = () => {
+	const graph = getSaveData();
 
 	const str = JSON.stringify(graph, null, 4);
 	const blob = new Blob([str], { type: 'application/json' });
@@ -55,6 +59,14 @@ export const saveGraph = () => {
 	a.download = 'graph.json';
 	a.href = url;
 	a.click();
+}
+
+export const saveToLocalStorage = () => {
+	console.log('saving to local storage');
+	if (typeof window === 'undefined') return;
+	const graph = getSaveData();
+	const str = JSON.stringify(graph);
+	window.localStorage.setItem(LOCALSTORAGE_KEY, str);
 }
 
 export const shareUrl = () => {
@@ -92,14 +104,29 @@ export const shareUrl = () => {
 	navigator.clipboard.writeText(location.href);
 }
 
-export const loadFromHash = () => {
-	const hash = location.hash;
-	if (!hash) return;
+export const loadFromHash = (): boolean => {
+	if (typeof window === 'undefined') return false;
+	const hash = window.location.hash;
+	if (!hash) return false;
 	const str = LZString.decompressFromBase64(hash.slice(1));
-	if (!str) return;
+	if (!str) return false;
 	const graph = JSON.parse(str);
 	if (graph.version !== FILE_VERSION) {
 		// TODO: improve
+		console.error('version mismatch');
+		return false;
+	}
+	nodes.set(graph.nodes);
+	edges.set(graph.edges);
+	return true;
+}
+
+export const loadFromLocalStorage = () => {
+	if (typeof window === 'undefined') return;
+	const str = window.localStorage.getItem(LOCALSTORAGE_KEY);
+	if (!str) return;
+	const graph = JSON.parse(str);
+	if (graph.version !== FILE_VERSION) {
 		console.error('version mismatch');
 		return;
 	}
