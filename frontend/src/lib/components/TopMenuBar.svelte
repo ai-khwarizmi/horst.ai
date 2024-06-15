@@ -41,7 +41,7 @@
 	<Menubar.Menu>
 		<Menubar.Trigger>Info</Menubar.Trigger>
 		<Menubar.Content>
-			<Menubar.Item on:click={resetGraph}>
+			<Menubar.Item>
 				<InfoIcon class="mr-2 size-3.5" />
 				About Us
 			</Menubar.Item>

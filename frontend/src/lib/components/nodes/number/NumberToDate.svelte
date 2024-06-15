@@ -11,8 +11,6 @@
 </script>
 
 <CustomNode
-	label="Number to Date"
-	headerType="transform"
 	inputs={[{ type: 'number' }]}
 	outputs={[{ type: 'text', label: 'Date (Text)' }]}
 	{onExecute}

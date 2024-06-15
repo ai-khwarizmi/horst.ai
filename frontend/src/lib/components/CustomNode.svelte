@@ -1,30 +1,24 @@
 <script lang="ts">
-	import { cn, isValidConnection, removeEdgeByIds } from '$lib/utils';
+	import { cn, getNodeBackgroundColor, isValidConnection, removeEdgeByIds } from '$lib/utils';
 	import { Handle, NodeResizer, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
-	import type { Input, Output } from '@/types';
+	import { NodeType, type Input, type Output } from '@/types';
+	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
 	const ROW_HEIGHT = 20;
 
 	export let id: string | undefined = undefined; // Node ID
+	export let type: string = '';
 	export let selected: boolean = false;
 
-	export let label = 'Custom Node';
-	export let headerType: 'input' | 'viewer' | 'transform' | 'function' | 'default' = 'default';
-	let headerColor = 'bg-gray-500';
-	if (headerType === 'input') {
-		headerColor = 'bg-blue-500';
-	} else if (headerType === 'viewer') {
-		headerColor = 'bg-green-500';
-	} else if (headerType === 'transform') {
-		headerColor = 'bg-yellow-500';
-	} else if (headerType === 'function') {
-		headerColor = 'bg-purple-500';
-	}
-	export let errors: string[] = [];
+	$: registered = registeredNodes[type as CustomNodeName];
+	$: label = registered?.name || type;
+	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.DEFAULT;
+	$: headerColor = getNodeBackgroundColor(nodeType);
 
+	export let errors: string[] = [];
 	export let inputs: Input[] = [];
 
 	export let outputs: Output[] = [];

@@ -2,13 +2,11 @@
 	import { SvelteFlow, Background, Controls, Panel, MiniMap } from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, openai_key } from '$lib';
+	import { nodes, edges, openai_key, viewport } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import Input from '@/components/ui/input/input.svelte';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
-	import { page } from '$app/stores';
-	import { loadFromHash, loadFromLocalStorage } from '@/utils';
 	import FullCommand from '@/components/FullCommand.svelte';
 	import ShareGraph from '@/components/file/ShareGraph.svelte';
 	import { onMount } from 'svelte';
@@ -27,6 +25,8 @@
 		{nodes}
 		{edges}
 		{nodeTypes}
+		{viewport}
+		deleteKey={['Delete', 'Backspace']}
 		proOptions={{
 			hideAttribution: true
 		}}

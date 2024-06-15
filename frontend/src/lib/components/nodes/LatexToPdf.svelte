@@ -63,13 +63,7 @@
 	}
 </script>
 
-<CustomNode
-	label="Latex to PDF"
-	inputs={[{ type: 'text', label: 'LaTeX code' }]}
-	{onExecute}
-	{...$$props}
-	headerType="viewer"
->
+<CustomNode inputs={[{ type: 'text', label: 'LaTeX code' }]} {onExecute} {...$$props}>
 	{#if $pdfUrl}
 		<iframe src={$pdfUrl} title="latex-to-pdf" width="100%" height="100%" style="border: none;"
 		></iframe>

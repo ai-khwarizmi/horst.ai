@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
 	import { getInputData } from '$lib/utils';
+	import { NodeType } from '@/types';
 
 	export let id: string;
 	let data: any;
@@ -10,12 +11,6 @@
 	}
 </script>
 
-<CustomNode
-	label="Text Display"
-	inputs={[{ type: 'any', label: 'Text' }]}
-	{onExecute}
-	{...$$props}
-	headerType="viewer"
->
+<CustomNode inputs={[{ type: 'any', label: 'Text' }]} {onExecute} {...$$props}>
 	{data ?? ''}
 </CustomNode>

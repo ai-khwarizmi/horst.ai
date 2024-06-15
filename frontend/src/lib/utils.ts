@@ -3,17 +3,47 @@ import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
-import { edges, nodes, openai_key } from "$lib";
+import { edges, nodes, openai_key, viewport } from "$lib";
 import type { Connection, EdgeTypes, XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
+import { NodeType } from "./types";
 
 export const FILE_VERSION = 0.1;
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
+}
+
+export const getNodeBackgroundColor = (type: NodeType): string => {
+	switch (type) {
+		case NodeType.INPUT:
+			return cn('bg-blue-500');
+		case NodeType.VIEWER:
+			return cn('bg-green-500')
+		case NodeType.TRANSFORM:
+			return cn('bg-yellow-500');
+		case NodeType.FUNCTION:
+			return cn('bg-purple-500');
+		default:
+			return cn('bg-gray-500');
+	}
+}
+export const getNodeTextColor = (type: NodeType): string => {
+	switch (type) {
+		case NodeType.INPUT:
+			return cn('text-blue-500');
+		case NodeType.VIEWER:
+			return cn('text-green-500')
+		case NodeType.TRANSFORM:
+			return cn('text-yellow-500');
+		case NodeType.FUNCTION:
+			return cn('text-purple-500');
+		default:
+			return cn('text-gray-500');
+	}
 }
 
 export const isValidConnection = (connection: any): boolean => {
@@ -34,12 +64,16 @@ export const isValidConnection = (connection: any): boolean => {
 	return true;
 }
 
-function getSaveData(): { nodes: any; edges: any, version: number } {
+function getSaveData(): {
+	nodes: any; edges: any, version: number, viewport: any
+} {
 	const n = get(nodes);
 	const e = get(edges);
+	const v = get(viewport);
 	return {
 		nodes: n,
 		edges: e,
+		viewport: v,
 		version: FILE_VERSION
 	};
 }
@@ -103,6 +137,7 @@ export const loadFromHash = (): boolean => {
 	}
 	nodes.set(graph.nodes);
 	edges.set(graph.edges);
+	if (graph.viewport) viewport.set(graph.viewport);
 	return true;
 }
 
@@ -117,12 +152,14 @@ export const loadFromLocalStorage = () => {
 	}
 	nodes.set(graph.nodes);
 	edges.set(graph.edges);
+	if (graph.viewport) viewport.set(graph.viewport);
 }
 
 export const resetGraph = () => {
 	window.location.hash = '';
 	nodes.set([]);
 	edges.set([]);
+	viewport.set({ x: 0, y: 0, zoom: 1 });
 }
 
 export const loadGraph = async () => {
@@ -142,6 +179,7 @@ export const loadGraph = async () => {
 
 		nodes.set(graph.nodes);
 		edges.set(graph.edges);
+		viewport.set(graph.viewport);
 		toast.success('Graph loaded');
 	};
 	input.click();

@@ -20,20 +20,17 @@
 	$: url = $open ? generateUrl(includeData) : '';
 
 	const generateUrl = (includeData: boolean) => {
-		const n = get(nodes);
-		const e = get(edges);
-
 		const url = new URL(location.href);
 
-		if (n.length === 0 && e.length === 0) {
+		if ($nodes.length === 0 && $edges.length === 0) {
 			url.hash = '';
 			return url.href;
 		}
 
 		const graph = {
 			version: FILE_VERSION,
-			nodes: includeData ? n : n.map((node) => ({ ...node, data: {} })),
-			edges: e
+			nodes: includeData ? $nodes : $nodes.map((node) => ({ ...node, data: {} })),
+			edges: $edges
 		};
 
 		const str = JSON.stringify(graph);

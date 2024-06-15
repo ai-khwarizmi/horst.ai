@@ -1,4 +1,4 @@
-import { type Node, type Edge, type NodeTypes } from "@xyflow/svelte";
+import { type Node, type Edge, type NodeTypes, type Viewport } from "@xyflow/svelte";
 import { writable } from "svelte/store";
 import { loadFromHash, loadFromLocalStorage, saveToLocalStorage } from "./utils";
 
@@ -14,8 +14,9 @@ openai_key.subscribe((key) => {
 
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
-export const commandOpen = writable(false);
+export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
 
+export const commandOpen = writable(false);
 
 // try to load from hash, if not, load from local storage
 if (!loadFromHash()) {
@@ -25,3 +26,4 @@ if (!loadFromHash()) {
 //watch node and edge changes, save to local storage
 nodes.subscribe(saveToLocalStorage);
 edges.subscribe(saveToLocalStorage);
+viewport.subscribe(saveToLocalStorage);

@@ -1,9 +1,12 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
 	import { setOutputData } from '$lib/utils';
-	import type { Output } from '@/types';
+	import { NodeType, type Output } from '@/types';
+	import { onMount } from 'svelte';
 
 	let currentTime = new Date();
+
+	export let type: string;
 
 	const outputs: Output[] = [
 		{ type: 'text', label: 'Current Date' },
@@ -19,6 +22,6 @@
 	};
 </script>
 
-<CustomNode label="Current Time" {outputs} {onExecute} {...$$props} headerType="input">
+<CustomNode {outputs} {onExecute} {...$$props}>
 	{currentTime.toLocaleString()}
 </CustomNode>

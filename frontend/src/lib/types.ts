@@ -1,3 +1,11 @@
+export enum NodeType {
+    INPUT = 'input',
+    VIEWER = 'viewer',
+    TRANSFORM = 'transform',
+    FUNCTION = 'function',
+    DEFAULT = 'default'
+}
+
 export type NodeValueType = 'any' | 'text' | 'number'
 
 export type Input = {

@@ -65,8 +65,6 @@
 </script>
 
 <CustomNode
-	label="DALL-E 3"
-	headerType="function"
 	inputs={[{ type: 'text', label: 'Prompt' }]}
 	outputs={[{ type: 'text', label: 'Image URL' }]}
 	{onExecute}

@@ -29,7 +29,7 @@
 	export let id: string;
 </script>
 
-<CustomNode label="Text Input" {outputs} {...$$props} {onExecute} headerType="input">
+<CustomNode {outputs} {onExecute} {...$$props}>
 	<Textarea
 		bind:value
 		class="w-full h-full min-h-0 min-w-0"

@@ -10,11 +10,4 @@
 	};
 </script>
 
-<CustomNode
-	label="Number to Text"
-	headerType="transform"
-	inputs={[{ type: 'number' }]}
-	outputs={[{ type: 'text' }]}
-	{onExecute}
-	{...$$props}
-/>
+<CustomNode inputs={[{ type: 'number' }]} outputs={[{ type: 'text' }]} {onExecute} {...$$props} />

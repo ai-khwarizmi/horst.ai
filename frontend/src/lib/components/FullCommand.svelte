@@ -1,17 +1,8 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import * as Command from '$lib/components/ui/command';
-	import type { CustomNodeName } from '@/nodes';
-	import { addNode } from '@/utils';
-	import { useSvelteFlow, type XYPosition } from '@xyflow/svelte';
-	import {
-		AlignLeft,
-		Bot,
-		CalendarCog,
-		GitCompareArrows,
-		ImagePlus,
-		TextCursorInput
-	} from 'lucide-svelte';
+	import { registeredNodes, type CustomNodeName, type RegisteredNode } from '@/nodes';
+	import { addNode, cn, getNodeTextColor } from '@/utils';
+	import { useSvelteFlow } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { commandOpen } from '..';
 
@@ -57,6 +48,21 @@
 		addNode(nodeType, center);
 		commandOpen.set(false);
 	};
+
+	const groupedNodes = Object.entries(registeredNodes).reduce<
+		Record<string, ({ id: CustomNodeName } & RegisteredNode)[]>
+	>((acc, [key, node]) => {
+		if (node.category) {
+			if (!acc[node.category]) {
+				acc[node.category] = [];
+			}
+			acc[node.category].push({
+				id: key as CustomNodeName,
+				...node
+			});
+		}
+		return acc;
+	}, {});
 </script>
 
 <Command.Dialog bind:open={$commandOpen}>
@@ -67,44 +73,23 @@
 			<Command.Item onSelect={() => onSelect('textInput')}>Text Input</Command.Item>
 			<Command.Item onSelect={() => onSelect('textDisplay')}>Text Display</Command.Item>
 		</Command.Group> -->
-		<Command.Group heading="Text">
-			<Command.Item onSelect={() => onSelect('textInput')}>
-				<TextCursorInput class="mr-2" />
-				Text Input
-			</Command.Item>
-			<Command.Item onSelect={() => onSelect('textDisplay')}>
-				<AlignLeft class="mr-2" />
-				Text
-			</Command.Item>
-		</Command.Group>
-		<Command.Group heading="Numbers">
-			<Command.Item onSelect={() => onSelect('num2str')}>
-				<GitCompareArrows class="mr-2" />
-				Number to Text
-			</Command.Item>
-			<Command.Item onSelect={() => onSelect('num2date')}>
-				<CalendarCog class="mr-2" />
-				Number to Date
-			</Command.Item>
-		</Command.Group>
-		<Command.Group heading="AI">
-			<Command.Item onSelect={() => onSelect('chatGpt')}>
-				<Bot class="mr-2" />
-				Chat GPT
-			</Command.Item>
-			<Command.Item onSelect={() => onSelect('dalle3')}>
-				<ImagePlus class="mr-2" />
-				Dall-E 3
-			</Command.Item>
-		</Command.Group>
-		<Command.Group heading="Docs">
-			<Command.Item onSelect={() => onSelect('latex2pdf')}>
-				<ImagePlus class="mr-2" />
-				Latex to PDF
-			</Command.Item>
-		</Command.Group>
-		<Command.Group heading="Miscellaneous">
-			<Command.Item onSelect={() => onSelect('currentTime')}>Current Time</Command.Item>
-		</Command.Group>
+
+		{#each Object.keys(groupedNodes) as category}
+			<Command.Group heading={category}>
+				{#each groupedNodes[category] as node}
+					<Command.Item onSelect={() => onSelect(node.id)}>
+						{#if node.Icon}
+							<svelte:component
+								this={node.Icon}
+								class={cn('mr-2 text-gray-500', node.nodeType && getNodeTextColor(node.nodeType))}
+							/>
+						{/if}
+						<span class="text-gray-700 text-sm font-semibold">
+							{node.name || node.id}
+						</span>
+					</Command.Item>
+				{/each}
+			</Command.Group>
+		{/each}
 	</Command.List>
 </Command.Dialog>

@@ -72,8 +72,6 @@
 </script>
 
 <CustomNode
-	label="ChatGPT"
-	headerType="function"
 	inputs={[
 		{ type: 'text', label: 'System Prompt' },
 		{ type: 'text', label: 'User Prompt' }
