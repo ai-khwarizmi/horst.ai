@@ -27,7 +27,7 @@
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
-	const onExecute = async (callbacks: OnExecuteCallbacks) => {
+	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
 		if (!apiKeys.openai) {
 			return;
@@ -36,8 +36,7 @@
 		const prompt = getInputData(id, 0) as string;
 
 		if (prompt) {
-			if (prompt === lastExecutedValue) {
-				setOutputData(id, 0, lastOutputValue);
+			if (!forceExecute && prompt === lastExecutedValue) {
 				return;
 			}
 			lastExecutedValue = prompt;
