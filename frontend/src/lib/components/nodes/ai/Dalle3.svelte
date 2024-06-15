@@ -1,10 +1,14 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { getInputData, setOutputData, type OnExecuteCallbacks } from '$lib/utils';
+	import {
+		OPENAI_KEY_MISSING,
+		getInputData,
+		setOutputData,
+		type OnExecuteCallbacks
+	} from '$lib/utils';
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
-	import { Loader } from 'lucide-svelte';
 
 	let tool: DallEAPIWrapper;
 
@@ -38,7 +42,7 @@
 				return;
 			}
 			if (!apiKeys.openai) {
-				callbacks.setErrors(['OpenAI API key not found']);
+				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
 			}
 			lastExecutedValue = newValue;

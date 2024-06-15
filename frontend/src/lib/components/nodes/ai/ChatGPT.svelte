@@ -1,11 +1,16 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { getInputData, getOutputData, setOutputData, type OnExecuteCallbacks } from '$lib/utils';
+	import {
+		OPENAI_KEY_MISSING,
+		getInputData,
+		getOutputData,
+		setOutputData,
+		type OnExecuteCallbacks
+	} from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
-	import { Loader } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
 	let model: ChatOpenAI;
@@ -42,7 +47,7 @@
 				return;
 			}
 			if (!apiKeys.openai) {
-				callbacks.setErrors(['OpenAI API key not found']);
+				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;

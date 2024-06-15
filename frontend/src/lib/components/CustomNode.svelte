@@ -6,7 +6,8 @@
 		removeEdgeByIds,
 		type OnExecuteCallbacks,
 		type NodeStatus,
-		type NodeStatusWithoutError
+		type NodeStatusWithoutError,
+		type NodeError
 	} from '$lib/utils';
 	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
@@ -14,6 +15,7 @@
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
+	import * as HoverCard from '$lib/components/ui/hover-card';
 	import {
 		RefreshCw,
 		Circle,
@@ -41,7 +43,7 @@
 
 	let status: NodeStatus = 'idle';
 
-	let errors: string[] = [];
+	let errors: NodeError[] = [];
 	export let inputs: Input[] = [];
 	export let outputs: Output[] = [];
 
@@ -50,7 +52,7 @@
 			errors = [];
 			status = newStatus;
 		},
-		setErrors: (newErrors: string[]) => {
+		setErrors: (newErrors: NodeError[]) => {
 			status = 'error';
 			errors = newErrors;
 		}
@@ -116,18 +118,27 @@
 				{#if status === 'loading'}
 					<LoaderCircle class="animate-spin w-6 h-6" />
 				{:else if status === 'error'}
-					<div class="relative group">
-						<TriangleAlert class="w-6 h-6 text-red-500" />
-						<div
-							class="absolute hidden group-hover:block z-10 bg-white border border-gray-300 shadow-lg rounded-md p-2 text-xs max-w-xs w-max top-full left-1/2 -translate-x-1/2 mt-1"
-						>
+					<HoverCard.Root openDelay={50}>
+						<HoverCard.Trigger>
+							<TriangleAlert class="w-6 h-6 text-red-500" />
+						</HoverCard.Trigger>
+						<HoverCard.Content class="p-2 text-xs">
 							<ul class="list-disc list-inside">
 								{#each errors as error}
-									<li>{error}</li>
+									{#if typeof error === 'string'}
+										<li>{error}</li>
+									{:else}
+										<li>
+											{error.message}
+											<button class="text-blue-500 hover:underline" on:click={error.resolve}>
+												Resolve
+											</button>
+										</li>
+									{/if}
 								{/each}
 							</ul>
-						</div>
-					</div>
+						</HoverCard.Content>
+					</HoverCard.Root>
 				{:else if status === 'idle'}
 					<Circle class="w-6 h-6 invisible" />
 				{:else if status === 'success'}

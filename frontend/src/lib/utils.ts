@@ -9,6 +9,7 @@ import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
 import { NodeType } from "./types";
+import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
 
 export const FILE_VERSION = 0.1;
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
@@ -293,9 +294,18 @@ export function getApiKeys(): ApiKeys {
 	}
 }
 
+export type NodeError = string | {
+	message: string;
+	resolve?: () => void;
+}
 export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
 export type NodeStatus = NodeStatusWithoutError | 'error';
 export type OnExecuteCallbacks = {
 	setStatus: (newStatus: NodeStatusWithoutError) => void;
-	setErrors: (newErrors: string[]) => void;
+	setErrors: (newErrors: NodeError[]) => void;
 };
+
+export const OPENAI_KEY_MISSING: NodeError = {
+	message: 'OpenAI key missing. Please add your key in the settings tab.',
+	resolve: openApiKeySettings
+}
