@@ -168,19 +168,23 @@ export const loadGraph = async () => {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return alert('no file selected');
 		const file = target.files[0];
-		const text = await file.text();
-		const graph = JSON.parse(text);
-		if (graph.version !== FILE_VERSION) {
-			alert('version mismatch');
-			return
-		}
-
-		nodes.set(graph.nodes);
-		edges.set(graph.edges);
-		viewport.set(graph.viewport);
+		await loadFromFile(file);
 		toast.success('Graph loaded');
 	};
 	input.click();
+}
+
+export const loadFromFile = async (file: File) => {
+	const text = await file.text();
+	const graph = JSON.parse(text);
+	if (graph.version !== FILE_VERSION) {
+		alert('version mismatch');
+		return
+	}
+
+	nodes.set(graph.nodes);
+	edges.set(graph.edges);
+	viewport.set(graph.viewport);
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
