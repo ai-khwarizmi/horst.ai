@@ -108,32 +108,6 @@ export const saveToLocalStorage = () => {
 	window.localStorage.setItem(LOCALSTORAGE_KEY, str);
 }
 
-export const shareUrl = () => {
-	const graph = getSaveData();
-
-	const str = JSON.stringify(graph);
-
-	//uncompressed base64
-	const base64 = btoa(str);
-
-	//compress
-	const compressed = LZString.compressToBase64(str);
-	console.log('compression ratio:', compressed.length / base64.length);
-	console.log('before:', base64.length, ' after:', compressed.length);
-
-	const shorterVersion = compressed.length < base64.length ? compressed : base64;
-	//set as hash
-	location.hash = shorterVersion;
-	if (shorterVersion == compressed)
-		console.log('using Compressed');
-	else
-		console.log('using Uncompressed');
-
-	//copy to clipboard
-
-	navigator.clipboard.writeText(location.href);
-}
-
 export const loadFromHash = (): boolean => {
 	if (typeof window === 'undefined') return false;
 	const hash = window.location.hash;
