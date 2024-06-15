@@ -24,7 +24,14 @@
 </script>
 
 <main>
-	<SvelteFlow {nodes} {edges} {nodeTypes}>
+	<SvelteFlow
+		{nodes}
+		{edges}
+		{nodeTypes}
+		proOptions={{
+			hideAttribution: true
+		}}
+	>
 		<FullCommand />
 		<Background />
 		<Controls />
