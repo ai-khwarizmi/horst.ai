@@ -11,6 +11,7 @@
 	import { onMount } from 'svelte';
 	import Apikeys from '@/components/settings/APIKeys.svelte';
 	import Button from '@/components/ui/button/button.svelte';
+	import FileDropper from '@/components/file/FileDropper.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -23,6 +24,7 @@
 <main>
 	<ShareGraph />
 	<Apikeys />
+	<FileDropper />
 	<SvelteFlow
 		{nodes}
 		{edges}
