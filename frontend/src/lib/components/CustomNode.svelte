@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { cn, getNodeColors, isValidConnection, removeEdgeByIds } from '$lib/utils';
-	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
+	import { Handle, NodeResizer, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
-	const HANDLE_WIDTH = 8;
-	const ROW_HEIGHT = 20;
+	const HANDLE_WIDTH = 12;
+	const ROW_HEIGHT = 30;
 	const ROW_GAP = 10;
 	const BORDER_WIDTH = 2;
+	const HEADER_HEIGHT = 20;
 
 	export let id: string | undefined = undefined; // Node ID
 	export let type: string = '';
@@ -59,91 +60,106 @@
 
 	$: rows = Math.max(inputs.length, outputs.length);
 
-	let HEADER_HEIGHT = 0;
-	// idk what 0.65 is for but it works
 	$: top = (index: number) =>
-		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
+		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
+
+	$: minHeight = HEADER_HEIGHT + ROW_HEIGHT * rows + ROW_GAP * rows + BORDER_WIDTH * 2 + 4 + 5;
+	$: hasContent = !!$$slots['default'];
 </script>
 
-<div
-	class={cn(
-		'pb-2 shadow-md rounded-md bg-white border-stone-400 h-full flex flex-col',
-		errors.length && 'border-red-500',
-		colors.border
-	)}
-	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
->
+<div class="flex flex-col h-full gap-1 overflow-hidden">
 	<NodeResizer
 		minWidth={200}
-		minHeight={ROW_HEIGHT * rows + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + 2 * BORDER_WIDTH}
+		{minHeight}
+		maxHeight={hasContent ? undefined : minHeight}
 		isVisible={selected}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
 	/>
-	<div class={cn('rounded-t-sm pb-2', colors.background, colors.text)}>
-		<div bind:clientHeight={HEADER_HEIGHT} class={cn('pb-1')}>
-			<div
-				class={cn(
-					colors.fullbackground,
-					'py-1 w-full rounded-t-sm text-center p-0.5 text- font-semibold leading-none text-white'
-				)}
-			>
-				{label}
-			</div>
-		</div>
-		<div class="flex justify-between text-xs gap-4 max-w-full overflow-hidden flex-shrink-0">
-			<div class={cn('flex flex-col w-1/2', colors.text)} style="gap: {ROW_GAP}px">
-				{#each inputs as input, index}
-					{@const connected = inputConnections.filter(
-						(edge) => edge.targetHandle === `${input.type}-${index}-i`
-					)}
-					<Handle
-						type="target"
-						position={Position.Left}
-						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-						style="left:1px; top: {top(
-							index
-						)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-							2}px;"
-						id="{input.type}-{index}-i"
-						{isValidConnection}
-						{onconnect}
-					/>
-					<div
-						class="text-ellipsis truncate overflow-hidden w-full font-semibold pl-2 leading-none -mt-[1px]"
-						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-					>
-						{input.label ?? input.type}
-					</div>
-				{/each}
-			</div>
-			<div class={cn('flex flex-col text-end w-1/2', colors.text)}>
-				{#each outputs as output, index}
-					{@const connected = outputConnections.filter(
-						(edge) => edge.sourceHandle === `${output.type}-${index}-o`
-					)}
-					<Handle
-						type="source"
-						position={Position.Right}
-						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-						style="right:1px; top: {top(
-							index
-						)}px; height: {ROW_HEIGHT}px; border-radius: {HANDLE_WIDTH / 2}px;"
-						{isValidConnection}
-						{onconnect}
-						id="{output.type}-{index}-o"
-					/>
-					<div
-						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-semibold leading-none -mt-[1px]"
-						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-					>
-						{output.label ?? output.type}
-					</div>
-				{/each}
-			</div>
-		</div>
+	<div
+		class={cn(
+			colors.fullbackground,
+			'w-full rounded-sm text-center text-sm font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
+		)}
+		style="height: {HEADER_HEIGHT}px;"
+	>
+		{label}
 	</div>
-	<div class="flex flex-col h-full overflow-auto">
-		<slot />
+	<div
+		class={cn(
+			'shadow-md rounded-md bg-white border-stone-400 flex flex-col flex-grow',
+			errors.length && 'border-red-500',
+			colors.border
+		)}
+		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
+	>
+		<div
+			class={cn(
+				'rounded-t-sm py-2 text-black border-b-2',
+				colors.background,
+				colors.text,
+				colors.border
+			)}
+		>
+			<div
+				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
+			>
+				<div class={cn('flex flex-col w-1/2')} style="gap: {ROW_GAP}px">
+					{#each inputs as input, index}
+						{@const connected = inputConnections.filter(
+							(edge) => edge.targetHandle === `${input.type}-${index}-i`
+						)}
+						<Handle
+							type="target"
+							position={Position.Left}
+							class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
+							style="left:1px; top: {top(
+								index
+							)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
+								2}px;"
+							id="{input.type}-{index}-i"
+							{isValidConnection}
+							{onconnect}
+						/>
+						<div
+							class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
+							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+						>
+							{input.label ?? input.type}
+						</div>
+					{/each}
+				</div>
+				<div class={cn('flex flex-col text-end w-1/2')} style="gap: {ROW_GAP}px">
+					{#each outputs as output, index}
+						{@const connected = outputConnections.filter(
+							(edge) => edge.sourceHandle === `${output.type}-${index}-o`
+						)}
+						<Handle
+							type="source"
+							position={Position.Right}
+							class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
+							style="right:1px; top: {top(
+								index
+							)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
+								2}px;"
+							{isValidConnection}
+							{onconnect}
+							id="{output.type}-{index}-o"
+						/>
+						<div
+							class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
+							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+						>
+							{output.label ?? output.type}
+						</div>
+					{/each}
+				</div>
+			</div>
+		</div>
+		{#if $$slots['default']}
+			<div class="flex flex-col overflow-auto p-2">
+				<slot />
+			</div>
+		{/if}
 	</div>
 </div>
