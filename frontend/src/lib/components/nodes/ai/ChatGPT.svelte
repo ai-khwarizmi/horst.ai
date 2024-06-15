@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { getInputData, getOutputData, setOutputData } from '$lib/utils';
+	import { getInputData, getOutputData, setOutputData, type OnExecuteCallbacks } from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
@@ -9,8 +9,6 @@
 	import { onMount } from 'svelte';
 
 	let model: ChatOpenAI;
-
-	let loading = false;
 
 	function getModel() {
 		const apiKeys = getApiKeys();
@@ -32,7 +30,7 @@
 		lastOutputValue = String(getOutputData(id, 0));
 	});
 
-	const onExecute = () => {
+	const onExecute = async (callbacks: OnExecuteCallbacks) => {
 		const apiKeys = getApiKeys();
 		if (!apiKeys.openai) {
 			return;
@@ -53,17 +51,17 @@
 			setOutputData(id, 0, null);
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
-				ratelimit('chatgpt', 10, async () => {
-					loading = true;
+				callbacks.setStatus('loading');
+				await ratelimit('chatgpt', 10, async () => {
 					const response = await getModel().invoke(messages);
 					console.log('Response from GPT-4: ', response);
 					lastOutputValue = response.content as string;
 					setOutputData(id, 0, lastOutputValue);
-					loading = false;
+					callbacks.setStatus('success');
 				});
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
-				loading = false;
+				callbacks.setStatus('error');
 			}
 		} else {
 			setOutputData(id, 0, null);
@@ -79,11 +77,4 @@
 	outputs={[{ type: 'text', label: 'Response' }]}
 	{onExecute}
 	{...$$props}
->
-	{#if loading}
-		<div class="flex items-center justify-center">
-			<Loader class="animate-spin w-6 h-6 mr-2" />
-			<span>Loading...</span>
-		</div>
-	{/if}
-</CustomNode>
+></CustomNode>

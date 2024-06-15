@@ -1,11 +1,19 @@
 <script lang="ts">
-	import { cn, getNodeColors, isValidConnection, removeEdgeByIds } from '$lib/utils';
+	import {
+		cn,
+		getNodeColors,
+		isValidConnection,
+		removeEdgeByIds,
+		type OnExecuteCallbacks,
+		type NodeStatus
+	} from '$lib/utils';
 	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
+	import { Circle, LoaderCircle, Loader, TriangleAlert, Check } from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 8;
 	const ROW_HEIGHT = 30;
@@ -20,19 +28,29 @@
 	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.DEFAULT;
 	$: colors = getNodeColors(nodeType);
 
+	let status: NodeStatus = 'idle';
+
 	export let errors: string[] = [];
 	export let inputs: Input[] = [];
-
 	export let outputs: Output[] = [];
 
-	export let onExecute: () => void = () => {};
+	const onExecuteCallbacks: OnExecuteCallbacks = {
+		setStatus: (newStatus: NodeStatus) => {
+			status = newStatus;
+		},
+		setErrors: (newErrors: string[]) => {
+			errors = newErrors;
+		}
+	};
+
+	export let onExecute: (callbacks: OnExecuteCallbacks) => void = () => {};
 
 	onMount(() => {
 		if (!id) {
 			throw new Error('Node ID is required');
 		}
 		setInterval(() => {
-			onExecute();
+			onExecute(onExecuteCallbacks);
 		}, 50);
 	});
 
@@ -70,7 +88,17 @@
 	)}
 	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 >
-	<NodeToolbar isVisible>asd</NodeToolbar>
+	<NodeToolbar isVisible>
+		{#if status === 'loading'}
+			<LoaderCircle class="animate-spin w-6 h-6 m-2" />
+		{:else if status === 'error'}
+			<TriangleAlert class="w-6 h-6 m-2 text-red-500" />
+		{:else if status === 'idle'}
+			<Circle class="w-6 h-6 m-2 invisible" />
+		{:else if status === 'success'}
+			<Check class="w-6 h-6 m-2 text-green-500" />
+		{/if}
+	</NodeToolbar>
 	<NodeResizer
 		minWidth={200}
 		minHeight={ROW_HEIGHT * rows + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + 2 * BORDER_WIDTH}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getInputData, setOutputData } from '$lib/utils';
+	import { getInputData, setOutputData, type OnExecuteCallbacks } from '$lib/utils';
 	import { writable } from 'svelte/store';
 	import CustomNode from '../CustomNode.svelte';
 
@@ -19,7 +19,7 @@
 		}
 	}
 
-	async function compileLatex(latexCode: string) {
+	async function compileLatex(latexCode: string): Promise<boolean> {
 		console.log('Compiling LaTeX:', latexCode);
 		const globalEn = new (window as any).XeTeXEngine();
 		const dvipdfmxEn = new (window as any).DvipdfmxEngine();
@@ -39,12 +39,14 @@
 			const _pdfUrl = URL.createObjectURL(pdfBlob);
 
 			pdfUrl.set(_pdfUrl);
+			return true;
 		} else {
 			console.error('LaTeX compilation failed:', result.log);
+			return false;
 		}
 	}
 
-	async function onExecute() {
+	async function onExecute(callbacks: OnExecuteCallbacks) {
 		const latexCode = getInputData(id, 0) as string;
 		if (lastCompiledCode === latexCode) {
 			return;
@@ -52,12 +54,20 @@
 		if (latexCode) {
 			console.log('Received LaTeX code:', latexCode);
 			lastCompiledCode = latexCode;
-
 			const cleanedLatexCode = extractLatexCode(latexCode);
 			try {
-				await compileLatex(cleanedLatexCode);
+				callbacks.setStatus('loading');
+				const result = await compileLatex(cleanedLatexCode);
+				if (result) {
+					callbacks.setStatus('success');
+				} else {
+					callbacks.setStatus('error');
+					pdfUrl.set(null);
+				}
 			} catch (error) {
 				console.error('Error compiling LaTeX:', error);
+				callbacks.setStatus('error');
+				pdfUrl.set(null);
 			}
 		}
 	}
