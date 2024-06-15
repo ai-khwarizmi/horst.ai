@@ -41,7 +41,7 @@
 		<Panel position="top-right">
 			<Button variant="link" href="/credits">Credits</Button>
 		</Panel>
-		<Panel position="top-left">
+		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />
 		</Panel>
 		<Panel position="bottom-center">
