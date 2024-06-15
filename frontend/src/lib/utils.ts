@@ -62,7 +62,6 @@ export const saveGraph = () => {
 }
 
 export const saveToLocalStorage = () => {
-	console.log('saving to local storage');
 	if (typeof window === 'undefined') return;
 	const graph = getSaveData();
 	const str = JSON.stringify(graph);
