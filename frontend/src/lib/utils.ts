@@ -69,16 +69,7 @@ export const saveToLocalStorage = () => {
 }
 
 export const shareUrl = () => {
-	const n = get(nodes);
-	const e = get(edges);
-
-	const version = 0.1;
-
-	const graph = {
-		version: FILE_VERSION,
-		nodes: n,
-		edges: e
-	};
+	const graph = getSaveData();
 
 	const str = JSON.stringify(graph);
 
