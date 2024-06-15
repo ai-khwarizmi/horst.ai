@@ -12,7 +12,7 @@
 <div class="flex items-center gap-2">
 	<Dialog.Root bind:open={newFileOpen}>
 		<Dialog.Trigger>
-			<Button size="sm" on:click={resetGraph}>
+			<Button size="sm">
 				<FilePlus class="mr-2 size-3.5" />
 				New
 			</Button>
@@ -27,7 +27,13 @@
 					</Dialog.Description>
 				</Dialog.Header>
 				<Dialog.Footer>
-					<Button variant="default" on:click={resetGraph}>Yes, create new graph</Button>
+					<Button
+						variant="default"
+						on:click={() => {
+							resetGraph();
+							newFileOpen = false;
+						}}>Yes, create new graph</Button
+					>
 					<Button variant="secondary" on:click={() => (newFileOpen = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</Dialog.Content>
