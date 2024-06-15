@@ -1,8 +1,8 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { clearData, loadGraph, resetGraph, saveGraph } from '@/utils';
-	import { InfoIcon, Download, File, Upload, Eraser, Share, Share2, FilePlus } from 'lucide-svelte';
-	import { open } from './file/ShareGraph.svelte';
+	import { InfoIcon, Download, Upload, Eraser, Share2, FilePlus, Book } from 'lucide-svelte';
+	import { openShareGraphModal } from './file/ShareGraph.svelte';
 </script>
 
 <Menubar.Root>
@@ -23,7 +23,7 @@
 				Save
 			</Menubar.Item>
 			<Menubar.Separator />
-			<Menubar.Item on:click={() => open.set(true)}>
+			<Menubar.Item on:click={openShareGraphModal}>
 				<Share2 class="mr-2 size-3.5" />
 				Share
 			</Menubar.Item>
@@ -39,14 +39,17 @@
 		</Menubar.Content>
 	</Menubar.Menu>
 	<Menubar.Menu>
-		<Menubar.Trigger>Info</Menubar.Trigger>
+		<Menubar.Trigger>About</Menubar.Trigger>
 		<Menubar.Content>
-			<Menubar.Item>
+			<!-- <Menubar.Item disabled>
 				<InfoIcon class="mr-2 size-3.5" />
-				About Us
+				Learn More
 			</Menubar.Item>
-			<Menubar.Separator />
-			<Menubar.Item disabled inset>Licenses</Menubar.Item>
+			<Menubar.Separator /> -->
+			<Menubar.Item href="/credits">
+				<Book class="mr-2 size-3.5" />
+				Credits
+			</Menubar.Item>
 		</Menubar.Content>
 	</Menubar.Menu>
 </Menubar.Root>

@@ -4,7 +4,7 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
 import { edges, nodes, openai_key, viewport } from "$lib";
-import type { Connection, EdgeTypes, XYPosition } from "@xyflow/svelte";
+import { type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";

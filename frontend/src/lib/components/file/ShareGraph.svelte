@@ -10,7 +10,11 @@
 	import Switch from '../ui/switch/switch.svelte';
 	import Button from '../ui/button/button.svelte';
 
-	export let open = writable(false);
+	let open = writable(false);
+
+	export function openShareGraphModal() {
+		open.set(true);
+	}
 </script>
 
 <script lang="ts">
@@ -61,7 +65,6 @@
 </script>
 
 <!-- Share Graph -->
-
 <Dialog.Root bind:open={$open}>
 	<Dialog.Content>
 		<Dialog.Header>
