@@ -13,7 +13,15 @@
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
-	import { Circle, LoaderCircle, Loader, TriangleAlert, Check } from 'lucide-svelte';
+	import {
+		RefreshCw,
+		Circle,
+		LoaderCircle,
+		Loader,
+		TriangleAlert,
+		Check,
+		AlignCenter
+	} from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -45,14 +53,19 @@
 		}
 	};
 
-	export let onExecute: (callbacks: OnExecuteCallbacks) => void = () => {};
+	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
+
+	const forceExecute = () => {
+		console.log('Forcing execute');
+		onExecute(onExecuteCallbacks, true);
+	};
 
 	onMount(() => {
 		if (!id) {
 			throw new Error('Node ID is required');
 		}
 		setInterval(() => {
-			onExecute(onExecuteCallbacks);
+			onExecute(onExecuteCallbacks, false);
 		}, 50);
 	});
 
@@ -86,17 +99,30 @@
 </script>
 
 <div class={cn('flex flex-col h-full gap-1 overflow-hidden')} style="min-width: 200px">
-	<NodeToolbar isVisible>
-		{#if status === 'loading'}
-			<LoaderCircle class="animate-spin w-6 h-6 m-2" />
-		{:else if status === 'error'}
-			<TriangleAlert class="w-6 h-6 m-2 text-red-500" />
-		{:else if status === 'idle'}
-			<Circle class="w-6 h-6 m-2 invisible" />
-		{:else if status === 'success'}
-			<Check class="w-6 h-6 m-2 text-green-500" />
-		{/if}
+	<NodeToolbar align={'start'} isVisible>
+		<div class="flex items-center justify-between w-full">
+			<div class="flex items-center space-x-2">
+				{#if status === 'loading'}
+					<LoaderCircle class="animate-spin w-6 h-6" />
+				{:else if status === 'error'}
+					<TriangleAlert class="w-6 h-6 text-red-500" />
+				{:else if status === 'idle'}
+					<Circle class="w-6 h-6 invisible" />
+				{:else if status === 'success'}
+					<Check class="w-6 h-6 text-green-500" />
+				{/if}
+			</div>
+			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
+				<button
+					class="m-2 bg-black border-1 text-xs text-white rounded-md p-1 transition-transform transform hover:scale-110 focus:scale-90"
+					on:click={forceExecute}
+				>
+					run again
+				</button>
+			{/if}
+		</div>
 	</NodeToolbar>
+
 	<NodeResizer
 		minWidth={200}
 		{minHeight}

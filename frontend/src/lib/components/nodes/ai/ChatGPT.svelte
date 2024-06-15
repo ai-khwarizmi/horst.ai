@@ -30,7 +30,7 @@
 		lastOutputValue = String(getOutputData(id, 0));
 	});
 
-	const onExecute = async (callbacks: OnExecuteCallbacks) => {
+	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
 		if (!apiKeys.openai) {
 			return;
@@ -42,8 +42,7 @@
 		const newValue = JSON.stringify({ systemPrompt, userPrompt });
 
 		if (systemPrompt && userPrompt) {
-			if (newValue === lastExecutedValue) {
-				setOutputData(id, 0, lastOutputValue);
+			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
 			lastOutputValue = null;
