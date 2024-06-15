@@ -16,15 +16,7 @@
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
-	import {
-		RefreshCw,
-		Circle,
-		LoaderCircle,
-		Loader,
-		TriangleAlert,
-		Check,
-		AlignCenter
-	} from 'lucide-svelte';
+	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -246,7 +238,7 @@
 			</div>
 		</div>
 		{#if hasContent}
-			<div class="flex flex-col overflow-auto p-2">
+			<div class="flex flex-col overflow-auto p-2 flex-grow">
 				<slot />
 			</div>
 		{/if}

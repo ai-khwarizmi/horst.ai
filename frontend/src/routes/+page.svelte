@@ -10,6 +10,7 @@
 	import ShareGraph from '@/components/file/ShareGraph.svelte';
 	import { onMount } from 'svelte';
 	import Apikeys from '@/components/settings/APIKeys.svelte';
+	import Button from '@/components/ui/button/button.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -35,6 +36,9 @@
 		<FullCommand />
 		<Background />
 		<Controls />
+		<Panel position="top-right">
+			<Button variant="link" href="/credits">Credits</Button>
+		</Panel>
 		<Panel position="top-left">
 			<TopMenuBar />
 		</Panel>
