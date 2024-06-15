@@ -68,7 +68,8 @@
 <div
 	class={cn(
 		'pb-2 shadow-md rounded-md bg-white border-stone-400 h-full flex flex-col',
-		errors.length && 'border-red-500'
+		errors.length && 'border-red-500',
+		colors.border
 	)}
 	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 >
