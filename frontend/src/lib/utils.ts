@@ -10,6 +10,7 @@ import { registeredNodes, type CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
 import { NodeType, type Input } from "./types";
 import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
+import { onDestroy } from "svelte";
 
 export const FILE_VERSION = 0.1;
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
@@ -36,10 +37,10 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 			};
 		case NodeType.TRANSFORM:
 			return {
-				fullbackground: 'bg-yellow-500',
-				background: 'bg-yellow-100',
-				text: 'text-yellow-500',
-				border: 'border-yellow-500'
+				fullbackground: 'bg-orange-500',
+				background: 'bg-orange-100',
+				text: 'text-orange-500',
+				border: 'border-orange-500'
 			};
 		case NodeType.FUNCTION:
 			return {
@@ -71,9 +72,11 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		public outputs: Input<TOutput>[] = []
 	) {
 		nodeIOHandlers.set(nodeId, this);
+		onDestroy(this.destroy)
 	}
 
 	destroy = () => {
+		console.log('destroying', this.nodeId)
 		nodeIOHandlers.delete(this.nodeId);
 	}
 
