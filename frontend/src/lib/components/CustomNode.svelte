@@ -13,7 +13,7 @@
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
-	import { Circle, LoaderCircle, Loader, TriangleAlert, Check } from 'lucide-svelte';
+	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -78,14 +78,22 @@
 
 	$: rows = Math.max(inputs.length, outputs.length);
 
+	$: hasContent = !!$$slots['default'];
+
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
 
-	$: minHeight = HEADER_HEIGHT + ROW_HEIGHT * rows + ROW_GAP * rows + BORDER_WIDTH * 2 + 4 + 5;
-	$: hasContent = !!$$slots['default'];
+	$: minHeight =
+		HEADER_HEIGHT +
+		ROW_HEIGHT * rows +
+		ROW_GAP * rows +
+		BORDER_WIDTH * 2 +
+		4 +
+		5 +
+		(hasContent ? 20 : 0);
 </script>
 
-<div class={cn('flex flex-col h-full gap-1 overflow-hidden')} style="min-width: 200px">
+<div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
 	<NodeToolbar isVisible>
 		{#if status === 'loading'}
 			<LoaderCircle class="animate-spin w-6 h-6 m-2" />
@@ -100,7 +108,6 @@
 	<NodeResizer
 		minWidth={200}
 		{minHeight}
-		maxHeight={hasContent ? undefined : minHeight}
 		isVisible={selected}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
@@ -123,7 +130,15 @@
 		)}
 		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 	>
-		<div class={cn('rounded-t-sm py-2 text-black border-b-2', colors.background, colors.text)}>
+		<div
+			class={cn(
+				'rounded-sm py-2 text-black',
+				hasContent && 'border-b-2 rounded-b-none',
+				colors.background,
+				colors.text,
+				colors.border
+			)}
+		>
 			<div
 				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
@@ -179,7 +194,7 @@
 				</div>
 			</div>
 		</div>
-		{#if $$slots['default']}
+		{#if hasContent}
 			<div class="flex flex-col overflow-auto p-2">
 				<slot />
 			</div>
