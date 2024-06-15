@@ -5,6 +5,7 @@ import TextInput from "./components/nodes/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import NumberToDate from "./components/nodes/number/NumberToDate.svelte";
+import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
 
 const nodes = {
     // Generics
@@ -21,6 +22,9 @@ const nodes = {
     // ai
     chatGpt: ChatGpt as any,
     dalle3: Dalle3 as any,
+
+    //documents
+    latex2pdf: LatexToPdf as any,
 
     // GPT
     // etc.

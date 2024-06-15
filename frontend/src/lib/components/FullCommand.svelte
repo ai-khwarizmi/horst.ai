@@ -97,6 +97,12 @@
 				Dall-E 3
 			</Command.Item>
 		</Command.Group>
+		<Command.Group heading="Docs">
+			<Command.Item onSelect={() => onSelect('latex2pdf')}>
+				<ImagePlus class="mr-2" />
+				Latex to PDF
+			</Command.Item>
+		</Command.Group>
 		<Command.Group heading="Miscellaneous">
 			<Command.Item onSelect={() => onSelect('currentTime')}>Current Time</Command.Item>
 		</Command.Group>

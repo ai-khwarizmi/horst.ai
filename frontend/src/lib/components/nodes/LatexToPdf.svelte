@@ -6,7 +6,6 @@
 
 	export let id: string;
 	let lastCompiledCode: string | null = null;
-	let showSpinner = writable(false);
 	let pdfUrl = writable<string | null>(null);
 
 	function extractLatexCode(inputString: string) {
@@ -55,17 +54,13 @@
 			lastCompiledCode = latexCode;
 
 			const cleanedLatexCode = extractLatexCode(latexCode);
-			showSpinner.set(true);
 			try {
 				await compileLatex(cleanedLatexCode);
 			} catch (error) {
 				console.error('Error compiling LaTeX:', error);
 			}
-			showSpinner.set(false);
 		}
 	}
-
-	onMount(() => {});
 </script>
 
 <CustomNode
@@ -76,7 +71,8 @@
 	headerType="viewer"
 >
 	{#if $pdfUrl}
-		<iframe src={$pdfUrl} width="100%" height="100%" style="border: none;"></iframe>
+		<iframe src={$pdfUrl} title="latex-to-pdf" width="100%" height="100%" style="border: none;"
+		></iframe>
 	{/if}
 </CustomNode>
 
