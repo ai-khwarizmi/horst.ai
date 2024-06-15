@@ -57,6 +57,7 @@
 				console.error('Error calling DALL-E: ', error);
 			}
 		} else {
+			callbacks.setStatus('idle');
 			setOutputData(id, 0, null);
 			lastOutputValue = null;
 		}

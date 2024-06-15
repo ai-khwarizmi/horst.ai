@@ -69,6 +69,8 @@
 				callbacks.setStatus('error');
 				pdfUrl.set(null);
 			}
+		} else {
+			callbacks.setStatus('idle');
 		}
 	}
 </script>
