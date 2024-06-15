@@ -46,12 +46,12 @@
 			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
+			lastExecutedValue = newValue;
 			if (!apiKeys.openai) {
 				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;
-			lastExecutedValue = newValue;
 			setOutputData(id, 0, null);
 			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
 			try {
@@ -68,7 +68,10 @@
 				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 			}
 		} else {
-			setOutputData(id, 0, null);
+			if (lastOutputValue !== null) {
+				lastOutputValue = null;
+				setOutputData(id, 0, null);
+			}
 		}
 	};
 </script>

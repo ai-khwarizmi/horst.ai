@@ -39,26 +39,26 @@
 			</Dialog.Content>
 		</Dialog.Content>
 	</Dialog.Root>
-	<Button variant="secondary" size="sm" on:click={loadGraph}>
+	<Button variant="secondary" size="sm" on:click={loadGraph} class="pointer-events-auto">
 		<Upload class="mr-2 size-3.5" />
 		Load
 	</Button>
-	<Button variant="secondary" size="sm" on:click={saveGraph}>
+	<Button variant="secondary" size="sm" on:click={saveGraph} class="pointer-events-auto">
 		<Download class="mr-2 size-3.5" />
 		Save
 	</Button>
-	<Button variant="secondary" size="sm" on:click={openShareGraphModal}>
+	<Button variant="secondary" size="sm" on:click={openShareGraphModal} class="pointer-events-auto">
 		<Share2 class="mr-2 size-3.5" />
 		Share
 	</Button>
 	<div class="w-4 h-[1px] bg-gray-500"></div>
-	<Button variant="outline" size="sm" class="ml-auto" on:click={openApiKeySettings}>
+	<Button variant="outline" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">
 		<Key class="mr-2 size-3.5" />
 		Set OpenAI Key
 	</Button>
 </div>
 
-<div class="bg-white rounded-md border mt-2 p-2 text-xs w-40">
+<div class="bg-white rounded-md border mt-2 p-2 text-xs w-40 pointer-events-auto">
 	<div class="font-bold text-center text-sm">Legend</div>
 	<div class="flex flex-col gap-2 p-2">
 		<div class="flex items-center gap-1">

@@ -41,11 +41,11 @@
 			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
+			lastExecutedValue = newValue;
 			if (!apiKeys.openai) {
 				callbacks.setErrors([OPENAI_KEY_MISSING]);
 				return;
 			}
-			lastExecutedValue = newValue;
 			lastOutputValue = null;
 			setOutputData(id, 0, null);
 			try {
