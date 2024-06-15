@@ -17,32 +17,43 @@ export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
 }
 
-export const getNodeBackgroundColor = (type: NodeType): string => {
+export const getNodeColors = (type: NodeType): { fullbackground: string, background: string, text: string, border: string } => {
 	switch (type) {
 		case NodeType.INPUT:
-			return cn('bg-blue-500');
+			return {
+				fullbackground: 'bg-blue-500',
+				background: 'bg-blue-100',
+				text: 'text-blue-500',
+				border: 'border-blue-500'
+			};
 		case NodeType.VIEWER:
-			return cn('bg-green-500')
+			return {
+				fullbackground: 'bg-green-500',
+				background: 'bg-green-100',
+				text: 'text-green-500',
+				border: 'border-green-500'
+			};
 		case NodeType.TRANSFORM:
-			return cn('bg-yellow-500');
+			return {
+				fullbackground: 'bg-yellow-500',
+				background: 'bg-yellow-100',
+				text: 'text-yellow-500',
+				border: 'border-yellow-500'
+			};
 		case NodeType.FUNCTION:
-			return cn('bg-purple-500');
+			return {
+				fullbackground: 'bg-purple-500',
+				background: 'bg-purple-100',
+				text: 'text-purple-500',
+				border: 'border-purple-500'
+			};
 		default:
-			return cn('bg-gray-500');
-	}
-}
-export const getNodeTextColor = (type: NodeType): string => {
-	switch (type) {
-		case NodeType.INPUT:
-			return cn('text-blue-500');
-		case NodeType.VIEWER:
-			return cn('text-green-500')
-		case NodeType.TRANSFORM:
-			return cn('text-yellow-500');
-		case NodeType.FUNCTION:
-			return cn('text-purple-500');
-		default:
-			return cn('text-gray-500');
+			return {
+				fullbackground: 'bg-gray-500',
+				background: 'bg-gray-100',
+				text: 'text-gray-500',
+				border: 'border-gray-500'
+			};
 	}
 }
 

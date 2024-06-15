@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Command from '$lib/components/ui/command';
 	import { registeredNodes, type CustomNodeName, type RegisteredNode } from '@/nodes';
-	import { addNode, cn, getNodeTextColor } from '@/utils';
+	import { addNode, cn, getNodeColors } from '@/utils';
 	import { useSvelteFlow } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { commandOpen } from '..';
@@ -81,7 +81,7 @@
 						{#if node.Icon}
 							<svelte:component
 								this={node.Icon}
-								class={cn('mr-2 text-gray-500', node.nodeType && getNodeTextColor(node.nodeType))}
+								class={cn('mr-2 text-gray-500', node.nodeType && getNodeColors(node.nodeType).text)}
 							/>
 						{/if}
 						<span class="text-gray-700 text-sm font-semibold">

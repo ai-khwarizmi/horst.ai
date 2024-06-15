@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { cn, getNodeBackgroundColor, isValidConnection, removeEdgeByIds } from '$lib/utils';
-	import { Handle, NodeResizer, Position, type Connection } from '@xyflow/svelte';
+	import { cn, getNodeColors, isValidConnection, removeEdgeByIds } from '$lib/utils';
+	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
 	import { NodeType, type Input, type Output } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
-	const ROW_HEIGHT = 20;
+	const HANDLE_WIDTH = 8;
+	const ROW_HEIGHT = 30;
+	const BORDER_WIDTH = 2;
 
 	export let id: string | undefined = undefined; // Node ID
 	export let type: string = '';
@@ -16,7 +18,7 @@
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
 	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.DEFAULT;
-	$: headerColor = getNodeBackgroundColor(nodeType);
+	$: colors = getNodeColors(nodeType);
 
 	export let errors: string[] = [];
 	export let inputs: Input[] = [];
@@ -57,76 +59,86 @@
 	$: rows = Math.max(inputs.length, outputs.length);
 
 	let HEADER_HEIGHT = 0;
+	// idk what 0.65 is for but it works
+	$: top = (index: number) => ROW_HEIGHT * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH;
 </script>
 
 <div
 	class={cn(
-		'p-[4px] pb-2 shadow-md rounded-md bg-white border-2 border-stone-400 h-full flex flex-col',
+		'pb-2 shadow-md rounded-md bg-white border-stone-400 h-full flex flex-col',
 		errors.length && 'border-red-500'
 	)}
-	style="min-width: 200px;"
+	style="min-width: 200px; border-width: {BORDER_WIDTH}px"
 >
-	<div
-		class={cn('text-xs w-full bg-black text-white rounded-md text-center p-0.5', headerColor)}
-		bind:clientHeight={HEADER_HEIGHT}
-	>
-		{label}
-	</div>
+	<NodeToolbar isVisible>asd</NodeToolbar>
 	<NodeResizer
 		minWidth={200}
-		minHeight={ROW_HEIGHT * (rows + 2) + HEADER_HEIGHT + 4}
+		minHeight={ROW_HEIGHT * rows + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + 2 * BORDER_WIDTH}
 		isVisible={selected}
+		lineClass="!border-[1.5px]"
+		handleClass="!size-2"
 	/>
-	<div
-		class="flex justify-between text-xs uppercase gap-4 pt-[7px] max-w-full overflow-hidden flex-shrink-0"
-	>
-		<div class="flex flex-col w-1/2">
-			{#each inputs as input, index}
-				{@const connected = inputConnections.filter(
-					(edge) => edge.targetHandle === `${input.type}-${index}-i`
+	<div class={cn('rounded-t-sm', colors.background, colors.text)}>
+		<div bind:clientHeight={HEADER_HEIGHT} class={cn('pb-1')}>
+			<div
+				class={cn(
+					colors.fullbackground,
+					'py-1 w-full rounded-t-sm text-center p-0.5 text- font-semibold leading-none text-white'
 				)}
-				<Handle
-					type="target"
-					position={Position.Left}
-					class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-					style="left:1px; top: {ROW_HEIGHT * (index + 1) +
-						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px;"
-					id="{input.type}-{index}-i"
-					{isValidConnection}
-					{onconnect}
-				/>
-				<div
-					class="text-ellipsis truncate overflow-hidden w-full font-bold"
-					style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-				>
-					{input.label ?? input.type}
-				</div>
-			{/each}
+			>
+				{label}
+			</div>
 		</div>
-		<div class="flex flex-col text-end w-1/2">
-			{#each outputs as output, index}
-				{@const connected = outputConnections.filter(
-					(edge) => edge.sourceHandle === `${output.type}-${index}-o`
-				)}
-				<Handle
-					type="source"
-					position={Position.Right}
-					class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-					style="right: 1px; top: {ROW_HEIGHT * (index + 1) +
-						HEADER_HEIGHT +
-						4}px; height: 14px; width: 8px; border-radius: 3px;"
-					{isValidConnection}
-					{onconnect}
-					id="{output.type}-{index}-o"
-				/>
-				<div
-					class="text-ellipsis truncate overflow-hidden w-full font-bold"
-					style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-				>
-					{output.label ?? output.type}
-				</div>
-			{/each}
+		<div
+			class="flex justify-between text-xs uppercase gap-4 max-w-full overflow-hidden flex-shrink-0"
+		>
+			<div class={cn('flex flex-col w-1/2', colors.text)}>
+				{#each inputs as input, index}
+					{@const connected = inputConnections.filter(
+						(edge) => edge.targetHandle === `${input.type}-${index}-i`
+					)}
+					<Handle
+						type="target"
+						position={Position.Left}
+						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
+						style="left:1px; top: {top(
+							index
+						)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
+							2}px;"
+						id="{input.type}-{index}-i"
+						{isValidConnection}
+						{onconnect}
+					/>
+					<div
+						class="text-ellipsis truncate overflow-hidden w-full font-bold pl-2"
+						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+					>
+						{input.label ?? input.type}
+					</div>
+				{/each}
+			</div>
+			<div class={cn('flex flex-col text-end w-1/2', colors.text)}>
+				{#each outputs as output, index}
+					{@const connected = outputConnections.filter(
+						(edge) => edge.sourceHandle === `${output.type}-${index}-o`
+					)}
+					<Handle
+						type="source"
+						position={Position.Right}
+						class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
+						style="right: 1px; top: {top(index)}px; height: 14px; width: 8px; border-radius: 3px;"
+						{isValidConnection}
+						{onconnect}
+						id="{output.type}-{index}-o"
+					/>
+					<div
+						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-bold"
+						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+					>
+						{output.label ?? output.type}
+					</div>
+				{/each}
+			</div>
 		</div>
 	</div>
 	<div class="flex flex-col h-full overflow-auto">
