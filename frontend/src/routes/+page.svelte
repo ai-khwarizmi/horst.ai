@@ -32,7 +32,7 @@
 </script>
 
 <main>
-	<SvelteFlow {nodes} {edges} {nodeTypes}>
+	<SvelteFlow {nodes} {edges} {nodeTypes} attributionPosition={null}>
 		<FullCommand />
 		<Background />
 		<Controls />
