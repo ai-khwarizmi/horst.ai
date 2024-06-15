@@ -9,7 +9,7 @@
 
 	const HANDLE_WIDTH = 8;
 	const ROW_HEIGHT = 20;
-	const ROW_GAP = 4;
+	const ROW_GAP = 10;
 	const BORDER_WIDTH = 2;
 
 	export let id: string | undefined = undefined; // Node ID
@@ -80,7 +80,7 @@
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
 	/>
-	<div class={cn('rounded-t-sm', colors.background, colors.text)}>
+	<div class={cn('rounded-t-sm pb-2', colors.background, colors.text)}>
 		<div bind:clientHeight={HEADER_HEIGHT} class={cn('pb-1')}>
 			<div
 				class={cn(
@@ -91,9 +91,7 @@
 				{label}
 			</div>
 		</div>
-		<div
-			class="flex justify-between text-xs uppercase gap-4 max-w-full overflow-hidden flex-shrink-0"
-		>
+		<div class="flex justify-between text-xs gap-4 max-w-full overflow-hidden flex-shrink-0">
 			<div class={cn('flex flex-col w-1/2', colors.text)} style="gap: {ROW_GAP}px">
 				{#each inputs as input, index}
 					{@const connected = inputConnections.filter(
@@ -112,7 +110,7 @@
 						{onconnect}
 					/>
 					<div
-						class="text-ellipsis truncate overflow-hidden w-full font-bold pl-2"
+						class="text-ellipsis truncate overflow-hidden w-full font-semibold pl-2 leading-none -mt-[1px]"
 						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 					>
 						{input.label ?? input.type}
@@ -136,7 +134,7 @@
 						id="{output.type}-{index}-o"
 					/>
 					<div
-						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-bold"
+						class="text-ellipsis truncate pr-2 overflow-hidden w-full font-semibold leading-none -mt-[1px]"
 						style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 					>
 						{output.label ?? output.type}
