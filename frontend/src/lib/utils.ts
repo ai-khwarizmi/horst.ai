@@ -7,8 +7,13 @@ import { edges, nodes, openai_key } from "$lib";
 import type { Connection, EdgeTypes, XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import type { CustomNodeName } from "./nodes";
+import { toast } from "svelte-sonner";
 
-const FILE_VERSION = 0.1;
+export const FILE_VERSION = 0.1;
+
+export const clearData = () => {
+	nodes.update(n => n.map(node => ({ ...node, data: {} })));
+}
 
 export const isValidConnection = (connection: any): boolean => {
 	if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
@@ -25,16 +30,6 @@ export const isValidConnection = (connection: any): boolean => {
 	if (sourceType !== targetType && targetType !== 'any') {
 		return false;
 	}
-	const e = get(edges);
-	// check if target already has a connection
-	// const hasConnection = e.some(edge => {
-	// 	console.log(edge, connection)
-	// 	return edge.targetHandle === connection.targetHandle && edge.target === connection.target;
-	// });
-
-	// if (hasConnection) {
-	// 	return false;
-	// }
 	return true;
 }
 
@@ -55,41 +50,6 @@ export const saveGraph = () => {
 	a.download = 'graph.json';
 	a.href = url;
 	a.click();
-}
-
-export const shareUrl = () => {
-	const n = get(nodes);
-	const e = get(edges);
-
-	const version = 0.1;
-
-	const graph = {
-		version: FILE_VERSION,
-		nodes: n,
-		edges: e
-	};
-
-	const str = JSON.stringify(graph);
-
-	//uncompressed base64
-	const base64 = btoa(str);
-
-	//compress
-	const compressed = LZString.compressToBase64(str);
-	console.log('compression ratio:', compressed.length / base64.length);
-	console.log('before:', base64.length, ' after:', compressed.length);
-
-	const shorterVersion = compressed.length < base64.length ? compressed : base64;
-	//set as hash
-	location.hash = shorterVersion;
-	if (shorterVersion == compressed)
-		console.log('using Compressed');
-	else
-		console.log('using Uncompressed');
-
-	//copy to clipboard
-
-	navigator.clipboard.writeText(location.href);
 }
 
 export const loadFromHash = () => {
@@ -128,10 +88,9 @@ export const loadGraph = async () => {
 			return
 		}
 
-		console.log(graph)
 		nodes.set(graph.nodes);
 		edges.set(graph.edges);
-		alert('loaded');
+		toast.success('Graph loaded');
 	};
 	input.click();
 }
@@ -216,10 +175,12 @@ export const addNode = (type: CustomNodeName, pos: XYPosition) => {
 };
 
 export const setOutputData = (id: string, handle: number, data: any) => {
-	const n = get(nodes);
-	const node = n.find(n => n.id === id);
-	if (!node) return;
-	node.data[handle] = data;
+	nodes.update(n => {
+		const node = n.find(n => n.id === id);
+		if (!node) return n;
+		node.data[handle] = data;
+		return n;
+	});
 }
 
 export const getOutputData = (id: string, handle: number) => {

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
-	import { loadGraph, resetGraph, saveGraph, shareUrl } from '@/utils';
-	import { InfoIcon, Download, File, Upload, Eraser } from 'lucide-svelte';
+	import { clearData, loadGraph, resetGraph, saveGraph } from '@/utils';
+	import { InfoIcon, Download, File, Upload, Eraser, Share, Share2, FilePlus } from 'lucide-svelte';
+	import { open } from './file/ShareGraph.svelte';
 </script>
 
 <Menubar.Root>
@@ -9,33 +10,29 @@
 		<Menubar.Trigger>File</Menubar.Trigger>
 		<Menubar.Content>
 			<Menubar.Item on:click={resetGraph}>
-				<File class="mr-2 size-3.5" />
-				New Graph
+				<FilePlus class="mr-2 size-3.5" />
+				New
 			</Menubar.Item>
 			<Menubar.Separator />
 			<Menubar.Item on:click={loadGraph}>
 				<Upload class="mr-2 size-3.5" />
-				Upload
+				Open
 			</Menubar.Item>
 			<Menubar.Item on:click={saveGraph}>
 				<Download class="mr-2 size-3.5" />
 				Save
 			</Menubar.Item>
 			<Menubar.Separator />
-			<Menubar.Sub>
-				<Menubar.SubTrigger inset>Share</Menubar.SubTrigger>
-				<Menubar.SubContent>
-					<Menubar.Item on:click={shareUrl}>Generate URL</Menubar.Item>
-					<Menubar.Item disabled>Messages</Menubar.Item>
-					<Menubar.Item disabled>Notes</Menubar.Item>
-				</Menubar.SubContent>
-			</Menubar.Sub>
+			<Menubar.Item on:click={() => open.set(true)}>
+				<Share2 class="mr-2 size-3.5" />
+				Share
+			</Menubar.Item>
 		</Menubar.Content>
 	</Menubar.Menu>
 	<Menubar.Menu>
 		<Menubar.Trigger>Edit</Menubar.Trigger>
 		<Menubar.Content>
-			<Menubar.Item on:click={resetGraph}>
+			<Menubar.Item on:click={clearData}>
 				<Eraser class="mr-2 size-3.5" />
 				Clear Data
 			</Menubar.Item>

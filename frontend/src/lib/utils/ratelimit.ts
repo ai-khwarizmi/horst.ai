@@ -8,8 +8,6 @@ export const ratelimit = async (key: string, delaySeconds: number, fn: () => Pro
         }
     }
 
-    console.log('ratelimit', key, delaySeconds);
-
     isRunning.set(key, Date.now() + delaySeconds * 1000);
     await fn().catch(err => {
         throw err

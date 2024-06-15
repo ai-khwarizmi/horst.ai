@@ -6,18 +6,16 @@
 	import { nodeTypes } from '@/nodes';
 	import Input from '@/components/ui/input/input.svelte';
 	import BottomBar from '@/components/BottomBar.svelte';
-	import { onMount } from 'svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import { page } from '$app/stores';
 	import { loadFromHash } from '@/utils';
 	import FullCommand from '@/components/FullCommand.svelte';
+	import ShareGraph from '@/components/file/ShareGraph.svelte';
+	import { onMount } from 'svelte';
 
 	onMount(() => {
-		console.log('onMount');
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
-		console.log('existingOpenaiApiKey', existingOpenaiApiKey);
 		if (existingOpenaiApiKey) {
-			console.log('setting existingOpenaiApiKey');
 			openai_key.set(existingOpenaiApiKey);
 		}
 
@@ -32,6 +30,7 @@
 </script>
 
 <main>
+	<ShareGraph />
 	<SvelteFlow
 		{nodes}
 		{edges}
