@@ -1,8 +1,7 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
 	import { setOutputData } from '$lib/utils';
-	import { NodeType, type Output } from '@/types';
-	import { onMount } from 'svelte';
+	import { type Output } from '@/types';
 
 	let currentTime = new Date();
 
@@ -16,7 +15,10 @@
 	export let id: string;
 
 	const onExecute = () => {
-		currentTime = new Date();
+		const date = new Date();
+		date.setMilliseconds(0);
+		date.setSeconds(0);
+		currentTime = date;
 		setOutputData(id, 0, currentTime.toLocaleString());
 		setOutputData(id, 1, currentTime.getTime());
 	};
