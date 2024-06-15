@@ -1,7 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
 	import { getInputData } from '$lib/utils';
-	import { NodeType } from '@/types';
 
 	export let id: string;
 	let data: any;

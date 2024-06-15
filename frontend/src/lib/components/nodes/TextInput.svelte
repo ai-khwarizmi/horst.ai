@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../CustomNode.svelte';
-	import { getInputData, getOutputData, setOutputData } from '$lib/utils';
+	import { getOutputData, setOutputData } from '$lib/utils';
 	import type { Output } from '@/types';
 	import Textarea from '../ui/textarea/textarea.svelte';
 	import { onMount } from 'svelte';

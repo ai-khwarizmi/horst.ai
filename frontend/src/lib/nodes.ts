@@ -63,7 +63,7 @@ const nodes = {
     // documents
     latex2pdf: registerNode(LatexToPdf, {
         name: "LaTeX to PDF",
-        nodeType: NodeType.FUNCTION,
+        nodeType: NodeType.TRANSFORM,
         Icon: FileText,
         category: NodeCategory.Documents,
     }),
