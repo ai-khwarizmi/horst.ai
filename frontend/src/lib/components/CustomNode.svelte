@@ -14,11 +14,12 @@
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
-	import { NodeType } from '@/types';
+	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
+	import { openApiKeySettings } from './settings/APIKeys.svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -104,6 +105,19 @@
 		(hasContent ? 20 : 0);
 </script>
 
+{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
+	<div
+		class="bg-red-100 p-4 text-red-800 w-full h-full fixed top-0 left-0 flex justify-center items-center"
+	>
+		<div class="text-center">
+			<p class="font-bold">OpenAI API Key Missing</p>
+			<p>Please add your OpenAI API key in the settings to use this node.</p>
+			<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
+				Set OpenAI Key
+			</Button>
+		</div>
+	</div>
+{/if}
 <div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
