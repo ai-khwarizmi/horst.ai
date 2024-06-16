@@ -3,12 +3,13 @@
 	import { NodeIOHandler } from '$lib/utils';
 
 	export let id: string;
-	let data: any;
+	let data: string | null = null;
 
 	const io = new NodeIOHandler(id, [{ id: 'text', type: 'text' }]);
 
 	function onExecute() {
-		data = io.getInputData('text');
+		const input = io.getInputData('text') ?? null;
+		data = typeof input === 'string' ? input : String(input);
 	}
 </script>
 

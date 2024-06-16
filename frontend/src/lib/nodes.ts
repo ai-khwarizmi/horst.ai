@@ -1,4 +1,3 @@
-import NumberToString from "./components/nodes/number/NumberToString.svelte";
 import TextDisplay from "./components/nodes/text/TextDisplay.svelte";
 import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
@@ -32,12 +31,12 @@ const nodes = {
     }),
 
     // Number Tools
-    num2str: registerNode(NumberToString, {
-        name: "Number to String",
-        nodeType: NodeType.TRANSFORM,
-        Icon: PencilRuler,
-        category: NodeCategory.Number,
-    }),
+    // num2str: registerNode(NumberToString, {
+    //     name: "Number to String",
+    //     nodeType: NodeType.TRANSFORM,
+    //     Icon: PencilRuler,
+    //     category: NodeCategory.Number,
+    // }),
 
     // ai
     chatGpt: registerNode(ChatGpt, {
