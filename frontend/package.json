@@ -1,6 +1,17 @@
 {
-	"name": "svelte",
+	"name": "horst.ai",
 	"version": "0.0.1",
+	"description": "Create AI workflows with an easy-to-use visual editor. Connect ChatGPT, DALL-E, and other AI services to generate content, images, and PDFs. No coding required.",
+	"keywords": [
+		"ai",
+		"nocode",
+		"automation",
+		"chatgpt",
+		"dalle",
+		"openai"
+	],
+	"homepage": "https://horst.ai",
+	"license": "SEE LICENSE IN LICENSE",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
