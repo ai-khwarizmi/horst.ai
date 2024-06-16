@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { cn, isValidConnection, removeEdgeByIds, type NodeIOHandler } from '@/utils';
+	import { cn, removeEdgeByIds } from '@/utils';
 	import { edges } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, type Connection } from '@xyflow/svelte';
 	import { HANDLE_WIDTH, ROW_HEIGHT } from './CustomNode.svelte';
 	import { get } from 'svelte/store';
+	import { isValidConnection } from '@/utils/validate';
 
 	export let nodeId: string | undefined = undefined;
 	export let type: 'input' | 'output';

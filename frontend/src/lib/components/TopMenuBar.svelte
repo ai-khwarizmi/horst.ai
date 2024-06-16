@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { loadGraph, resetGraph, saveGraph } from '@/utils';
-	import { Download, Upload, FilePlus, Share2, Key, Info } from 'lucide-svelte';
+	import { loadGraph, resetGraph, saveGraph } from '@/utils/file';
+	import { Download, Upload, FilePlus, Share2, Key, Info, GithubIcon } from 'lucide-svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
@@ -33,6 +33,10 @@
 				</Dialog.Description>
 			</Dialog.Header>
 			<Dialog.Footer>
+				<Button variant="link" size="sm" target="_blank" href={PackageJson.repository.url}>
+					<GithubIcon class="mr-2 size-3.5" />
+					View on GitHub
+				</Button>
 				<Button variant="outline" size="sm" target="_blank" href="/how-to-use">
 					<Info class="mr-2 size-3.5" />
 					How to Use

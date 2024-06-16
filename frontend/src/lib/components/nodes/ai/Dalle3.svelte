@@ -4,9 +4,6 @@
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
-	import { openai_key } from '@/index';
-	import Button from '@/components/ui/button/button.svelte';
-	import { openApiKeySettings } from '@/components/settings/APIKeys.svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 
 	let tool: DallEAPIWrapper;

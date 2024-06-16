@@ -11,7 +11,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
-	import { resetGraph } from '@/utils';
+	import { resetGraph } from '@/utils/file';
 </script>
 
 <Dialog.Root bind:open={$newFileOpen}>

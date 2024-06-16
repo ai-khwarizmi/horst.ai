@@ -6,8 +6,6 @@
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
 	import { onMount } from 'svelte';
-	import { openai_key } from '@/index';
-	import Button from '@/components/ui/button/button.svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 
 	let model: ChatOpenAI;
