@@ -53,7 +53,21 @@
 		<Panel position="bottom-center">
 			<BottomBar />
 		</Panel>
-		<Panel position="bottom-right">
+		<Panel position="bottom-right" style="display: flex; align-items: center; gap: 10px;">
+			<Button
+				variant="link"
+				target="_blank"
+				class="text-xs"
+				href="https://github.com/ai-khwarizmi/horst.ai"
+				style="display: flex; align-items: center;"
+			>
+				<img
+					src="/github-mark.png"
+					alt="Github"
+					style="margin-right: 10px; width: 1.5rem; height: 1.5rem;"
+				/>
+				Github
+			</Button>
 			<Button variant="link" class="text-xs" href="/credits">Credits</Button>
 			<Button variant="link" class="text-xs" target="_blank" href="/terms">Terms of Use</Button>
 		</Panel>
