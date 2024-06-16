@@ -46,8 +46,6 @@
 		</Panel>
 		<Panel position="top-right">
 			<Button variant="link" target="_blank" href="/how-to-use">How to Use</Button>
-			<Button variant="link" href="/credits">Credits</Button>
-			<Button variant="link" target="_blank" href="/terms">Terms of Use</Button>
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />
@@ -55,7 +53,10 @@
 		<Panel position="bottom-center">
 			<BottomBar />
 		</Panel>
-		<MiniMap nodeStrokeWidth={3} />
+		<Panel position="bottom-right">
+			<Button variant="link" class="text-xs" href="/credits">Credits</Button>
+			<Button variant="link" class="text-xs" target="_blank" href="/terms">Terms of Use</Button>
+		</Panel>
 	</SvelteFlow>
 </main>
 
