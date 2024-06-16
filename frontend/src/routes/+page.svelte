@@ -47,6 +47,7 @@
 		<Panel position="top-right">
 			<Button variant="link" target="_blank" href="/how-to-use">How to Use</Button>
 			<Button variant="link" href="/credits">Credits</Button>
+			<Button variant="link" target="_blank" href="/terms">Terms of Use</Button>
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />

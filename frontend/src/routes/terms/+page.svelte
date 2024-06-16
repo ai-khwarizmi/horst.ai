@@ -1,6 +1,6 @@
 <script>
 	import SvelteMarkdown from 'svelte-markdown';
-	import source from '../../../src/USAGE.md?raw';
+	import source from '../../../src/TOS.md?raw';
 </script>
 
 <div class="markdown-content">
