@@ -62,7 +62,6 @@
 	)}
 	style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 >
-	{connected.map((e) => e.targetHandle)}
 	{#if base.label}
 		{base.label} ({base.type})
 	{:else}
