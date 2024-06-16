@@ -4,7 +4,7 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
 import { edges, nodes, openai_key, viewport } from "$lib";
-import { type Connection, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
+import { type Node, type Edge, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import { registeredNodes, type CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
@@ -12,7 +12,7 @@ import { NodeType, type Input } from "./types";
 import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
 import { onDestroy } from "svelte";
 
-export const FILE_VERSION = 0.1;
+export const FILE_VERSION = '0.1';
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
 export const clearData = () => {
@@ -137,6 +137,14 @@ export function getSaveData(includeData: boolean): {
 	}));
 
 	json.nodes = json.nodes.map((node: any) => {
+		if (!node) {
+			console.error('node is ', node);
+			return node
+		}
+		if (!registeredNodes[node.type]) {
+			console.error('node type not registered', node.type);
+			return;
+		}
 		const nodeType = registeredNodes[node.type].nodeType;
 		if (includeData && nodeType === 'input') {
 			return node;
@@ -176,13 +184,98 @@ export const loadFromHash = (): boolean => {
 	if (!str) return false;
 	const graph = JSON.parse(str);
 	if (graph.version !== FILE_VERSION) {
-		// TODO: improve
-		console.error('version mismatch');
+		// TODO: migrate graph to newest version
+		toast.error('URL: Version mismatch');
 		return false;
 	}
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	if (graph.viewport) viewport.set(graph.viewport);
+	if (!isValidGraph(graph)) {
+		toast.error('URL: Invalid graph');
+		return false;
+	}
+
+	const valid_nodes: Node[] = [];
+	const valid_edges: Edge[] = [];
+
+	let invalid_nodes = 0;
+	for (const node of graph.nodes) {
+		if (!isValidNode(node)) {
+			toast.error('URL: Invalid node');
+			invalid_nodes++;
+			continue;
+		}
+		valid_nodes.push(node);
+	}
+
+	if (invalid_nodes > 0) {
+		toast.error(`URL: ${invalid_nodes} invalid nodes`);
+	}
+
+	let invalid_edges = 0;
+	for (const edge of graph.edges) {
+		if (!isValidEdge(edge, valid_nodes)) {
+			toast.error('URL: Invalid edge');
+			invalid_edges++;
+			continue;
+		}
+		valid_edges.push(edge);
+	}
+
+	if (invalid_edges > 0) {
+		toast.error(`URL: ${invalid_edges} invalid edges`);
+	}
+
+	nodes.set(valid_nodes);
+	edges.set(valid_edges);
+	if (graph.viewport) {
+		if (isValidViewPort(graph.viewport)) {
+			viewport.set(graph.viewport);
+		} else {
+			toast.error('URL: Invalid viewport');
+		}
+	}
+
+	return true;
+}
+
+const isValidViewPort = (viewport: any) => {
+	if (typeof viewport !== 'object') return false;
+	if (!viewport) return false;
+	if (typeof viewport.x !== 'number') return false;
+	if (typeof viewport.y !== 'number') return false;
+	if (typeof viewport.zoom !== 'number') return false;
+	return true;
+}
+
+const isValidGraph = (graph: unknown) => {
+	if (typeof graph !== 'object') return false;
+	if (!graph) return false;
+	if ('version' in graph === false) return false;
+	if ('nodes' in graph === false) return false;
+	if ('edges' in graph === false) return false;
+	if (!Array.isArray(graph.nodes)) return false;
+	if (!Array.isArray(graph.edges)) return false;
+	return true;
+}
+
+const isValidNode = (node: any) => {
+	if (typeof node !== 'object') return false;
+	if (!node) return false;
+	if (typeof node.id !== 'string') return false;
+	if (typeof node.type !== 'string') return false;
+	if (!registeredNodes[node.type]) return false;
+	return true;
+}
+
+const isValidEdge = (edge: any, nodes: Node[]) => {
+	if (typeof edge !== 'object') return false;
+	if (!edge) return false;
+	if (typeof edge.id !== 'string') return false;
+	if (typeof edge.source !== 'string') return false;
+	if (typeof edge.target !== 'string') return false;
+	if (typeof edge.sourceHandle !== 'string') return false;
+	if (typeof edge.targetHandle !== 'string') return false;
+	if (!nodes.find(n => n.id === edge.source)) return false;
+	if (!nodes.find(n => n.id === edge.target)) return false;
 	return true;
 }
 

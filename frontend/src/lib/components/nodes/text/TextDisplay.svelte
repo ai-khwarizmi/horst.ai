@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CustomNode from '../CustomNode.svelte';
+	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
 
 	export let id: string;

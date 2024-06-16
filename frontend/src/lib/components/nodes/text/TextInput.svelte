@@ -1,7 +1,7 @@
 <script lang="ts">
-	import CustomNode from '../CustomNode.svelte';
+	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
-	import Textarea from '../ui/textarea/textarea.svelte';
+	import Textarea from '../../ui/textarea/textarea.svelte';
 	import { onMount } from 'svelte';
 
 	export let id: string;

@@ -185,64 +185,80 @@
 			<div
 				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
-				<div class={cn('flex flex-col w-1/2')} style="gap: {ROW_GAP}px">
-					{#each io.inputs as input, index}
-						{@const connected = inputConnections.filter(
-							(edge) => edge.targetHandle === `${input.type}-${index}-i`
-						)}
-						<Handle
-							type="target"
-							position={Position.Left}
-							class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-							style="left:1px; top: {top(
-								index
-							)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-								2}px;"
-							id={input.id}
-							{isValidConnection}
-							{onconnect}
-						/>
-						<div
-							class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
-							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-						>
-							{#if input.label}
-								{input.label} ({input.type})
-							{:else}
-								{input.type}
-							{/if}
-						</div>
-					{/each}
-				</div>
-				<div class={cn('flex flex-col text-end w-1/2')} style="gap: {ROW_GAP}px">
-					{#each io.outputs as output, index}
-						{@const connected = outputConnections.filter(
-							(edge) => edge.sourceHandle === `${output.type}-${index}-o`
-						)}
-						<Handle
-							type="source"
-							position={Position.Right}
-							class={cn(connected.length && '!bg-green-500', !connected.length && '!bg-gray-500 ')}
-							style="right:1px; top: {top(
-								index
-							)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-								2}px;"
-							{isValidConnection}
-							{onconnect}
-							id={output.id}
-						/>
-						<div
-							class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
-							style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-						>
-							{#if output.label}
-								{output.label} ({output.type})
-							{:else}
-								{output.type}
-							{/if}
-						</div>
-					{/each}
-				</div>
+				{#if io.inputs.length > 0}
+					<div
+						class={cn('flex flex-col', io.outputs.length > 0 ? 'w-1/2' : 'w-full')}
+						style="gap: {ROW_GAP}px"
+					>
+						{#each io.inputs as input, index}
+							{@const connected = inputConnections.filter(
+								(edge) => edge.targetHandle === `${input.type}-${index}-i`
+							)}
+							<Handle
+								type="target"
+								position={Position.Left}
+								class={cn(
+									connected.length && '!bg-green-500',
+									!connected.length && '!bg-gray-500 '
+								)}
+								style="left:1px; top: {top(
+									index
+								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
+									2}px;"
+								id={input.id}
+								{isValidConnection}
+								{onconnect}
+							/>
+							<div
+								class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
+								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+							>
+								{#if input.label}
+									{input.label} ({input.type})
+								{:else}
+									{input.type}
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+				{#if io.outputs.length > 0}
+					<div
+						class={cn('flex flex-col text-end ', io.inputs.length > 0 ? 'w-1/2' : 'w-full')}
+						style="gap: {ROW_GAP}px"
+					>
+						{#each io.outputs as output, index}
+							{@const connected = outputConnections.filter(
+								(edge) => edge.sourceHandle === `${output.type}-${index}-o`
+							)}
+							<Handle
+								type="source"
+								position={Position.Right}
+								class={cn(
+									connected.length && '!bg-green-500',
+									!connected.length && '!bg-gray-500 '
+								)}
+								style="right:1px; top: {top(
+									index
+								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
+									2}px;"
+								{isValidConnection}
+								{onconnect}
+								id={output.id}
+							/>
+							<div
+								class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
+								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
+							>
+								{#if output.label}
+									{output.label} ({output.type})
+								{:else}
+									{output.type}
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</div>
 		{#if hasContent}

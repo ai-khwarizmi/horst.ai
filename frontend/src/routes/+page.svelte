@@ -12,6 +12,7 @@
 	import Apikeys from '@/components/settings/APIKeys.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
+	import HashLoader from '@/components/file/HashLoader.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -35,6 +36,7 @@
 			hideAttribution: true
 		}}
 	>
+		<HashLoader />
 		<FullCommand />
 		<Background />
 		<Controls />

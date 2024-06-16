@@ -18,10 +18,8 @@ export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
 
 export const commandOpen = writable(false);
 
-// try to load from hash, if not, load from local storage
-if (!loadFromHash()) {
-    loadFromLocalStorage();
-}
+// default to localstorage for now, later we'll add multiple projects at once
+loadFromLocalStorage();
 
 //watch node and edge changes, save to local storage
 nodes.subscribe(saveToLocalStorage);
