@@ -8,6 +8,10 @@ export enum NodeType {
 
 export type NodeValueType = 'any' | 'text' | 'number'
 
+export const SPECIAL_ERRORS = {
+    'OPENAI_API_KEY_MISSING': 'OPENAI_API_KEY_MISSING',
+}
+
 /**
  * Node I/O
  * id - unique id of the output, stays relevant for project file, if changed, the project file will be invalid
