@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
-import { edges, nodes, openai_key, viewport } from "$lib";
+import { edges, nodes, openai_key, projectName, viewport } from "$lib";
 import { type Node, type Edge, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import { registeredNodes, type CustomNodeName } from "./nodes";
@@ -124,12 +124,14 @@ export const isValidConnection: IsValidConnection = (connection) => {
 }
 
 export function getSaveData(includeData: boolean): {
-	nodes: any; edges: any, version: number, viewport: any
+	projectName: string, nodes: any; edges: any, version: number, viewport: any
 } {
+	const name = get(projectName);
 	const n = get(nodes);
 	const e = get(edges);
 	const v = get(viewport);
 	const json = JSON.parse(JSON.stringify({
+		name,
 		nodes: n,
 		edges: e,
 		viewport: v,
@@ -183,56 +185,6 @@ export const loadFromHash = (): boolean => {
 	const str = LZString.decompressFromBase64(hash.slice(1));
 	if (!str) return false;
 	const graph = JSON.parse(str);
-	if (graph.version !== FILE_VERSION) {
-		// TODO: migrate graph to newest version
-		toast.error('URL: Version mismatch');
-		return false;
-	}
-	if (!isValidGraph(graph)) {
-		toast.error('URL: Invalid graph');
-		return false;
-	}
-
-	const valid_nodes: Node[] = [];
-	const valid_edges: Edge[] = [];
-
-	let invalid_nodes = 0;
-	for (const node of graph.nodes) {
-		if (!isValidNode(node)) {
-			toast.error('URL: Invalid node');
-			invalid_nodes++;
-			continue;
-		}
-		valid_nodes.push(node);
-	}
-
-	if (invalid_nodes > 0) {
-		toast.error(`URL: ${invalid_nodes} invalid nodes`);
-	}
-
-	let invalid_edges = 0;
-	for (const edge of graph.edges) {
-		if (!isValidEdge(edge, valid_nodes)) {
-			toast.error('URL: Invalid edge');
-			invalid_edges++;
-			continue;
-		}
-		valid_edges.push(edge);
-	}
-
-	if (invalid_edges > 0) {
-		toast.error(`URL: ${invalid_edges} invalid edges`);
-	}
-
-	nodes.set(valid_nodes);
-	edges.set(valid_edges);
-	if (graph.viewport) {
-		if (isValidViewPort(graph.viewport)) {
-			viewport.set(graph.viewport);
-		} else {
-			toast.error('URL: Invalid viewport');
-		}
-	}
 
 	return true;
 }
@@ -284,13 +236,7 @@ export const loadFromLocalStorage = () => {
 	const str = window.localStorage.getItem(LOCALSTORAGE_KEY);
 	if (!str) return;
 	const graph = JSON.parse(str);
-	if (graph.version !== FILE_VERSION) {
-		console.error('version mismatch');
-		return;
-	}
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	if (graph.viewport) viewport.set(graph.viewport);
+	return loadFromGraph(graph);
 }
 
 export const resetGraph = () => {
@@ -309,7 +255,7 @@ export const loadGraph = async () => {
 		if (!target.files) return alert('no file selected');
 		const file = target.files[0];
 		await loadFromFile(file);
-		toast.success('Graph loaded');
+		toast.success('Project loaded');
 	};
 	input.click();
 }
@@ -317,14 +263,65 @@ export const loadGraph = async () => {
 export const loadFromFile = async (file: File) => {
 	const text = await file.text();
 	const graph = JSON.parse(text);
+	return loadFromGraph(graph);
+}
+
+export const loadFromGraph = (graph: any) => {
 	if (graph.version !== FILE_VERSION) {
-		alert('version mismatch');
-		return
+		// TODO: migrate graph to newest version
+		toast.error('URL: Version mismatch');
+		return false;
+	}
+	if (!isValidGraph(graph)) {
+		toast.error('URL: Invalid project file');
+		return false;
 	}
 
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	viewport.set(graph.viewport);
+	const valid_nodes: Node[] = [];
+	const valid_edges: Edge[] = [];
+
+	let invalid_nodes = 0;
+	for (const node of graph.nodes) {
+		if (!isValidNode(node)) {
+			toast.error('URL: Invalid node');
+			invalid_nodes++;
+			continue;
+		}
+		valid_nodes.push(node);
+	}
+
+	if (invalid_nodes > 0) {
+		toast.error(`URL: ${invalid_nodes} invalid nodes`);
+	}
+
+	let invalid_edges = 0;
+	for (const edge of graph.edges) {
+		if (!isValidEdge(edge, valid_nodes)) {
+			toast.error('URL: Invalid edge');
+			invalid_edges++;
+			continue;
+		}
+		valid_edges.push(edge);
+	}
+
+	if (invalid_edges > 0) {
+		toast.error(`URL: ${invalid_edges} invalid edges`);
+	}
+
+	if (graph.name) {
+		projectName.set(graph.name);
+	}
+	nodes.set(valid_nodes);
+	edges.set(valid_edges);
+	if (graph.viewport) {
+		if (isValidViewPort(graph.viewport)) {
+			viewport.set(graph.viewport);
+		} else {
+			toast.error('URL: Invalid viewport');
+		}
+	}
+
+	return true;
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {

@@ -1,6 +1,6 @@
-import { type Node, type Edge, type NodeTypes, type Viewport } from "@xyflow/svelte";
+import { type Node, type Edge, type Viewport } from "@xyflow/svelte";
 import { writable } from "svelte/store";
-import { loadFromHash, loadFromLocalStorage, saveToLocalStorage } from "./utils";
+import { loadFromLocalStorage, saveToLocalStorage } from "./utils";
 
 export const openai_key = writable('');
 
@@ -12,6 +12,7 @@ openai_key.subscribe((key) => {
     }
 });
 
+export const projectName = writable<string>('');
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
 export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });

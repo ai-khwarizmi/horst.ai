@@ -64,11 +64,11 @@
 <Dialog.Root bind:open={$open}>
 	<Dialog.Content>
 		<Dialog.Header>
-			<Dialog.Title>Share Graph</Dialog.Title>
+			<Dialog.Title>Share Project</Dialog.Title>
 			<Dialog.Description>
 				<p>
-					Share the current graph by copying the URL below. The URL will contain the current graph
-					data, which can be shared with others.
+					Share the current project by copying the URL below. The URL will contain the current
+					project data, which can be shared with others.
 				</p>
 				<div class="flex gap-2">
 					<Input readonly value={url} placeholder="" class=" mt-2" />
