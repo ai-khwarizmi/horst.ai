@@ -184,8 +184,7 @@ export const loadFromHash = (): boolean => {
 	const str = LZString.decompressFromBase64(hash.slice(1));
 	if (!str) return false;
 	const graph = JSON.parse(str);
-
-	return true;
+	return loadFromGraph(graph);
 }
 
 const isValidViewPort = (viewport: any) => {
