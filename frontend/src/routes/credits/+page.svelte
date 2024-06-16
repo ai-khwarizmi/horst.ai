@@ -82,6 +82,18 @@
 			url: 'https://github.com/swiftlatex/swiftlatex',
 			branch: 'master',
 			license: 'AGPL-3.0'
+		},
+		'@internationalized/date': {
+			name: '@internationalized/date',
+			url: 'https://github.com/adobe/react-spectrum',
+			branch: 'main',
+			license: 'Apache License 2.0'
+		},
+		'svelte-markdown': {
+			name: 'Svelte Markdown',
+			url: 'https://github.com/pablo-abc/svelte-markdown',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 
