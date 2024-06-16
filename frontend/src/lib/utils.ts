@@ -452,8 +452,3 @@ export type OnExecuteCallbacks = {
 	setStatus: (newStatus: NodeStatusWithoutError) => void;
 	setErrors: (newErrors: NodeError[]) => void;
 };
-
-export const OPENAI_KEY_MISSING: NodeError = {
-	message: 'OpenAI key missing. Please add your key in the settings tab.',
-	resolve: openApiKeySettings
-}

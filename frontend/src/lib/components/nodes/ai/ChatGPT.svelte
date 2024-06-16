@@ -1,6 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { NodeIOHandler, OPENAI_KEY_MISSING, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { openai_key } from '@/index';
 	import Button from '@/components/ui/button/button.svelte';
-	import { openApiKeySettings } from '@/components/settings/APIKeys.svelte';
+	import { SPECIAL_ERRORS } from '@/types';
 
 	let model: ChatOpenAI;
 
@@ -54,7 +54,7 @@
 			}
 			lastExecutedValue = newValue;
 			if (!apiKeys.openai) {
-				callbacks.setErrors([OPENAI_KEY_MISSING]);
+				callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;
@@ -83,14 +83,4 @@
 	};
 </script>
 
-{#if $openai_key}
-	<CustomNode {io} {onExecute} {...$$props}></CustomNode>
-{:else}
-	<div class="p-4 bg-red-100 text-red-800 rounded-lg">
-		<p class="font-bold">OpenAI API Key Missing</p>
-		<p>Please add your OpenAI API key in the settings to use this node.</p>
-		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
-			Set OpenAI Key
-		</Button>
-	</div>
-{/if}
+<CustomNode {io} {onExecute} {...$$props}></CustomNode>
