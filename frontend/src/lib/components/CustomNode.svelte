@@ -14,10 +14,11 @@
 	import { onMount } from 'svelte';
 	import { edges } from '..';
 	import { get } from 'svelte/store';
-	import { NodeType, type Input, type Output } from '@/types';
+	import { NodeType } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
+	import Button from './ui/button/button.svelte';
 
 	const HANDLE_WIDTH = 12;
 	const ROW_HEIGHT = 30;
@@ -105,8 +106,8 @@
 
 <div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
 	<NodeToolbar align={'start'} isVisible>
-		<div class="flex items-center justify-between w-full">
-			<div class="relative flex items-center space-x-2">
+		<div class="flex items-center justify-between gap-2 w-full">
+			<div class="relative flex items-centerspace-x-2">
 				{#if status === 'loading'}
 					<LoaderCircle class="animate-spin w-6 h-6" />
 				{:else if status === 'error'}
@@ -138,12 +139,7 @@
 				{/if}
 			</div>
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
-				<button
-					class="m-2 bg-black border-1 text-xs text-white rounded-md p-1 transition-transform transform hover:scale-110 focus:scale-90"
-					on:click={forceExecute}
-				>
-					run again
-				</button>
+				<Button size="flat" on:click={forceExecute}>Re-run</Button>
 			{/if}
 		</div>
 	</NodeToolbar>
