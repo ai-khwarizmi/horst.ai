@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import * as Card from '$lib/components/ui/card';
 
-	$: open = $page.url.searchParams.has('debug');
+	$: open = browser && $page.url.searchParams.has('debug');
 </script>
 
 {#if open}
