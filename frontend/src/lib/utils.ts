@@ -76,7 +76,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	destroy = () => {
-		console.log('destroying', this.nodeId)
 		nodeIOHandlers.delete(this.nodeId);
 	}
 
