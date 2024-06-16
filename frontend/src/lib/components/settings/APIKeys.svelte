@@ -16,7 +16,7 @@
 </script>
 
 <Sheet.Root bind:open={$open}>
-	<Sheet.Content side={$isMobile ? 'right' : 'left'}>
+	<Sheet.Content side={'left'}>
 		<Sheet.Header>
 			<Sheet.Title>API Keys</Sheet.Title>
 			<Sheet.Description>
