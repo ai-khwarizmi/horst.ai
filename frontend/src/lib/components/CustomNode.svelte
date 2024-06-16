@@ -23,7 +23,7 @@
 	const ROW_HEIGHT = 30;
 	const ROW_GAP = 10;
 	const BORDER_WIDTH = 2;
-	const HEADER_HEIGHT = 20;
+	const HEADER_HEIGHT = 40;
 
 	export let id: string | undefined = undefined; // Node ID
 	export let type: string = '';
@@ -158,7 +158,7 @@
 	<div
 		class={cn(
 			colors.fullbackground,
-			'w-full rounded-sm text-center text-sm font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
+			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
 		)}
 		style="height: {HEADER_HEIGHT}px;"
 	>
@@ -183,7 +183,7 @@
 			)}
 		>
 			<div
-				class="flex justify-between text-sm font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
+				class="flex justify-between font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
 				{#if io.inputs.length > 0}
 					<div

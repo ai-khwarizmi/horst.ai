@@ -42,6 +42,11 @@
 						{/if}
 					</Button>
 				</div>
+				{#if $openai_key && !$openai_key.startsWith('sk-')}
+					<p class="text-red-500 text-xs mt-2">
+						<strong>Error:</strong> OpenAI API key start with "sk-".
+					</p>
+				{/if}
 				<p class="text-gray-500">
 					<small>
 						<strong>Note:</strong> We don't store your API keys. They are stored in your browser's local

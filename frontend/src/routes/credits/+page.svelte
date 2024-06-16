@@ -1,8 +1,13 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import PackageJson from '../../../package.json';
 
 	const githubMap: any = {
+		'@sveltejs/kit': {
+			name: 'SvelteKit',
+			url: 'https://github.com/sveltejs/kit',
+			branch: 'main',
+			license: 'MIT'
+		},
 		'@langchain/core': {
 			name: 'LangChain',
 			url: 'https://github.com/langchain-ai/langchainjs',
@@ -62,6 +67,12 @@
 			name: 'Svelte Sonner',
 			url: 'https://github.com/wobsoriano/svelte-sonner',
 			branch: 'master',
+			license: 'MIT'
+		},
+		tailwindcss: {
+			name: 'Tailwind CSS',
+			url: 'https://github.com/tailwindlabs/tailwindcss',
+			branch: 'main',
 			license: 'MIT'
 		},
 		'tailwind-merge': {
