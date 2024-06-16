@@ -1,5 +1,5 @@
 # Horst.ai
-![Project Logo](./frontend/static/logo200.png)
+![Project Logo](./frontend/static/logo64.png)
 
 Horst.ai is a visual workflow editor that lets you build AI-driven workflows with ease. Connect services like ChatGPT and DALL-E to generate content, images, and PDFs without the need to write code.
 
