@@ -6,6 +6,9 @@
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
 	import { onMount } from 'svelte';
+	import { openai_key } from '@/index';
+	import Button from '@/components/ui/button/button.svelte';
+	import { openApiKeySettings } from '@/components/settings/APIKeys.svelte';
 
 	let model: ChatOpenAI;
 
@@ -80,4 +83,14 @@
 	};
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}></CustomNode>
+{#if $openai_key}
+	<CustomNode {io} {onExecute} {...$$props}></CustomNode>
+{:else}
+	<div class="p-4 bg-red-100 text-red-800 rounded-lg">
+		<p class="font-bold">OpenAI API Key Missing</p>
+		<p>Please add your OpenAI API key in the settings to use this node.</p>
+		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
+			Set OpenAI Key
+		</Button>
+	</div>
+{/if}

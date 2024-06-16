@@ -1,66 +1,87 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { loadGraph, resetGraph, saveGraph } from '@/utils';
-	import { Download, Upload, FilePlus, Share2, Key } from 'lucide-svelte';
+	import { Download, Upload, FilePlus, Share2, Key, Info } from 'lucide-svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
-
-	let newFileOpen = false;
+	import { isMobile } from './Mobile.svelte';
+	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
+	import PackageJson from '../../../package.json';
 </script>
 
 <div class="flex items-center gap-2">
-	<Dialog.Root bind:open={newFileOpen}>
+	<Dialog.Root>
 		<Dialog.Trigger>
-			<Button size="sm" class="pointer-events-auto">
-				<FilePlus class="mr-2 size-3.5" />
-				New
-			</Button>
+			<div
+				class="h-[36px] flex gap-2 shadow-2xl aspect-square rounded-lg border pointer-events-auto"
+			>
+				<img src="/logo.png" alt="Logo" class="h-full" />
+			</div>
 		</Dialog.Trigger>
 		<Dialog.Content>
-			<Dialog.Header>New Project</Dialog.Header>
-			<Dialog.Content>
-				<Dialog.Header>
-					<Dialog.Title>New Project</Dialog.Title>
-					<Dialog.Description>
-						Are you sure you want to create a new project? This will clear all the data.
-					</Dialog.Description>
-				</Dialog.Header>
-				<Dialog.Footer>
-					<Button
-						variant="default"
-						on:click={() => {
-							resetGraph();
-							newFileOpen = false;
-						}}
-					>
-						Yes
-					</Button>
-					<Button variant="secondary" on:click={() => (newFileOpen = false)}>Cancel</Button>
-				</Dialog.Footer>
-			</Dialog.Content>
+			<Dialog.Header>
+				<Dialog.Title>
+					About {PackageJson.name}
+					<span class="text-xs gray-300">
+						(v{PackageJson.version})
+					</span>
+					<div class="text-sm text-gray-500">AI Workflow Editor</div>
+				</Dialog.Title>
+				<Dialog.Description>
+					{PackageJson.description}
+				</Dialog.Description>
+			</Dialog.Header>
+			<Dialog.Footer>
+				<Button variant="outline" size="sm" target="_blank" href="/how-to-use">
+					<Info class="mr-2 size-3.5" />
+					How to Use
+				</Button>
+			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>
-	<Button variant="secondary" size="sm" on:click={loadGraph} class="pointer-events-auto">
-		<Upload class="mr-2 size-3.5" />
-		Load
-	</Button>
-	<Button variant="secondary" size="sm" on:click={saveGraph} class="pointer-events-auto">
-		<Download class="mr-2 size-3.5" />
-		Save
-	</Button>
-	<Button variant="secondary" size="sm" on:click={openShareGraphModal} class="pointer-events-auto">
-		<Share2 class="mr-2 size-3.5" />
-		Share
-	</Button>
-	<div class="w-4 h-[1px] bg-gray-500"></div>
-	<Button variant="outline" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">
-		<Key class="mr-2 size-3.5" />
-		Set OpenAI Key
-	</Button>
+	{#if $isMobile}
+		<Button
+			variant="outline"
+			size="sm"
+			target="_blank"
+			href="/how-to-use"
+			class="pointer-events-auto"
+		>
+			<Info class="mr-2 size-3.5" />
+			How to Use
+		</Button>
+	{:else}
+		<Button size="sm" class="pointer-events-auto" on:click={openNewFilePopup}>
+			<FilePlus class="mr-2 size-3.5" />
+			New
+		</Button>
+		<Button variant="secondary" size="sm" on:click={loadGraph} class="pointer-events-auto">
+			<Upload class="mr-2 size-3.5" />
+			Load
+		</Button>
+		<Button variant="secondary" size="sm" on:click={saveGraph} class="pointer-events-auto">
+			<Download class="mr-2 size-3.5" />
+			Save
+		</Button>
+		<Button
+			variant="secondary"
+			size="sm"
+			on:click={openShareGraphModal}
+			class="pointer-events-auto"
+		>
+			<Share2 class="mr-2 size-3.5" />
+			Share
+		</Button>
+		<div class="w-4 h-[1px] bg-gray-500"></div>
+		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">
+			<Key class="mr-2 size-3.5" />
+			Set OpenAI Key
+		</Button>
+	{/if}
 </div>
 
-<div class="bg-white rounded-md border mt-2 p-2 text-xs w-40 pointer-events-auto">
+<div class="bg-white rounded-md border mt-2 p-2 text-xs w-28 pointer-events-auto">
 	<div class="font-bold text-center text-sm">Legend</div>
 	<div class="flex flex-col gap-2 p-2">
 		<div class="flex items-center gap-1">

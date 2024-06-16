@@ -4,6 +4,9 @@
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
+	import { openai_key } from '@/index';
+	import Button from '@/components/ui/button/button.svelte';
+	import { openApiKeySettings } from '@/components/settings/APIKeys.svelte';
 
 	let tool: DallEAPIWrapper;
 
@@ -70,8 +73,18 @@
 	};
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
-	{#if lastOutputValue}
-		<img src={lastOutputValue} alt="Dalle3 Result" class="object-contain max-w-full max-h-full" />
-	{/if}
-</CustomNode>
+{#if $openai_key}
+	<CustomNode {io} {onExecute} {...$$props}>
+		{#if lastOutputValue}
+			<img src={lastOutputValue} alt="Dalle3 Result" class="object-contain max-w-full max-h-full" />
+		{/if}
+	</CustomNode>
+{:else}
+	<div class="p-4 bg-red-100 text-red-800 rounded-lg">
+		<p class="font-bold">OpenAI API Key Missing</p>
+		<p>Please add your OpenAI API key in the settings to use this node.</p>
+		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
+			Set OpenAI Key
+		</Button>
+	</div>
+{/if}

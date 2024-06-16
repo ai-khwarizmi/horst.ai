@@ -13,7 +13,10 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
 	import HashLoader from '@/components/file/HashLoader.svelte';
-	import Input from '@/components/ui/input/input.svelte';
+	import { isMobile } from '@/components/Mobile.svelte';
+	import { Info } from 'lucide-svelte';
+	import MobileMenu from '@/components/MobileMenu.svelte';
+	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -27,6 +30,7 @@
 	<ShareGraph />
 	<Apikeys />
 	<FileDropper />
+	<NewFilePopup />
 	<SvelteFlow
 		{nodes}
 		{edges}
@@ -41,11 +45,20 @@
 		<FullCommand />
 		<Background />
 		<Controls />
-		<Panel position="top-center">
-			<Input placeholder="Project Name" bind:value={$projectName} />
-		</Panel>
 		<Panel position="top-right">
-			<Button variant="link" target="_blank" href="/how-to-use">How to Use</Button>
+			{#if $isMobile}
+				<MobileMenu />
+			{:else}
+				<Button
+					variant={$isMobile ? 'outline' : 'ghost'}
+					size="sm"
+					target="_blank"
+					href="/how-to-use"
+				>
+					<Info class="mr-2 size-3.5" />
+					How to Use
+				</Button>
+			{/if}
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />
@@ -54,8 +67,16 @@
 			<BottomBar />
 		</Panel>
 		<Panel position="bottom-right">
-			<Button variant="link" class="text-xs" href="/credits">Credits</Button>
-			<Button variant="link" class="text-xs" target="_blank" href="/terms">Terms of Use</Button>
+			{#if !$isMobile}
+				<Button variant="link" class="text-xs" target="_blank" href="/credits">Credits</Button>
+			{/if}
+			<Button variant="link" class="text-xs" target="_blank" href="/terms">
+				{#if !$isMobile}
+					Terms of Use
+				{:else}
+					Terms
+				{/if}
+			</Button>
 		</Panel>
 	</SvelteFlow>
 </main>
