@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
+	import type { OnExecuteCallbacks } from '$lib/types';
 	import { writable } from 'svelte/store';
 	import CustomNode from '../CustomNode.svelte';
 

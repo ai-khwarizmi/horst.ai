@@ -208,14 +208,3 @@ export function getApiKeys(): ApiKeys {
 		openai: get(openai_key)
 	}
 }
-
-export type NodeError = string | {
-	message: string;
-	resolve?: () => void;
-}
-export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
-export type NodeStatus = NodeStatusWithoutError | 'error';
-export type OnExecuteCallbacks = {
-	setStatus: (newStatus: NodeStatusWithoutError) => void;
-	setErrors: (newErrors: NodeError[]) => void;
-};

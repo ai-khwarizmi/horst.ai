@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
+	import type { OnExecuteCallbacks } from '$lib/types';
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';

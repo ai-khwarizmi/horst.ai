@@ -12,6 +12,18 @@ export const SPECIAL_ERRORS = {
     'OPENAI_API_KEY_MISSING': 'OPENAI_API_KEY_MISSING',
 }
 
+export type NodeError = string | {
+    message: string;
+    resolve?: () => void;
+}
+export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
+export type NodeStatus = NodeStatusWithoutError | 'error';
+export type OnExecuteCallbacks = {
+    setStatus: (newStatus: NodeStatusWithoutError) => void;
+    setErrors: (newErrors: NodeError[]) => void;
+};
+
+
 /**
  * Node I/O
  * id - unique id of the output, stays relevant for project file, if changed, the project file will be invalid

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
+	import type { OnExecuteCallbacks } from '$lib/types';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';

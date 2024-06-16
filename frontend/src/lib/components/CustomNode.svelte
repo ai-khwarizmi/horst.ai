@@ -7,16 +7,13 @@
 </script>
 
 <script lang="ts">
+	import { cn, getNodeColors, removeEdgeByIds, NodeIOHandler } from '$lib/utils';
 	import {
-		cn,
-		getNodeColors,
-		removeEdgeByIds,
 		type OnExecuteCallbacks,
 		type NodeStatus,
 		type NodeStatusWithoutError,
-		type NodeError,
-		NodeIOHandler
-	} from '$lib/utils';
+		type NodeError
+	} from '@/types';
 	import { NodeResizer, NodeToolbar, type Connection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
 	import { edges } from '..';
