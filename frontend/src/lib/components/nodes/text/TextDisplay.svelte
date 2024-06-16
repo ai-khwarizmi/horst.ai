@@ -14,5 +14,7 @@
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
-	{data}
+	<textarea class="w-full h-full outline-none border-none bg-transparent resize-none" readonly
+		>{data}</textarea
+	>
 </CustomNode>

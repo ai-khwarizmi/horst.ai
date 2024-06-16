@@ -19,6 +19,7 @@
 	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	import PackageJson from '../../package.json';
+	import DebugView from '@/components/DebugView.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -43,6 +44,7 @@
 			hideAttribution: true
 		}}
 	>
+		<DebugView />
 		<HashLoader />
 		<FullCommand />
 		<Background />

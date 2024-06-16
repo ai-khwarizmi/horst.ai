@@ -1,8 +1,15 @@
+<script lang="ts" context="module">
+	export const HANDLE_WIDTH = 12;
+	export const ROW_HEIGHT = 30;
+	export const ROW_GAP = 10;
+	export const BORDER_WIDTH = 2;
+	export const HEADER_HEIGHT = 40;
+</script>
+
 <script lang="ts">
 	import {
 		cn,
 		getNodeColors,
-		isValidConnection,
 		removeEdgeByIds,
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -19,12 +26,7 @@
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
-
-	const HANDLE_WIDTH = 12;
-	const ROW_HEIGHT = 30;
-	const ROW_GAP = 10;
-	const BORDER_WIDTH = 2;
-	const HEADER_HEIGHT = 40;
+	import CustomHandle from './CustomHandle.svelte';
 
 	export let id: string | undefined = undefined; // Node ID
 	export let type: string = '';
@@ -83,9 +85,6 @@
 		}
 		removeEdgeByIds(...edgesToRemove);
 	};
-
-	$: outputConnections = $edges.filter((edge) => edge.source === id);
-	$: inputConnections = $edges.filter((edge) => edge.target === id);
 
 	$: rows = Math.max(io.inputs.length, io.outputs.length);
 
@@ -187,32 +186,7 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each io.inputs as input, index}
-							{@const connected = inputConnections.filter((edge) => edge.targetHandle === input.id)}
-							<Handle
-								type="target"
-								position={Position.Left}
-								class={cn(
-									connected.length && '!bg-green-500',
-									!connected.length && '!bg-gray-500 '
-								)}
-								style="left:1px; top: {top(
-									index
-								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-									2}px;"
-								id={input.id}
-								{isValidConnection}
-								{onconnect}
-							/>
-							<div
-								class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
-								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-							>
-								{#if input.label}
-									{input.label} ({input.type})
-								{:else}
-									{input.type}
-								{/if}
-							</div>
+							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
 						{/each}
 					</div>
 				{/if}
@@ -222,41 +196,14 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each io.outputs as output, index}
-							{@const connected = outputConnections.filter(
-								(edge) => edge.sourceHandle === output.id
-							)}
-							<Handle
-								type="source"
-								position={Position.Right}
-								class={cn(
-									connected.length && '!bg-green-500',
-									!connected.length && '!bg-gray-500 '
-								)}
-								style="right:1px; top: {top(
-									index
-								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-									2}px;"
-								{isValidConnection}
-								{onconnect}
-								id={output.id}
-							/>
-							<div
-								class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
-								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-							>
-								{#if output.label}
-									{output.label} ({output.type})
-								{:else}
-									{output.type}
-								{/if}
-							</div>
+							<CustomHandle nodeId={id} type="output" base={output} top={top(index)} />
 						{/each}
 					</div>
 				{/if}
 			</div>
 		</div>
 		{#if hasContent}
-			<div class="flex flex-col overflow-auto p-2 flex-grow">
+			<div class="flex flex-col overflow-auto p-2 flex-grow nodrag cursor-auto">
 				<slot />
 			</div>
 		{/if}
