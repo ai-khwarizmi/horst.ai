@@ -1,8 +1,13 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import PackageJson from '../../../package.json';
 
 	const githubMap: any = {
+		'@sveltejs/kit': {
+			name: 'SvelteKit',
+			url: 'https://github.com/sveltejs/kit',
+			branch: 'main',
+			license: 'MIT'
+		},
 		'@langchain/core': {
 			name: 'LangChain',
 			url: 'https://github.com/langchain-ai/langchainjs',
@@ -64,6 +69,12 @@
 			branch: 'master',
 			license: 'MIT'
 		},
+		tailwindcss: {
+			name: 'Tailwind CSS',
+			url: 'https://github.com/tailwindlabs/tailwindcss',
+			branch: 'main',
+			license: 'MIT'
+		},
 		'tailwind-merge': {
 			name: 'tailwind-merge',
 			url: 'https://github.com/dcastil/tailwind-merge',
@@ -82,6 +93,18 @@
 			url: 'https://github.com/swiftlatex/swiftlatex',
 			branch: 'master',
 			license: 'AGPL-3.0'
+		},
+		'@internationalized/date': {
+			name: '@internationalized/date',
+			url: 'https://github.com/adobe/react-spectrum',
+			branch: 'main',
+			license: 'Apache License 2.0'
+		},
+		'svelte-markdown': {
+			name: 'Svelte Markdown',
+			url: 'https://github.com/pablo-abc/svelte-markdown',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 

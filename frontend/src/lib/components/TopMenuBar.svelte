@@ -12,18 +12,18 @@
 <div class="flex items-center gap-2">
 	<Dialog.Root bind:open={newFileOpen}>
 		<Dialog.Trigger>
-			<Button size="sm">
+			<Button size="sm" class="pointer-events-auto">
 				<FilePlus class="mr-2 size-3.5" />
 				New
 			</Button>
 		</Dialog.Trigger>
 		<Dialog.Content>
-			<Dialog.Header>New Graph</Dialog.Header>
+			<Dialog.Header>New Project</Dialog.Header>
 			<Dialog.Content>
 				<Dialog.Header>
-					<Dialog.Title>New Graph</Dialog.Title>
+					<Dialog.Title>New Project</Dialog.Title>
 					<Dialog.Description>
-						Are you sure you want to create a new graph? This will clear all the data.
+						Are you sure you want to create a new project? This will clear all the data.
 					</Dialog.Description>
 				</Dialog.Header>
 				<Dialog.Footer>
@@ -32,8 +32,10 @@
 						on:click={() => {
 							resetGraph();
 							newFileOpen = false;
-						}}>Yes, create new graph</Button
+						}}
 					>
+						Yes
+					</Button>
 					<Button variant="secondary" on:click={() => (newFileOpen = false)}>Cancel</Button>
 				</Dialog.Footer>
 			</Dialog.Content>

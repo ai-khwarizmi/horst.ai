@@ -1,13 +1,11 @@
-import CurrentTime from "./components/nodes/CurrentTime.svelte";
-import NumberToString from "./components/nodes/number/NumberToString.svelte";
-import TextDisplay from "./components/nodes/TextDisplay.svelte";
-import TextInput from "./components/nodes/TextInput.svelte";
+import TextDisplay from "./components/nodes/text/TextDisplay.svelte";
+import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
-import NumberToDate from "./components/nodes/number/NumberToDate.svelte";
 import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
 import { AlignLeft, Bot, CalendarCog, Clock, FileText, ImagePlus, PencilRuler, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
+import DatePicker from "./components/nodes/date/DatePicker.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -33,18 +31,12 @@ const nodes = {
     }),
 
     // Number Tools
-    num2str: registerNode(NumberToString, {
-        name: "Number to String",
-        nodeType: NodeType.TRANSFORM,
-        Icon: PencilRuler,
-        category: NodeCategory.Number,
-    }),
-    num2date: registerNode(NumberToDate, {
-        name: "Number to Date",
-        nodeType: NodeType.TRANSFORM,
-        Icon: CalendarCog,
-        category: NodeCategory.Number,
-    }),
+    // num2str: registerNode(NumberToString, {
+    //     name: "Number to String",
+    //     nodeType: NodeType.TRANSFORM,
+    //     Icon: PencilRuler,
+    //     category: NodeCategory.Number,
+    // }),
 
     // ai
     chatGpt: registerNode(ChatGpt, {
@@ -69,12 +61,13 @@ const nodes = {
     }),
 
     // Generics
-    currentTime: registerNode(CurrentTime, {
-        name: "Current Time",
+
+    datePicker: registerNode(DatePicker, {
+        name: "Date Picker",
         nodeType: NodeType.INPUT,
-        Icon: Clock,
+        Icon: CalendarCog,
         category: NodeCategory.Misc,
-    }),
+    })
 
     // etc.
 } as const

@@ -1,27 +1,28 @@
-import { type Node, type Edge, type NodeTypes, type Viewport } from "@xyflow/svelte";
+import { type Node, type Edge, type Viewport } from "@xyflow/svelte";
 import { writable } from "svelte/store";
-import { loadFromHash, loadFromLocalStorage, saveToLocalStorage } from "./utils";
+import { loadFromLocalStorage, saveToLocalStorage } from "./utils";
+import { browser } from "$app/environment";
 
-export const openai_key = writable('');
+export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 
 openai_key.subscribe((key) => {
-    if (key && key.indexOf('sk-') === 0) {
-        if (typeof window !== 'undefined') {
-            window.localStorage.setItem('openai_api_key', key);
+    if (browser) {
+        if (key && key.length > 0) {
+            localStorage.setItem('openai_api_key', key);
+        } else {
+            localStorage.removeItem('openai_api_key');
         }
     }
 });
 
+export const projectName = writable<string>('');
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
 export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
 
 export const commandOpen = writable(false);
-
-// try to load from hash, if not, load from local storage
-if (!loadFromHash()) {
-    loadFromLocalStorage();
-}
+// default to localstorage for now, later we'll add multiple projects at once
+loadFromLocalStorage();
 
 //watch node and edge changes, save to local storage
 nodes.subscribe(saveToLocalStorage);

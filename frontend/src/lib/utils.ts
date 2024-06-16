@@ -3,15 +3,16 @@ import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import * as LZString from 'lz-string';
-import { edges, nodes, openai_key, viewport } from "$lib";
-import { type XYPosition } from "@xyflow/svelte";
+import { edges, nodes, openai_key, projectName, viewport } from "$lib";
+import { type Node, type Edge, type IsValidConnection, type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import { registeredNodes, type CustomNodeName } from "./nodes";
 import { toast } from "svelte-sonner";
-import { NodeType } from "./types";
+import { NodeType, type Input } from "./types";
 import { openApiKeySettings } from "./components/settings/APIKeys.svelte";
+import { onDestroy } from "svelte";
 
-export const FILE_VERSION = 0.1;
+export const FILE_VERSION = '0.1';
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
 export const clearData = () => {
@@ -36,10 +37,10 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 			};
 		case NodeType.TRANSFORM:
 			return {
-				fullbackground: 'bg-yellow-500',
-				background: 'bg-yellow-100',
-				text: 'text-yellow-500',
-				border: 'border-yellow-500'
+				fullbackground: 'bg-orange-500',
+				background: 'bg-orange-100',
+				text: 'text-orange-500',
+				border: 'border-orange-500'
 			};
 		case NodeType.FUNCTION:
 			return {
@@ -58,7 +59,43 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 	}
 }
 
-export const isValidConnection = (connection: any): boolean => {
+
+const nodeIOHandlers = new Map<string, NodeIOHandler<any, any>>()
+
+export class NodeIOHandler<TInput extends string, TOutput extends string> {
+
+	// TODO store these in a writable so the CustomNode can process it dynamically
+
+	constructor(
+		public nodeId: string,
+		public inputs: Input<TInput>[] = [],
+		public outputs: Input<TOutput>[] = []
+	) {
+		nodeIOHandlers.set(nodeId, this);
+		onDestroy(this.destroy)
+	}
+
+	destroy = () => {
+		console.log('destroying', this.nodeId)
+		nodeIOHandlers.delete(this.nodeId);
+	}
+
+	setOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id'], data: any) => {
+		_setNodeOutputData(this.nodeId, {
+			[handle]: data
+		})
+	}
+
+	getOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id']) => {
+		return _getNodeOutputData(this.nodeId, handle);
+	}
+
+	getInputData = (handle: this['inputs'] extends [] ? never : this['inputs'][number]['id']) => {
+		return _getNodeInputData(this.nodeId, handle);
+	}
+}
+
+export const isValidConnection: IsValidConnection = (connection) => {
 	if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
 		return false;
 	}
@@ -68,21 +105,33 @@ export const isValidConnection = (connection: any): boolean => {
 	if (connection.source === connection.target) {
 		return false;
 	}
-	const [sourceType] = connection.sourceHandle.split('-');
-	const [targetType] = connection.targetHandle.split('-');
-	if (sourceType !== targetType && targetType !== 'any') {
+
+	// check if the connection type is valid using nodeIOHandlers
+	const sourceNode = nodeIOHandlers.get(connection.source);
+	const targetNode = nodeIOHandlers.get(connection.target);
+	if (!sourceNode || !targetNode) return false;
+
+	const sourceOutput = sourceNode.outputs.find(o => o.id === connection.sourceHandle);
+	const targetInput = targetNode.inputs.find(i => i.id === connection.targetHandle);
+
+	if (!sourceOutput || !targetInput) return false;
+
+	// for now allow "any", though we should clean this up
+	if (sourceOutput.type !== targetInput.type && targetInput.type !== 'any') {
 		return false;
 	}
 	return true;
 }
 
 export function getSaveData(includeData: boolean): {
-	nodes: any; edges: any, version: number, viewport: any
+	projectName: string, nodes: any; edges: any, version: number, viewport: any
 } {
+	const name = get(projectName);
 	const n = get(nodes);
 	const e = get(edges);
 	const v = get(viewport);
 	const json = JSON.parse(JSON.stringify({
+		name,
 		nodes: n,
 		edges: e,
 		viewport: v,
@@ -90,8 +139,16 @@ export function getSaveData(includeData: boolean): {
 	}));
 
 	json.nodes = json.nodes.map((node: any) => {
+		if (!node) {
+			console.error('node is ', node);
+			return node
+		}
+		if (!registeredNodes[node.type]) {
+			console.error('node type not registered', node.type);
+			return;
+		}
 		const nodeType = registeredNodes[node.type].nodeType;
-		if (includeData && nodeType === 'input') {
+		if (includeData && nodeType === NodeType.INPUT) {
 			return node;
 		}
 		return {
@@ -128,14 +185,49 @@ export const loadFromHash = (): boolean => {
 	const str = LZString.decompressFromBase64(hash.slice(1));
 	if (!str) return false;
 	const graph = JSON.parse(str);
-	if (graph.version !== FILE_VERSION) {
-		// TODO: improve
-		console.error('version mismatch');
-		return false;
-	}
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	if (graph.viewport) viewport.set(graph.viewport);
+
+	return true;
+}
+
+const isValidViewPort = (viewport: any) => {
+	if (typeof viewport !== 'object') return false;
+	if (!viewport) return false;
+	if (typeof viewport.x !== 'number') return false;
+	if (typeof viewport.y !== 'number') return false;
+	if (typeof viewport.zoom !== 'number') return false;
+	return true;
+}
+
+const isValidGraph = (graph: unknown) => {
+	if (typeof graph !== 'object') return false;
+	if (!graph) return false;
+	if ('version' in graph === false) return false;
+	if ('nodes' in graph === false) return false;
+	if ('edges' in graph === false) return false;
+	if (!Array.isArray(graph.nodes)) return false;
+	if (!Array.isArray(graph.edges)) return false;
+	return true;
+}
+
+const isValidNode = (node: any) => {
+	if (typeof node !== 'object') return false;
+	if (!node) return false;
+	if (typeof node.id !== 'string') return false;
+	if (typeof node.type !== 'string') return false;
+	if (!registeredNodes[node.type]) return false;
+	return true;
+}
+
+const isValidEdge = (edge: any, nodes: Node[]) => {
+	if (typeof edge !== 'object') return false;
+	if (!edge) return false;
+	if (typeof edge.id !== 'string') return false;
+	if (typeof edge.source !== 'string') return false;
+	if (typeof edge.target !== 'string') return false;
+	if (typeof edge.sourceHandle !== 'string') return false;
+	if (typeof edge.targetHandle !== 'string') return false;
+	if (!nodes.find(n => n.id === edge.source)) return false;
+	if (!nodes.find(n => n.id === edge.target)) return false;
 	return true;
 }
 
@@ -144,13 +236,7 @@ export const loadFromLocalStorage = () => {
 	const str = window.localStorage.getItem(LOCALSTORAGE_KEY);
 	if (!str) return;
 	const graph = JSON.parse(str);
-	if (graph.version !== FILE_VERSION) {
-		console.error('version mismatch');
-		return;
-	}
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	if (graph.viewport) viewport.set(graph.viewport);
+	return loadFromGraph(graph);
 }
 
 export const resetGraph = () => {
@@ -169,7 +255,7 @@ export const loadGraph = async () => {
 		if (!target.files) return alert('no file selected');
 		const file = target.files[0];
 		await loadFromFile(file);
-		toast.success('Graph loaded');
+		toast.success('Project loaded');
 	};
 	input.click();
 }
@@ -177,14 +263,65 @@ export const loadGraph = async () => {
 export const loadFromFile = async (file: File) => {
 	const text = await file.text();
 	const graph = JSON.parse(text);
+	return loadFromGraph(graph);
+}
+
+export const loadFromGraph = (graph: any) => {
 	if (graph.version !== FILE_VERSION) {
-		alert('version mismatch');
-		return
+		// TODO: migrate graph to newest version
+		toast.error('URL: Version mismatch');
+		return false;
+	}
+	if (!isValidGraph(graph)) {
+		toast.error('URL: Invalid project file');
+		return false;
 	}
 
-	nodes.set(graph.nodes);
-	edges.set(graph.edges);
-	viewport.set(graph.viewport);
+	const valid_nodes: Node[] = [];
+	const valid_edges: Edge[] = [];
+
+	let invalid_nodes = 0;
+	for (const node of graph.nodes) {
+		if (!isValidNode(node)) {
+			toast.error('URL: Invalid node');
+			invalid_nodes++;
+			continue;
+		}
+		valid_nodes.push(node);
+	}
+
+	if (invalid_nodes > 0) {
+		toast.error(`URL: ${invalid_nodes} invalid nodes`);
+	}
+
+	let invalid_edges = 0;
+	for (const edge of graph.edges) {
+		if (!isValidEdge(edge, valid_nodes)) {
+			toast.error('URL: Invalid edge');
+			invalid_edges++;
+			continue;
+		}
+		valid_edges.push(edge);
+	}
+
+	if (invalid_edges > 0) {
+		toast.error(`URL: ${invalid_edges} invalid edges`);
+	}
+
+	if (graph.name) {
+		projectName.set(graph.name);
+	}
+	nodes.set(valid_nodes);
+	edges.set(valid_edges);
+	if (graph.viewport) {
+		if (isValidViewPort(graph.viewport)) {
+			viewport.set(graph.viewport);
+		} else {
+			toast.error('URL: Invalid viewport');
+		}
+	}
+
+	return true;
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
@@ -266,25 +403,25 @@ export const addNode = (type: CustomNodeName, pos: XYPosition) => {
 	});
 };
 
-export const setOutputData = (id: string, handle: number, data: any) => {
+export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
 	nodes.update(n => {
 		const node = n.find(n => n.id === id);
 		if (!node) return n;
-		node.data[handle] = data;
+		node.data = { ...node.data, ...data };
 		return n;
 	});
 }
 
-export const getOutputData = (id: string, handle: number) => {
+export const _getNodeOutputData = (id: string, handle: string) => {
 	const n = get(nodes);
 	const node = n.find(n => n.id === id);
 	if (!node) return;
 	return node.data[handle];
 }
 
-export const getInputData = (id: string, handle: number) => {
+export const _getNodeInputData = (id: string, handle: string) => {
 	const e = get(edges);
-	const edge = e.find(e => e.target === id && e.targetHandle?.endsWith(`${handle}-i`));
+	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 
 	const n = get(nodes);
@@ -293,10 +430,7 @@ export const getInputData = (id: string, handle: number) => {
 
 	if (!edge.sourceHandle) return;
 
-	const [, sourceHandleString] = edge.sourceHandle.split('-');
-	const sourceHandle = parseInt(sourceHandleString);
-	if (isNaN(sourceHandle)) return;
-	return node.data[sourceHandle]
+	return node.data[edge.sourceHandle]
 }
 
 
