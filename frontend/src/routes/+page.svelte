@@ -2,7 +2,7 @@
 	import { SvelteFlow, Background, Controls, Panel, MiniMap } from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, openai_key, viewport } from '$lib';
+	import { nodes, edges, openai_key, viewport, projectName } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -13,6 +13,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
 	import HashLoader from '@/components/file/HashLoader.svelte';
+	import Input from '@/components/ui/input/input.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -40,6 +41,9 @@
 		<FullCommand />
 		<Background />
 		<Controls />
+		<Panel position="top-center">
+			<Input placeholder="Project Name" bind:value={$projectName} />
+		</Panel>
 		<Panel position="top-right">
 			<Button variant="link" target="_blank" href="/how-to-use">How to Use</Button>
 			<Button variant="link" href="/credits">Credits</Button>

@@ -10,7 +10,7 @@ export type NodeValueType = 'any' | 'text' | 'number'
 
 /**
  * Node I/O
- * id - unique id of the output, stays relevant for graph file, if changed, the graph file will be invalid
+ * id - unique id of the output, stays relevant for project file, if changed, the project file will be invalid
  * type - type of the output, used for validation
  * label - label of the output, used for display
  */

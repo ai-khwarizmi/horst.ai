@@ -9,10 +9,10 @@
 {#if $page.url.hash}
 	<Dialog.Root open>
 		<Dialog.Content>
-			<Dialog.Title>Graph detected in URL</Dialog.Title>
+			<Dialog.Title>Project detected in URL</Dialog.Title>
 			<Dialog.Description>
-				A graph has been detected in the URL. Do you want to load it? This will replace the current
-				graph.
+				A project has been detected in the URL. Do you want to load it? This will replace the
+				current project.
 			</Dialog.Description>
 			<Dialog.Footer>
 				<Button
@@ -22,11 +22,11 @@
 						if (success) {
 							window.location.hash = '';
 						} else {
-							toast.error('Failed to load graph from URL');
+							toast.error('Failed to load project from URL');
 						}
 					}}
 				>
-					Load Graph
+					Load Project
 				</Button>
 				<Button
 					variant="secondary"
