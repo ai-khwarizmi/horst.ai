@@ -30,7 +30,7 @@
 <CustomNode {io} {onExecute} {...$$props}>
 	<Textarea
 		bind:value
-		class="w-full h-full min-h-0 min-w-0"
+		class="w-full h-full min-h-0 min-w-0 nodrag"
 		style="resize: none;"
 		on:focus={() => {
 			focus = true;
