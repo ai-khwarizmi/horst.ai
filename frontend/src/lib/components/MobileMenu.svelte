@@ -2,11 +2,15 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import {
 		Download,
+		ExternalLinkIcon,
 		FilePlus,
+		Github,
+		GithubIcon,
 		Handshake,
 		HelpCircle,
 		Info,
 		Key,
+		LucideGithub,
 		Menu,
 		Share2,
 		Upload,
@@ -17,6 +21,7 @@
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { loadGraph, saveGraph } from '@/utils';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
+	import PackageJson from '../../../package.json';
 </script>
 
 <DropdownMenu.Root>
@@ -51,11 +56,10 @@
 			Set OpenAI Key
 		</DropdownMenu.Item>
 		<DropdownMenu.Separator />
-		<DropdownMenu.Separator />
 		<DropdownMenu.Sub>
 			<DropdownMenu.SubTrigger>
 				<Info class="mr-2 size-3.5" />
-				About
+				Learn More
 			</DropdownMenu.SubTrigger>
 			<DropdownMenu.SubContent>
 				<DropdownMenu.Item href="/how-to-use" target="_blank">
@@ -72,5 +76,13 @@
 				</DropdownMenu.Item>
 			</DropdownMenu.SubContent>
 		</DropdownMenu.Sub>
+		<DropdownMenu.Separator />
+		<DropdownMenu.Item href={PackageJson.repository.url} target="_blank" class="cursor-pointer">
+			<LucideGithub class="mr-2 size-3.5" />
+			Source
+			<DropdownMenu.Shortcut>
+				<ExternalLinkIcon class="size-3.5" />
+			</DropdownMenu.Shortcut>
+		</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
