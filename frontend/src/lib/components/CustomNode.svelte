@@ -99,6 +99,8 @@
 		4 +
 		5 +
 		(hasContent ? 20 : 0);
+
+	let hovered = false;
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -114,7 +116,13 @@
 		</div>
 	</div>
 {/if}
-<div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+	class={cn('flex flex-col h-full gap-1')}
+	style="min-width: 200px"
+	on:mouseenter={() => (hovered = true)}
+	on:mouseleave={() => (hovered = false)}
+>
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
 			<div class="relative flex items-centerspace-x-2">
@@ -157,7 +165,7 @@
 	<NodeResizer
 		minWidth={200}
 		{minHeight}
-		isVisible={selected}
+		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
 	/>
