@@ -46,12 +46,3 @@ Here’s an example of a workflow to create a greeting card image:
 
 - **Data Privacy**: Your API keys are only sent to the respective service providers like OpenAI.
 - **Shared URLs**: All workflow data is stored in the URL, which can make them long.
-
-## Key Features
-
-- **Visual Editor**: Easy drag-and-drop interface for building workflows.
-- **Multiple Nodes**: Connect inputs, transformations, and outputs seamlessly.
-- **No Coding**: Perfect for users without programming skills.
-- **Secure API Integration**: Direct API calls to providers ensure your keys are safe.
-
-
