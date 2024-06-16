@@ -148,7 +148,7 @@ export function getSaveData(includeData: boolean): {
 			return;
 		}
 		const nodeType = registeredNodes[node.type].nodeType;
-		if (includeData && nodeType === 'input') {
+		if (includeData && nodeType === NodeType.INPUT) {
 			return node;
 		}
 		return {

@@ -83,8 +83,8 @@
 						<div class="flex flex-col">
 							<div class="font-bold">Include Data</div>
 							<div class="text-xs font-normal">
-								Data is associated with each node (i.e. text input, responses, etc.) and will be
-								included in the shared URL.
+								Data is associated with each node (i.e. inputs) and will be included in the shared
+								URL.
 							</div>
 						</div>
 					</Label>
