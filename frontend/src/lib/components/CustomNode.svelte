@@ -191,9 +191,7 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each io.inputs as input, index}
-							{@const connected = inputConnections.filter(
-								(edge) => edge.targetHandle === `${input.type}-${index}-i`
-							)}
+							{@const connected = inputConnections.filter((edge) => edge.targetHandle === input.id)}
 							<Handle
 								type="target"
 								position={Position.Left}
@@ -229,7 +227,7 @@
 					>
 						{#each io.outputs as output, index}
 							{@const connected = outputConnections.filter(
-								(edge) => edge.sourceHandle === `${output.type}-${index}-o`
+								(edge) => edge.sourceHandle === output.id
 							)}
 							<Handle
 								type="source"
