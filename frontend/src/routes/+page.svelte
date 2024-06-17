@@ -39,6 +39,7 @@
 		{edges}
 		{nodeTypes}
 		{viewport}
+		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
 		proOptions={{
 			hideAttribution: true

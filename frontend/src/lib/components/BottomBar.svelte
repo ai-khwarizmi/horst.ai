@@ -7,7 +7,7 @@
 
 <div class="flex flex-col items-center gap-2">
 	{#if !$isMobile}
-		<div class="text-gray-500 text-xs">
+		<div class="text-gray-500 text-xs select-none">
 			- Press <kbd>Space</kbd> to add a node -
 		</div>
 	{/if}

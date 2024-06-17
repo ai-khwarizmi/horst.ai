@@ -16,7 +16,7 @@
 			<div
 				class="h-[36px] flex gap-2 shadow-2xl aspect-square rounded-lg border pointer-events-auto"
 			>
-				<img src="/logo.png" alt="Logo" class="h-full" />
+				<img src="/logo.png" alt="Logo" class="h-full select-none" />
 			</div>
 		</Dialog.Trigger>
 		<Dialog.Content>
@@ -85,7 +85,7 @@
 	{/if}
 </div>
 
-<div class="bg-white rounded-md border mt-2 p-2 text-xs w-28 pointer-events-auto">
+<div class="bg-white rounded-md border mt-2 p-2 text-xs w-28 pointer-events-auto select-none">
 	<div class="font-bold text-center text-sm">Legend</div>
 	<div class="flex flex-col gap-2 p-2">
 		<div class="flex items-center gap-1">
