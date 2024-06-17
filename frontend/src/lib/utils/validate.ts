@@ -6,8 +6,7 @@ import type { Connection, Edge, IsValidConnection, Node } from "@xyflow/svelte";
 export const canConnectTypes = (obj: {
     output: NodeValueType, input: NodeValueType
 }) => {
-    // allow 'any'
-    // if (obj.input === 'any') return true;
+    if (obj.input === 'any') return true;
     return obj.output === obj.input;
 }
 

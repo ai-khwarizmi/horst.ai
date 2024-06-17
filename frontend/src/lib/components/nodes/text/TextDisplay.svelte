@@ -7,13 +7,22 @@
 
 	const io = new NodeIOHandler({
 		nodeId: id,
-		inputs: [{ id: 'text', type: 'text' }],
+		inputs: [{ id: 'text', type: 'any' }],
 		outputs: []
 	});
 
 	function onExecute() {
 		const input = io.getInputData('text') ?? null;
-		data = typeof input === 'string' ? input : String(input);
+		if (input === null) {
+			data = null;
+			return;
+		}
+		if (typeof input === 'string') {
+			data = input;
+		} else if (typeof input === 'object' || Array.isArray(input)) {
+			data = JSON.stringify(input, null, 2);
+		}
+		data = input.toString();
 	}
 </script>
 

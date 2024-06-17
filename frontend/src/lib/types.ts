@@ -6,7 +6,7 @@ export enum NodeType {
     UNKNOWN = 'unknown'
 }
 
-export type NodeValueType = 'text' | 'number' | 'boolean'
+export type NodeValueType = 'text' | 'number' | 'boolean' | 'any';
 
 // may this is useful for validating the input/output of the nodes
 // TODO maybe dont throw an error
