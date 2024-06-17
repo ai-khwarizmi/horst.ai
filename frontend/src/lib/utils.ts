@@ -74,6 +74,23 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.nodeId = args.nodeId;
 		this.inputs = args.inputs;
 		this.outputs = args.outputs;
+
+		//ensure no duplicate ids in inputs and outputs
+		const idsInput = new Set<string>();
+		const idsOutput = new Set<string>();
+		args.inputs.forEach(input => {
+			if (idsInput.has(input.id)) {
+				throw new Error(`Duplicate input id ${input.id}`);
+			}
+			idsInput.add(input.id);
+		});
+		args.outputs.forEach(output => {
+			if (idsOutput.has(output.id)) {
+				throw new Error(`Duplicate output id ${output.id}`);
+			}
+			idsOutput.add(output.id);
+		});
+
 		nodeIOHandlers.set(this.nodeId, this);
 		onDestroy(this.destroy)
 	}
