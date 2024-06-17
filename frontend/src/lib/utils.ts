@@ -60,12 +60,21 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	// TODO store these in a writable so the CustomNode can process it dynamically
 
+	public nodeId: string;
+	public inputs: Input<TInput>[];
+	public outputs: Input<TOutput>[]
+
 	constructor(
-		public nodeId: string,
-		public inputs: Input<TInput>[] = [],
-		public outputs: Input<TOutput>[] = []
+		args: {
+			nodeId: string,
+			inputs: Input<TInput>[],
+			outputs: Input<TOutput>[]
+		}
 	) {
-		nodeIOHandlers.set(nodeId, this);
+		this.nodeId = args.nodeId;
+		this.inputs = args.inputs;
+		this.outputs = args.outputs;
+		nodeIOHandlers.set(this.nodeId, this);
 		onDestroy(this.destroy)
 	}
 

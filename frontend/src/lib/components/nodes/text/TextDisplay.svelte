@@ -5,7 +5,11 @@
 	export let id: string;
 	let data: string | null = null;
 
-	const io = new NodeIOHandler(id, [{ id: 'text', type: 'text' }]);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'text', type: 'text' }],
+		outputs: []
+	});
 
 	function onExecute() {
 		const input = io.getInputData('text') ?? null;

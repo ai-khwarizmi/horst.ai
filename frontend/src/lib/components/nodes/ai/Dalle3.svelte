@@ -25,11 +25,11 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(
-		id,
-		[{ id: 'prompt', type: 'text', label: 'Prompt' }],
-		[{ id: 'image_url', type: 'text', label: 'Image URL' }]
-	);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'prompt', type: 'text', label: 'Prompt' }],
+		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }]
+	});
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';

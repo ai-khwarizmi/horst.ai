@@ -24,14 +24,14 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(
-		id,
-		[
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
 		],
-		[{ id: 'response', type: 'text', label: 'Response' }]
-	);
+		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
+	});
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
