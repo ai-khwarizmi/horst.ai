@@ -8,6 +8,7 @@ import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
 import TextCompare from "./components/nodes/text/TextCompare.svelte";
+import TextContains from "./components/nodes/text/TextContains.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -39,6 +40,12 @@ const nodes = {
     }),
     textCompare: registerNode(TextCompare, {
         name: "Text Compare",
+        nodeType: NodeType.TRANSFORM,
+        Icon: AlignLeft,
+        category: NodeCategory.String,
+    }),
+    textContains: registerNode(TextContains, {
+        name: "Text Contains",
         nodeType: NodeType.TRANSFORM,
         Icon: AlignLeft,
         category: NodeCategory.String,
