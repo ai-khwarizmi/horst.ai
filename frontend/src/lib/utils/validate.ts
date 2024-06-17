@@ -1,17 +1,27 @@
 import { registeredNodes } from "@/nodes";
+import type { NodeValueType } from "@/types";
 import { nodeIOHandlers } from "@/utils";
-import type { IsValidConnection, Node } from "@xyflow/svelte";
+import type { Connection, Edge, IsValidConnection, Node } from "@xyflow/svelte";
 
-export const isValidConnection: IsValidConnection = (connection) => {
+export const canConnectTypes = (obj: {
+    output: NodeValueType, input: NodeValueType
+}) => {
+    // allow 'any'
+    // if (obj.input === 'any') return true;
+    return obj.output === obj.input;
+}
+
+export const isValidConnection = (connection: Edge | Connection, checkIfNodeConnectionPossible = false) => {
     if (typeof connection.source !== 'string' || typeof connection.target !== 'string') {
-        return false;
-    }
-    if (typeof connection.sourceHandle !== 'string' || typeof connection.targetHandle !== 'string') {
         return false;
     }
     if (connection.source === connection.target) {
         return false;
     }
+    // Dont check this for now, to allow checking if the node is connectable
+    // if (typeof connection.sourceHandle !== 'string' || typeof connection.targetHandle !== 'string') {
+    //     return false;
+    // }
 
     // check if the connection type is valid using nodeIOHandlers
     const sourceNode = nodeIOHandlers.get(connection.source);
@@ -21,13 +31,28 @@ export const isValidConnection: IsValidConnection = (connection) => {
     const sourceOutput = sourceNode.outputs.find(o => o.id === connection.sourceHandle);
     const targetInput = targetNode.inputs.find(i => i.id === connection.targetHandle);
 
-    if (!sourceOutput || !targetInput) return false;
-
-    // for now allow "any", though we should clean this up
-    if (sourceOutput.type !== targetInput.type && targetInput.type !== 'any') {
-        return false;
+    if (!sourceOutput && !targetInput) return false;
+    if (!sourceOutput || !targetInput) {
+        if (!checkIfNodeConnectionPossible) return false;
+        if (sourceOutput && !targetInput) {
+            return targetNode.inputs.some(i => canConnectTypes({
+                output: sourceOutput.type,
+                input: i.type,
+            }));
+        } else if (!sourceOutput && targetInput) {
+            return sourceNode.outputs.some(o => canConnectTypes({
+                output: o.type,
+                input: targetInput.type,
+            }));
+        } else {
+            return false;
+        }
     }
-    return true;
+
+    return canConnectTypes({
+        output: sourceOutput.type,
+        input: targetInput.type
+    });
 }
 
 

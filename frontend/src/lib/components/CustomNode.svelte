@@ -7,17 +7,15 @@
 </script>
 
 <script lang="ts">
-	import { cn, getNodeColors, removeEdgeByIds, NodeIOHandler } from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
 		type NodeStatusWithoutError,
 		type NodeError
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, type Connection } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
-	import { edges } from '..';
-	import { get } from 'svelte/store';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -25,14 +23,16 @@
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
+	import { isValidConnection } from '@/utils/validate';
 
-	export let id: string | undefined = undefined; // Node ID
+	// these are passed in
+	export let id: string = '';
 	export let type: string = '';
 	export let selected: boolean = false;
 
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
-	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.DEFAULT;
+	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.UNKNOWN;
 	$: colors = getNodeColors(nodeType);
 
 	let status: NodeStatus = 'idle';
@@ -67,30 +67,10 @@
 		}, 50);
 	});
 
-	const onconnect = (connections: Connection[]) => {
-		const edgesToRemove: string[] = [];
-		for (const connection of connections) {
-			const conn: Connection & { edgeId?: string } = connection;
-			const e = get(edges);
-			if (!e) return;
-			const edge = e.filter(
-				(edge) =>
-					edge.target === conn.target &&
-					edge.targetHandle === conn.targetHandle &&
-					edge.id !== conn.edgeId
-			);
-			edgesToRemove.push(...edge.map((edge) => edge.id));
-		}
-		removeEdgeByIds(...edgesToRemove);
-	};
-
 	$: rows = Math.max(io.inputs.length, io.outputs.length);
-
 	$: hasContent = !!$$slots['default'];
-
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
-
 	$: minHeight =
 		HEADER_HEIGHT +
 		ROW_HEIGHT * rows +
@@ -101,6 +81,23 @@
 		(hasContent ? 20 : 0);
 
 	let hovered = false;
+
+	const c = useConnection();
+
+	$: startType = $c.startHandle?.type;
+
+	$: hide =
+		$c.startHandle?.handleId &&
+		!isValidConnection(
+			{
+				source: startType === 'source' ? $c.startHandle.nodeId : id,
+				sourceHandle: startType === 'source' ? $c.startHandle.handleId : null,
+				target: startType === 'source' ? id : $c.startHandle.nodeId,
+				targetHandle: startType === 'source' ? null : $c.startHandle.handleId
+			},
+			true
+		) &&
+		$c.startHandle.nodeId !== id;
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -119,7 +116,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
 	class={cn('flex flex-col h-full gap-1')}
-	style="min-width: 200px"
+	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
 >
