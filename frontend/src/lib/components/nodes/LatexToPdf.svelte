@@ -6,7 +6,11 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(id, [{ id: 'code', type: 'text', label: 'LaTeX code' }], []);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'code', type: 'text', label: 'LaTeX code' }],
+		outputs: []
+	});
 
 	let lastCompiledCode: string | null = null;
 	let pdfUrl = writable<string | null>(null);
