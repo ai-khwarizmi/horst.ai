@@ -7,6 +7,7 @@ import { AlignLeft, Bot, CalendarCog, Clock, FileText, ImagePlus, PencilRuler, T
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
+import TextCompare from "./components/nodes/text/TextCompare.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -32,6 +33,12 @@ const nodes = {
     }),
     textConcatenate: registerNode(TextConcatenate, {
         name: "Text Concatenate",
+        nodeType: NodeType.TRANSFORM,
+        Icon: AlignLeft,
+        category: NodeCategory.String,
+    }),
+    textCompare: registerNode(TextCompare, {
+        name: "Text Compare",
         nodeType: NodeType.TRANSFORM,
         Icon: AlignLeft,
         category: NodeCategory.String,
