@@ -19,7 +19,7 @@
 	import Button from './ui/button/button.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
-	import { loadGraph, saveGraph } from '@/utils';
+	import { loadGraph, saveGraph } from '@/utils/file';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import PackageJson from '../../../package.json';
 </script>

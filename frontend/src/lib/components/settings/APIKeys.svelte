@@ -10,7 +10,6 @@
 	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
-	import { isMobile } from '../Mobile.svelte';
 
 	let visible = false;
 </script>

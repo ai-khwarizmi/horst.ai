@@ -6,6 +6,9 @@ import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
 import { AlignLeft, Bot, CalendarCog, Clock, FileText, ImagePlus, PencilRuler, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
+import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
+import TextCompare from "./components/nodes/text/TextCompare.svelte";
+import TextContains from "./components/nodes/text/TextContains.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -29,6 +32,25 @@ const nodes = {
         Icon: AlignLeft,
         category: NodeCategory.String,
     }),
+    textConcatenate: registerNode(TextConcatenate, {
+        name: "Text Concatenate",
+        nodeType: NodeType.TRANSFORM,
+        Icon: AlignLeft,
+        category: NodeCategory.String,
+    }),
+    textCompare: registerNode(TextCompare, {
+        name: "Text Compare",
+        nodeType: NodeType.TRANSFORM,
+        Icon: AlignLeft,
+        category: NodeCategory.String,
+    }),
+    textContains: registerNode(TextContains, {
+        name: "Text Contains",
+        nodeType: NodeType.TRANSFORM,
+        Icon: AlignLeft,
+        category: NodeCategory.String,
+    }),
+
 
     // Number Tools
     // num2str: registerNode(NumberToString, {

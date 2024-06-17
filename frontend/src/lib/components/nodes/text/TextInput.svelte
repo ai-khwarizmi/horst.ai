@@ -7,7 +7,11 @@
 	export let id: string;
 	let value = '';
 
-	const io = new NodeIOHandler(id, undefined, [{ id: 'text', type: 'text' }]);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [],
+		outputs: [{ id: 'text', type: 'text' }]
+	});
 
 	onMount(() => {
 		const data = io.getOutputData('text');

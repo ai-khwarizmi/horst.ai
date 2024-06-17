@@ -1,13 +1,12 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
+	import type { OnExecuteCallbacks } from '$lib/types';
 	import { ChatOpenAI } from '@langchain/openai';
 	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
 	import { onMount } from 'svelte';
-	import { openai_key } from '@/index';
-	import Button from '@/components/ui/button/button.svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 
 	let model: ChatOpenAI;
@@ -25,14 +24,14 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(
-		id,
-		[
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
 		],
-		[{ id: 'response', type: 'text', label: 'Response' }]
-	);
+		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
+	});
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';

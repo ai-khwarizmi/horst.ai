@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { loadGraph, resetGraph, saveGraph } from '@/utils';
-	import { Download, Upload, FilePlus, Share2, Key, Info } from 'lucide-svelte';
+	import { loadGraph, resetGraph, saveGraph } from '@/utils/file';
+	import { Download, Upload, FilePlus, Share2, Key, Info, GithubIcon } from 'lucide-svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
@@ -16,7 +16,7 @@
 			<div
 				class="h-[36px] flex gap-2 shadow-2xl aspect-square rounded-lg border pointer-events-auto"
 			>
-				<img src="/logo.png" alt="Logo" class="h-full" />
+				<img src="/logo.png" alt="Logo" class="h-full select-none" />
 			</div>
 		</Dialog.Trigger>
 		<Dialog.Content>
@@ -33,6 +33,10 @@
 				</Dialog.Description>
 			</Dialog.Header>
 			<Dialog.Footer>
+				<Button variant="link" size="sm" target="_blank" href={PackageJson.repository.url}>
+					<GithubIcon class="mr-2 size-3.5" />
+					View on GitHub
+				</Button>
 				<Button variant="outline" size="sm" target="_blank" href="/how-to-use">
 					<Info class="mr-2 size-3.5" />
 					How to Use
@@ -81,7 +85,7 @@
 	{/if}
 </div>
 
-<div class="bg-white rounded-md border mt-2 p-2 text-xs w-28 pointer-events-auto">
+<div class="bg-white rounded-md border mt-2 p-2 text-xs w-28 pointer-events-auto select-none">
 	<div class="font-bold text-center text-sm">Legend</div>
 	<div class="flex flex-col gap-2 p-2">
 		<div class="flex items-center gap-1">

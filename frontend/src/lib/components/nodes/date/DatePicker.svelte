@@ -9,7 +9,11 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(id, undefined, [{ id: 'text', type: 'text' }]);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [],
+		outputs: [{ id: 'text', type: 'text' }]
+	});
 
 	let value: DateValue | undefined = undefined;
 	const df = new DateFormatter('en-US', {

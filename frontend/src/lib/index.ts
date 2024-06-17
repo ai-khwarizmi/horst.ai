@@ -1,6 +1,6 @@
 import { type Node, type Edge, type Viewport } from "@xyflow/svelte";
 import { writable } from "svelte/store";
-import { loadFromLocalStorage, saveToLocalStorage } from "./utils";
+import { loadFromLocalStorage, saveToLocalStorage } from "./utils/file";
 import { browser } from "$app/environment";
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');

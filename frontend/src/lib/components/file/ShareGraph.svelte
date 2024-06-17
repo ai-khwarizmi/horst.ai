@@ -1,8 +1,8 @@
 <script context="module" lang="ts">
-	import { get, writable } from 'svelte/store';
+	import { writable } from 'svelte/store';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { edges, nodes } from '@/index';
-	import { FILE_VERSION, getSaveData } from '@/utils';
+	import { getSaveData } from '@/utils/file';
 	import * as LZString from 'lz-string';
 	import Input from '../ui/input/input.svelte';
 	import { toast } from 'svelte-sonner';

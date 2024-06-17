@@ -1,12 +1,10 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
-	import { NodeIOHandler, type OnExecuteCallbacks } from '$lib/utils';
+	import { NodeIOHandler } from '$lib/utils';
+	import type { OnExecuteCallbacks } from '$lib/types';
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
 	import { ratelimit } from '../../../utils/ratelimit';
-	import { openai_key } from '@/index';
-	import Button from '@/components/ui/button/button.svelte';
-	import { openApiKeySettings } from '@/components/settings/APIKeys.svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 
 	let tool: DallEAPIWrapper;
@@ -27,11 +25,11 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(
-		id,
-		[{ id: 'prompt', type: 'text', label: 'Prompt' }],
-		[{ id: 'image_url', type: 'text', label: 'Image URL' }]
-	);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'prompt', type: 'text', label: 'Prompt' }],
+		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }]
+	});
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';

@@ -4,7 +4,11 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler(id, [{ id: 'num', type: 'number' }], [{ id: 'str', type: 'text' }]);
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'num', type: 'number' }],
+		outputs: [{ id: 'str', type: 'text' }]
+	});
 
 	const onExecute = () => {
 		const input = io.getInputData('num');

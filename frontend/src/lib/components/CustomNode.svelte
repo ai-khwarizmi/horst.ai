@@ -1,40 +1,41 @@
+<script lang="ts" context="module">
+	export const HANDLE_WIDTH = 12;
+	export const ROW_HEIGHT = 30;
+	export const ROW_GAP = 10;
+	export const BORDER_WIDTH = 2;
+	export const HEADER_HEIGHT = 40;
+</script>
+
 <script lang="ts">
+	import { cn, getNodeColors, NodeIOHandler } from '$lib/utils';
 	import {
-		cn,
-		getNodeColors,
-		isValidConnection,
-		removeEdgeByIds,
 		type OnExecuteCallbacks,
 		type NodeStatus,
 		type NodeStatusWithoutError,
-		type NodeError,
-		NodeIOHandler
-	} from '$lib/utils';
-	import { Handle, NodeResizer, NodeToolbar, Position, type Connection } from '@xyflow/svelte';
+		type NodeError
+	} from '@/types';
+	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
-	import { edges } from '..';
-	import { get } from 'svelte/store';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
+	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
+	import { isValidConnection } from '@/utils/validate';
 
-	const HANDLE_WIDTH = 12;
-	const ROW_HEIGHT = 30;
-	const ROW_GAP = 10;
-	const BORDER_WIDTH = 2;
-	const HEADER_HEIGHT = 40;
-
-	export let id: string | undefined = undefined; // Node ID
+	// these are passed in
+	export let id: string = '';
 	export let type: string = '';
 	export let selected: boolean = false;
 
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
-	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.DEFAULT;
+	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.UNKNOWN;
 	$: colors = getNodeColors(nodeType);
+
+	let isResizing = false;
 
 	let status: NodeStatus = 'idle';
 
@@ -68,33 +69,10 @@
 		}, 50);
 	});
 
-	const onconnect = (connections: Connection[]) => {
-		const edgesToRemove: string[] = [];
-		for (const connection of connections) {
-			const conn: Connection & { edgeId?: string } = connection;
-			const e = get(edges);
-			if (!e) return;
-			const edge = e.filter(
-				(edge) =>
-					edge.target === conn.target &&
-					edge.targetHandle === conn.targetHandle &&
-					edge.id !== conn.edgeId
-			);
-			edgesToRemove.push(...edge.map((edge) => edge.id));
-		}
-		removeEdgeByIds(...edgesToRemove);
-	};
-
-	$: outputConnections = $edges.filter((edge) => edge.source === id);
-	$: inputConnections = $edges.filter((edge) => edge.target === id);
-
 	$: rows = Math.max(io.inputs.length, io.outputs.length);
-
 	$: hasContent = !!$$slots['default'];
-
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
-
 	$: minHeight =
 		HEADER_HEIGHT +
 		ROW_HEIGHT * rows +
@@ -103,6 +81,25 @@
 		4 +
 		5 +
 		(hasContent ? 20 : 0);
+
+	let hovered = false;
+
+	const c = useConnection();
+
+	$: startType = $c.startHandle?.type;
+
+	$: hide =
+		$c.startHandle?.handleId &&
+		!isValidConnection(
+			{
+				source: startType === 'source' ? $c.startHandle.nodeId : id,
+				sourceHandle: startType === 'source' ? $c.startHandle.handleId : null,
+				target: startType === 'source' ? id : $c.startHandle.nodeId,
+				targetHandle: startType === 'source' ? null : $c.startHandle.handleId
+			},
+			true
+		) &&
+		$c.startHandle.nodeId !== id;
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -118,7 +115,13 @@
 		</div>
 	</div>
 {/if}
-<div class={cn('flex flex-col h-full gap-1')} style="min-width: 200px">
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div
+	class={cn('flex flex-col h-full gap-1')}
+	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
+	on:mouseenter={() => (hovered = true)}
+	on:mouseleave={() => (hovered = false)}
+>
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
 			<div class="relative flex items-centerspace-x-2">
@@ -161,9 +164,11 @@
 	<NodeResizer
 		minWidth={200}
 		{minHeight}
-		isVisible={selected}
+		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
+		onResizeStart={() => (isResizing = true)}
+		onResizeEnd={() => (isResizing = false)}
 	/>
 	<div
 		class={cn(
@@ -201,32 +206,7 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each io.inputs as input, index}
-							{@const connected = inputConnections.filter((edge) => edge.targetHandle === input.id)}
-							<Handle
-								type="target"
-								position={Position.Left}
-								class={cn(
-									connected.length && '!bg-green-500',
-									!connected.length && '!bg-gray-500 '
-								)}
-								style="left:1px; top: {top(
-									index
-								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-									2}px;"
-								id={input.id}
-								{isValidConnection}
-								{onconnect}
-							/>
-							<div
-								class="text-ellipsis truncate overflow-hidden w-full pl-2 -mt-[1px]"
-								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-							>
-								{#if input.label}
-									{input.label} ({input.type})
-								{:else}
-									{input.type}
-								{/if}
-							</div>
+							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
 						{/each}
 					</div>
 				{/if}
@@ -236,41 +216,19 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each io.outputs as output, index}
-							{@const connected = outputConnections.filter(
-								(edge) => edge.sourceHandle === output.id
-							)}
-							<Handle
-								type="source"
-								position={Position.Right}
-								class={cn(
-									connected.length && '!bg-green-500',
-									!connected.length && '!bg-gray-500 '
-								)}
-								style="right:1px; top: {top(
-									index
-								)}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-									2}px;"
-								{isValidConnection}
-								{onconnect}
-								id={output.id}
-							/>
-							<div
-								class="text-ellipsis truncate pr-2 overflow-hidden w-full -mt-[1px]"
-								style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
-							>
-								{#if output.label}
-									{output.label} ({output.type})
-								{:else}
-									{output.type}
-								{/if}
-							</div>
+							<CustomHandle nodeId={id} type="output" base={output} top={top(index)} />
 						{/each}
 					</div>
 				{/if}
 			</div>
 		</div>
 		{#if hasContent}
-			<div class="flex flex-col overflow-auto p-2 flex-grow">
+			<div
+				class={cn(
+					'flex flex-col overflow-auto p-2 flex-grow nodrag cursor-auto',
+					isResizing && 'pointer-events-none'
+				)}
+			>
 				<slot />
 			</div>
 		{/if}

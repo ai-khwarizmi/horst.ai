@@ -2,7 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { page } from '$app/stores';
 	import Button from '../ui/button/button.svelte';
-	import { loadFromHash } from '@/utils';
+	import { loadFromHash } from '@/utils/file';
 	import { toast } from 'svelte-sonner';
 </script>
 
