@@ -35,6 +35,8 @@
 	$: nodeType = registeredNodes[type]?.nodeType ?? NodeType.UNKNOWN;
 	$: colors = getNodeColors(nodeType);
 
+	let isResizing = false;
+
 	let status: NodeStatus = 'idle';
 
 	let errors: NodeError[] = [];
@@ -165,6 +167,8 @@
 		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
+		onResizeStart={() => (isResizing = true)}
+		onResizeEnd={() => (isResizing = false)}
 	/>
 	<div
 		class={cn(
@@ -219,7 +223,12 @@
 			</div>
 		</div>
 		{#if hasContent}
-			<div class="flex flex-col overflow-auto p-2 flex-grow nodrag cursor-auto">
+			<div
+				class={cn(
+					'flex flex-col overflow-auto p-2 flex-grow nodrag cursor-auto',
+					isResizing && 'pointer-events-none'
+				)}
+			>
 				<slot />
 			</div>
 		{/if}
