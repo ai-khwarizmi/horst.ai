@@ -1,6 +1,9 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
+	import Button from '@/components/ui/button/button.svelte';
+	import { Clipboard, Copy } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	export let id: string;
 	let data: string | null = null;
@@ -24,10 +27,23 @@
 		}
 		data = input.toString();
 	}
+
+	function copyToClipboard() {
+		if (data) {
+			navigator.clipboard.writeText(data);
+			toast.success('Copied to clipboard');
+		} else {
+			toast.error('Nothing to copy');
+		}
+	}
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
+	<Button size="sm" variant="outline" on:click={copyToClipboard}>
+		<Copy class="mr-2" />
+		Copy to clipboard
+	</Button>
 	<textarea class="w-full h-full outline-none border-none bg-transparent resize-none" readonly
-		>{data}</textarea
+		>{data ?? ''}</textarea
 	>
 </CustomNode>
