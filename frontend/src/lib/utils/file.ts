@@ -123,8 +123,8 @@ export const loadFromGraph = (graph: any) => {
         return false;
     }
 
-    const valid_nodes: Node[] = [];
-    const valid_edges: Edge[] = [];
+    let valid_nodes: Node[] = [];
+    let valid_edges: Edge[] = [];
 
     let invalid_nodes = 0;
     for (const node of graph.nodes) {
@@ -157,6 +157,16 @@ export const loadFromGraph = (graph: any) => {
     if (graph.name) {
         projectName.set(graph.name);
     }
+
+    // remove duplicate nodes (by id)
+    valid_edges = valid_edges.filter((edge, index, self) =>
+        index === self.findIndex((t) => t.id === edge.id)
+    );
+    // remove duplicate edges (by id)
+    valid_nodes = valid_nodes.filter((node, index, self) =>
+        index === self.findIndex((t) => t.id === node.id)
+    );
+
     nodes.set(valid_nodes);
     edges.set(valid_edges);
     if (graph.viewport) {
