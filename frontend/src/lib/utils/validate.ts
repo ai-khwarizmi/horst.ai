@@ -1,7 +1,7 @@
 import { registeredNodes } from "@/nodes";
-import type { NodeValueType } from "@/types";
-import { nodeIOHandlers } from "@/utils";
-import type { Connection, Edge, IsValidConnection, Node } from "@xyflow/svelte";
+import type { Input, NodeValueType, Output } from "@/types";
+import { NodeIOHandler, nodeIOHandlers } from "@/utils";
+import type { Connection, Edge, Node } from "@xyflow/svelte";
 
 export const canConnectTypes = (obj: {
     output: NodeValueType, input: NodeValueType
@@ -23,8 +23,8 @@ export const isValidConnection = (connection: Edge | Connection, checkIfNodeConn
     // }
 
     // check if the connection type is valid using nodeIOHandlers
-    const sourceNode = nodeIOHandlers.get(connection.source);
-    const targetNode = nodeIOHandlers.get(connection.target);
+    const sourceNode = nodeIOHandlers[connection.source] as NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
+    const targetNode = nodeIOHandlers[connection.target] as NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
     if (!sourceNode || !targetNode) return false;
 
     const sourceOutput = sourceNode.outputs.find(o => o.id === connection.sourceHandle);

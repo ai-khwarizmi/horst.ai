@@ -3,12 +3,14 @@ import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
-import { AlignLeft, Bot, CalendarCog, Clock, FileText, ImagePlus, PencilRuler, TextCursorInput } from "lucide-svelte";
+import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
 import TextCompare from "./components/nodes/text/TextCompare.svelte";
 import TextContains from "./components/nodes/text/TextContains.svelte";
+import TextEncode from "./components/nodes/text/TextEncode.svelte";
+import TextDecode from "./components/nodes/text/TextDecode.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -50,7 +52,18 @@ const nodes = {
         Icon: AlignLeft,
         category: NodeCategory.String,
     }),
-
+    textEncode: registerNode(TextEncode, {
+        name: "Text Encode",
+        nodeType: NodeType.TRANSFORM,
+        Icon: FileDigit,
+        category: NodeCategory.String,
+    }),
+    textDecode: registerNode(TextDecode, {
+        name: "Text Decode",
+        nodeType: NodeType.TRANSFORM,
+        Icon: FileDigit,
+        category: NodeCategory.String,
+    }),
 
     // Number Tools
     // num2str: registerNode(NumberToString, {

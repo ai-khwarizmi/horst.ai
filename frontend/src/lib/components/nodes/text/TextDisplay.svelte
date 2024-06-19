@@ -7,12 +7,12 @@
 
 	const io = new NodeIOHandler({
 		nodeId: id,
-		inputs: [{ id: 'text', type: 'any' }],
+		inputs: [{ id: 'data', type: 'any' }],
 		outputs: []
 	});
 
 	function onExecute() {
-		const input = io.getInputData('text') ?? null;
+		const input = io.getInputData('data') ?? null;
 		if (input === null) {
 			data = null;
 			return;

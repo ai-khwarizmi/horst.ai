@@ -4,7 +4,7 @@
 	import { addNode, cn, getNodeColors } from '@/utils';
 	import { useSvelteFlow } from '@xyflow/svelte';
 	import { onMount } from 'svelte';
-	import { commandOpen } from '..';
+	import { commandOpen, createNodeParams } from '..';
 
 	onMount(() => {
 		function handleKeydown(e: KeyboardEvent) {
@@ -40,13 +40,17 @@
 	const { screenToFlowPosition } = useSvelteFlow();
 
 	const onSelect = (nodeType: CustomNodeName) => {
-		const center = screenToFlowPosition({
-			x: window.innerWidth / 2,
-			y: window.innerHeight / 2
-		});
+		const newPosition = screenToFlowPosition(
+			$createNodeParams?.position ?? {
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2
+			}
+		);
+		const connectWith = $createNodeParams?.node;
 		// Do we want to place it where the cursor was previously?
-		addNode(nodeType, center);
+		addNode(nodeType, newPosition, connectWith);
 		commandOpen.set(false);
+		createNodeParams.set(null);
 	};
 
 	const groupedNodes = Object.entries(registeredNodes).reduce<

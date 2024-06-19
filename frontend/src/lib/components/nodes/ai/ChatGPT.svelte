@@ -37,7 +37,7 @@
 	let lastOutputValue: null | string = '';
 
 	onMount(() => {
-		lastOutputValue = String(io.getOutputData('response'));
+		lastOutputValue = io.getOutputData('response');
 	});
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
