@@ -111,15 +111,9 @@
 							});
 							return edges;
 						});
-					} else {
-						console.log('No valid handle');
 					}
 				}
-			} else {
-				console.log('No connect with');
 			}
-		} else {
-			console.log('No connect with');
 		}
 	});
 

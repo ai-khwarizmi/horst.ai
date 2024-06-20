@@ -28,6 +28,7 @@
 	import PackageJson from '../../package.json';
 	import DebugView from '@/components/DebugView.svelte';
 	import type { ConnectWith } from '@/types';
+	import ProjectSettings from '@/components/ProjectSettings.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -71,6 +72,7 @@
 	<ShareGraph />
 	<Apikeys />
 	<FileDropper />
+	<ProjectSettings />
 	<NewFilePopup />
 	<SvelteFlow
 		{nodes}

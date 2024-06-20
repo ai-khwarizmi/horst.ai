@@ -49,11 +49,14 @@ export function getSaveData(includeData: boolean): {
 export const saveGraph = () => {
     const graph = getSaveData(true);
 
+    const name = get(projectName) || 'graph';
+    const filename = name.replace(/[^a-z0-9]/gi, '_').toLowerCase().replaceAll('__', '_');
+
     const str = JSON.stringify(graph, null, 4);
     const blob = new Blob([str], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.download = 'graph.json';
+    a.download = filename + '.json';
     a.href = url;
     a.click();
 }
@@ -87,6 +90,7 @@ export const loadFromLocalStorage = () => {
 
 export const resetGraph = () => {
     window.location.hash = '';
+    projectName.set('');
     nodes.set([]);
     edges.set([]);
     viewport.set({ x: 0, y: 0, zoom: 1 });
