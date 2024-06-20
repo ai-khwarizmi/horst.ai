@@ -105,6 +105,24 @@
 			url: 'https://github.com/pablo-abc/svelte-markdown',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'@gradio/client': {
+			name: 'Gradio',
+			url: 'https://github.com/gradio-app/gradio',
+			branch: 'main',
+			license: 'Apache License 2.0'
+		},
+		'svelte-cubed': {
+			name: 'Svelte Cubed',
+			url: 'https://github.com/Rich-Harris/svelte-cubed',
+			branch: 'main',
+			license: 'MIT'
+		},
+		three: {
+			name: 'Three.js',
+			url: 'https://github.com/mrdoob/three.js',
+			branch: 'dev',
+			license: 'MIT'
 		}
 	};
 

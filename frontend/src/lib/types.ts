@@ -6,7 +6,7 @@ export enum NodeType {
     UNKNOWN = 'unknown'
 }
 
-type RawNodeValueType = 'text' | 'number' | 'boolean' | 'any';
+type RawNodeValueType = 'text' | 'number' | 'boolean' | 'file' | 'any';
 type ArrayNodeValueType = `${RawNodeValueType}[]`;
 export type NodeValueType = RawNodeValueType | ArrayNodeValueType;
 
@@ -15,11 +15,13 @@ export type NodeValueTypeConverted<T extends NodeValueType> = (
         T extends 'text[]' ? string[] :
         T extends 'number[]' ? number[] :
         T extends 'boolean[]' ? boolean[] :
+        T extends 'file[]' ? File[] :
         any[]
     ) : (
         T extends 'text' ? string :
         T extends 'number' ? number :
         T extends 'boolean' ? boolean :
+        T extends 'file' ? File :
         any
     )
 )

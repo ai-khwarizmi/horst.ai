@@ -28,7 +28,10 @@
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'prompt', type: 'text', label: 'Prompt' }],
-		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }]
+		outputs: [
+			{ id: 'file', type: 'file', label: 'Image' },
+			{ id: 'image_url', type: 'text', label: 'Image URL' }
+		]
 	});
 
 	let lastExecutedValue: null | string = null;
@@ -51,13 +54,19 @@
 			}
 			lastOutputValue = null;
 			io.setOutputData('image_url', null);
+			io.setOutputData('file', null);
 			try {
 				await ratelimit('dalle', 10, async () => {
 					callbacks.setStatus('loading');
 					const imageUrl = await getTool().invoke(prompt);
 					console.log('Generated image URL: ', imageUrl);
 					lastOutputValue = imageUrl;
-					io.setOutputData('image_url', lastOutputValue);
+					const wrapperUrl = new URL('http://localhost:3000/');
+					wrapperUrl.searchParams.append('image', lastOutputValue);
+					io.setOutputData('image_url', wrapperUrl.toString());
+					const body = await fetch(wrapperUrl.toString(), {});
+					const blob = await body.blob();
+					io.setOutputData('file', new File([blob], 'dalle3-image.png'));
 					callbacks.setStatus('success');
 				});
 			} catch (error: any) {
@@ -67,6 +76,7 @@
 		} else {
 			callbacks.setStatus('idle');
 			io.setOutputData('image_url', null);
+			io.setOutputData('file', null);
 			lastOutputValue = null;
 		}
 	};

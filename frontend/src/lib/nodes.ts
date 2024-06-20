@@ -3,7 +3,7 @@ import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
-import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
+import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, FileUp, ImagePlus, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
@@ -11,11 +11,15 @@ import TextCompare from "./components/nodes/text/TextCompare.svelte";
 import TextContains from "./components/nodes/text/TextContains.svelte";
 import TextEncode from "./components/nodes/text/TextEncode.svelte";
 import TextDecode from "./components/nodes/text/TextDecode.svelte";
+import FileInput from "./components/nodes/file/FileInput.svelte";
+import GradioTest from "./components/nodes/ai/GradioTest.svelte";
+import GltfViewer from "./components/nodes/threeJS/GLTFViewer.svelte";
 
 export enum NodeCategory {
     String = "String",
     Number = "Number",
     AI = "AI",
+    Files = "Files",
     Documents = "Documents",
     Misc = "Misc",
 }
@@ -73,6 +77,22 @@ const nodes = {
     //     category: NodeCategory.Number,
     // }),
 
+    // Files
+    fileInput: registerNode(FileInput, {
+        name: "File Input",
+        nodeType: NodeType.INPUT,
+        Icon: FileUp,
+        category: NodeCategory.Files,
+    }),
+
+    gltfViewer: registerNode(GltfViewer, {
+        name: "GLTF Viewer",
+        nodeType: NodeType.VIEWER,
+        Icon: ImagePlus,
+        category: NodeCategory.Files,
+    }),
+
+
     // ai
     chatGpt: registerNode(ChatGpt, {
         name: "ChatGPT",
@@ -86,6 +106,13 @@ const nodes = {
         Icon: ImagePlus,
         category: NodeCategory.AI,
     }),
+    wuvin_unique3d: registerNode(GradioTest, {
+        name: "Wuvin Unique3D",
+        nodeType: NodeType.FUNCTION,
+        Icon: ImagePlus,
+        category: NodeCategory.AI,
+    }),
+
 
     // documents
     latex2pdf: registerNode(LatexToPdf, {
