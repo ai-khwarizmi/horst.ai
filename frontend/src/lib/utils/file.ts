@@ -7,6 +7,7 @@ import * as LZString from 'lz-string';
 import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
+import { outputData } from "@/utils";
 
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
@@ -17,32 +18,32 @@ export function getSaveData(includeData: boolean): {
     const n = get(nodes);
     const e = get(edges);
     const v = get(viewport);
+    const data: any = {};
+
+    for (const node of n) {
+        if (!node?.type) {
+            console.error('node is ', node);
+            continue
+        }
+        if (!registeredNodes[node.type]) {
+            console.error('node type not registered', node.type);
+            continue
+        }
+        const nodeType = registeredNodes[node.type].nodeType;
+        if (includeData && nodeType === NodeType.INPUT) {
+            data[node.id] = outputData[node.id]
+        }
+    }
+
     const json = JSON.parse(JSON.stringify({
         name,
         nodes: n,
         edges: e,
         viewport: v,
+        data,
         version: FILE_VERSION
     }));
 
-    json.nodes = json.nodes.map((node: any) => {
-        if (!node) {
-            console.error('node is ', node);
-            return node
-        }
-        if (!registeredNodes[node.type]) {
-            console.error('node type not registered', node.type);
-            return;
-        }
-        const nodeType = registeredNodes[node.type].nodeType;
-        if (includeData && nodeType === NodeType.INPUT) {
-            return node;
-        }
-        return {
-            ...node,
-            data: {}
-        }
-    });
     return json;
 }
 
@@ -160,6 +161,12 @@ export const loadFromGraph = (graph: any) => {
 
     if (graph.name) {
         projectName.set(graph.name);
+    }
+
+    if (graph.data) {
+        for (const [id, data] of Object.entries(graph.data)) {
+            outputData[id] = data as Record<string, any>;
+        }
     }
 
     // remove duplicate nodes (by id)
