@@ -34,7 +34,7 @@
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
-	import { edges } from '..';
+	import { edges, nodes } from '..';
 
 	// these are passed in
 	export let id: string = '';
@@ -101,6 +101,14 @@
 						const target = connectWith.type === 'input' ? connectWith.id : id;
 						const sourceHandle = connectWith.type === 'input' ? validHandle.id : connectWith.handle;
 						const targetHandle = connectWith.type === 'input' ? connectWith.handle : validHandle.id;
+						nodes.update((nodes) => {
+							// remove data.connectWith
+							const node = nodes.find((n) => n.id === id);
+							if (node) {
+								delete node.data.connectWith;
+							}
+							return nodes;
+						});
 						edges.update((edges) => {
 							edges.push({
 								id: `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`,
