@@ -182,7 +182,7 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 	return node
 };
 
-const outputData: Record<string, Record<string, any>> = {};
+export const outputData: Record<string, Record<string, any>> = {};
 
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
 	// nodes.update(n => {

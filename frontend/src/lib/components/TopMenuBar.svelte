@@ -66,7 +66,7 @@
 			How to Use
 		</Button>
 	{:else}
-		<Button size="sm" on:click={openNewFilePopup}>
+		<Button size="sm" on:click={openNewFilePopup} class="pointer-events-auto">
 			<FilePlus class="mr-2 size-3.5" />
 			New
 		</Button>
