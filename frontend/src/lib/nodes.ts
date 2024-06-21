@@ -2,7 +2,7 @@ import TextDisplay from "./components/nodes/text/TextDisplay.svelte";
 import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
-import LatexToPdf from "./components/nodes/LatexToPdf.svelte";
+import LatexToPdf from "./components/nodes/display/LatexToPdf.svelte";
 import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
@@ -11,6 +11,7 @@ import TextCompare from "./components/nodes/text/TextCompare.svelte";
 import TextContains from "./components/nodes/text/TextContains.svelte";
 import TextEncode from "./components/nodes/text/TextEncode.svelte";
 import TextDecode from "./components/nodes/text/TextDecode.svelte";
+import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -87,10 +88,16 @@ const nodes = {
         category: NodeCategory.AI,
     }),
 
-    // documents
+    // display
     latex2pdf: registerNode(LatexToPdf, {
         name: "LaTeX to PDF",
         nodeType: NodeType.TRANSFORM,
+        Icon: FileText,
+        category: NodeCategory.Documents,
+    }),
+    htmlDisplay: registerNode(HtmlDisplay, {
+        name: "HTML Viewer",
+        nodeType: NodeType.VIEWER,
         Icon: FileText,
         category: NodeCategory.Documents,
     }),
