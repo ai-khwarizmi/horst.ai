@@ -1,9 +1,6 @@
 <script lang="ts">
 	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
-	import Button from '@/components/ui/button/button.svelte';
-	import { Clipboard, Copy } from 'lucide-svelte';
-	import { toast } from 'svelte-sonner';
 
 	export let id: string;
 
@@ -36,12 +33,66 @@
 		const input = io.getInputData('html') ?? null;
 		if (input !== lastDrawData) {
 			lastDrawData = input;
-			data = cleanHtmlString(input);
+			if (input) {
+				data = cleanHtmlString(input);
+			} else {
+				data = null;
+			}
 		}
+	}
+
+	function openInCodePen() {
+		const htmlCode = data ?? '';
+		const cssCode = ''; // Add any CSS code if needed
+		const jsCode = ''; // Add any JS code if needed
+
+		const penData = {
+			title: 'New Pen',
+			html: htmlCode,
+			css: cssCode,
+			js: jsCode,
+			editors: '101' // Open HTML, CSS, and JS editors
+		};
+
+		const form = document.createElement('form');
+		form.action = 'https://codepen.io/pen/define';
+		form.method = 'POST';
+		form.target = '_blank';
+
+		const input = document.createElement('input');
+		input.type = 'hidden';
+		input.name = 'data';
+		input.value = JSON.stringify(penData);
+
+		form.appendChild(input);
+		document.body.appendChild(form);
+		form.submit();
+		document.body.removeChild(form);
+	}
+
+	function copyToClipboard() {
+		navigator.clipboard.writeText(data!);
 	}
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
+	<div class="flex justify-end mb-2">
+		{#if data}
+			<button
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-2 rounded"
+				on:click={copyToClipboard}
+			>
+				Copy HTML
+			</button>
+
+			<button
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+				on:click={openInCodePen}
+			>
+				Open in CodePen
+			</button>
+		{/if}
+	</div>
 	<iframe
 		srcdoc={data}
 		sandbox="allow-scripts"
