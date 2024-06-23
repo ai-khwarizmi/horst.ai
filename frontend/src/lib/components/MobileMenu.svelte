@@ -12,6 +12,7 @@
 		Key,
 		LucideGithub,
 		Menu,
+		Settings,
 		Share2,
 		Upload,
 		UsersRound
@@ -22,6 +23,7 @@
 	import { loadGraph, saveGraph } from '@/utils/file';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import PackageJson from '../../../package.json';
+	import { openProjectSettings } from './ProjectSettings.svelte';
 </script>
 
 <DropdownMenu.Root>
@@ -44,6 +46,10 @@
 		<DropdownMenu.Item on:click={saveGraph}>
 			<Download class="mr-2 size-3.5" />
 			Save
+		</DropdownMenu.Item>
+		<DropdownMenu.Item on:click={openProjectSettings}>
+			<Settings class="mr-2 size-3.5" />
+			Settings
 		</DropdownMenu.Item>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Item on:click={openShareGraphModal}>

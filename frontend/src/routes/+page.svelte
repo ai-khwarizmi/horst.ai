@@ -1,8 +1,15 @@
 <script lang="ts">
-	import { SvelteFlow, Background, Controls, Panel, MiniMap } from '@xyflow/svelte';
+	import {
+		SvelteFlow,
+		Background,
+		Controls,
+		Panel,
+		type OnConnectStart,
+		type Connection
+	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, openai_key, viewport, projectName } from '$lib';
+	import { nodes, edges, openai_key, viewport, commandOpen, createNodeParams } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -20,6 +27,8 @@
 
 	import PackageJson from '../../package.json';
 	import DebugView from '@/components/DebugView.svelte';
+	import type { ConnectWith } from '@/types';
+	import ProjectSettings from '@/components/ProjectSettings.svelte';
 
 	onMount(() => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -27,12 +36,43 @@
 			openai_key.set(existingOpenaiApiKey);
 		}
 	});
+
+	let startNode: ConnectWith | null = null;
+	const handleConnectionStart: OnConnectStart = (e, { nodeId, handleId, handleType }) => {
+		if (nodeId && handleId) {
+			startNode = {
+				id: nodeId,
+				handle: handleId,
+				type: handleType === 'source' ? 'output' : 'input'
+			};
+		}
+	};
+
+	const handleConnect = (connection: Connection) => {
+		startNode = null;
+	};
+
+	const handleConnectionEnd = (e: MouseEvent | TouchEvent) => {
+		if (!startNode) return;
+		if ((e.target as Element)?.classList?.contains?.('svelte-flow__pane')) {
+			commandOpen.set(true);
+			const position =
+				e instanceof MouseEvent
+					? { x: e.clientX, y: e.clientY }
+					: { x: e.touches[0].clientX, y: e.touches[0].clientY };
+			createNodeParams.set({
+				position,
+				node: startNode ?? undefined
+			});
+		}
+	};
 </script>
 
 <main>
 	<ShareGraph />
 	<Apikeys />
 	<FileDropper />
+	<ProjectSettings />
 	<NewFilePopup />
 	<SvelteFlow
 		{nodes}
@@ -44,6 +84,9 @@
 		proOptions={{
 			hideAttribution: true
 		}}
+		onconnect={handleConnect}
+		onconnectstart={handleConnectionStart}
+		onconnectend={handleConnectionEnd}
 	>
 		<DebugView />
 		<HashLoader />

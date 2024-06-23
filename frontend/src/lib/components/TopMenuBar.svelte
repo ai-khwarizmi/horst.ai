@@ -1,13 +1,23 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { loadGraph, resetGraph, saveGraph } from '@/utils/file';
-	import { Download, Upload, FilePlus, Share2, Key, Info, GithubIcon } from 'lucide-svelte';
+	import { loadGraph, saveGraph } from '@/utils/file';
+	import {
+		Download,
+		Upload,
+		FilePlus,
+		Share2,
+		Key,
+		Info,
+		GithubIcon,
+		Settings
+	} from 'lucide-svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
 	import { isMobile } from './Mobile.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import PackageJson from '../../../package.json';
+	import { openProjectSettings } from './ProjectSettings.svelte';
 </script>
 
 <div class="flex items-center gap-2">
@@ -56,7 +66,7 @@
 			How to Use
 		</Button>
 	{:else}
-		<Button size="sm" class="pointer-events-auto" on:click={openNewFilePopup}>
+		<Button size="sm" on:click={openNewFilePopup} class="pointer-events-auto">
 			<FilePlus class="mr-2 size-3.5" />
 			New
 		</Button>
@@ -67,6 +77,14 @@
 		<Button variant="secondary" size="sm" on:click={saveGraph} class="pointer-events-auto">
 			<Download class="mr-2 size-3.5" />
 			Save
+		</Button>
+		<Button
+			variant="secondary"
+			size="iconSm"
+			on:click={openProjectSettings}
+			class="pointer-events-auto"
+		>
+			<Settings class="size-3.5" />
 		</Button>
 		<Button
 			variant="secondary"

@@ -7,6 +7,7 @@ import * as LZString from 'lz-string';
 import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
+import { outputData } from "@/utils";
 
 const LOCALSTORAGE_KEY = 'horst.ai.graph'
 
@@ -17,43 +18,46 @@ export function getSaveData(includeData: boolean): {
     const n = get(nodes);
     const e = get(edges);
     const v = get(viewport);
+    const data: any = {};
+
+    for (const node of n) {
+        if (!node?.type) {
+            console.error('node is ', node);
+            continue
+        }
+        if (!registeredNodes[node.type]) {
+            console.error('node type not registered', node.type);
+            continue
+        }
+        const nodeType = registeredNodes[node.type].nodeType;
+        if (includeData && nodeType === NodeType.INPUT) {
+            data[node.id] = outputData[node.id]
+        }
+    }
+
     const json = JSON.parse(JSON.stringify({
         name,
         nodes: n,
         edges: e,
         viewport: v,
+        data,
         version: FILE_VERSION
     }));
 
-    json.nodes = json.nodes.map((node: any) => {
-        if (!node) {
-            console.error('node is ', node);
-            return node
-        }
-        if (!registeredNodes[node.type]) {
-            console.error('node type not registered', node.type);
-            return;
-        }
-        const nodeType = registeredNodes[node.type].nodeType;
-        if (includeData && nodeType === NodeType.INPUT) {
-            return node;
-        }
-        return {
-            ...node,
-            data: {}
-        }
-    });
     return json;
 }
 
 export const saveGraph = () => {
     const graph = getSaveData(true);
 
+    const name = get(projectName) || 'graph';
+    const filename = name.replace(/[^a-z0-9]/gi, '_').toLowerCase().replaceAll('__', '_');
+
     const str = JSON.stringify(graph, null, 4);
     const blob = new Blob([str], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.download = 'graph.json';
+    a.download = filename + '.json';
     a.href = url;
     a.click();
 }
@@ -87,6 +91,7 @@ export const loadFromLocalStorage = () => {
 
 export const resetGraph = () => {
     window.location.hash = '';
+    projectName.set('');
     nodes.set([]);
     edges.set([]);
     viewport.set({ x: 0, y: 0, zoom: 1 });
@@ -123,8 +128,8 @@ export const loadFromGraph = (graph: any) => {
         return false;
     }
 
-    const valid_nodes: Node[] = [];
-    const valid_edges: Edge[] = [];
+    let valid_nodes: Node[] = [];
+    let valid_edges: Edge[] = [];
 
     let invalid_nodes = 0;
     for (const node of graph.nodes) {
@@ -157,6 +162,22 @@ export const loadFromGraph = (graph: any) => {
     if (graph.name) {
         projectName.set(graph.name);
     }
+
+    if (graph.data) {
+        for (const [id, data] of Object.entries(graph.data)) {
+            outputData[id] = data as Record<string, any>;
+        }
+    }
+
+    // remove duplicate nodes (by id)
+    valid_edges = valid_edges.filter((edge, index, self) =>
+        index === self.findIndex((t) => t.id === edge.id)
+    );
+    // remove duplicate edges (by id)
+    valid_nodes = valid_nodes.filter((node, index, self) =>
+        index === self.findIndex((t) => t.id === node.id)
+    );
+
     nodes.set(valid_nodes);
     edges.set(valid_edges);
     if (graph.viewport) {

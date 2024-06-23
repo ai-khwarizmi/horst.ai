@@ -4,18 +4,28 @@
 	export const ROW_GAP = 10;
 	export const BORDER_WIDTH = 2;
 	export const HEADER_HEIGHT = 40;
+
+	const handlers: Record<string, () => void> = {};
+
+	// Should we change this to timeouts to avoid overlapping executions?
+	setInterval(() => {
+		Object.values(handlers).forEach((handler) => handler());
+	}, 50);
 </script>
 
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler } from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
 		type NodeStatusWithoutError,
-		type NodeError
+		type NodeError,
+		type ConnectWith,
+		type Output,
+		type Input
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
-	import { onMount } from 'svelte';
+	import { addEdge, NodeResizer, NodeToolbar, useConnection, useNodes } from '@xyflow/svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -23,12 +33,14 @@
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
-	import { isValidConnection } from '@/utils/validate';
+	import { canConnectTypes, isValidConnection } from '@/utils/validate';
+	import { edges, nodes } from '..';
 
 	// these are passed in
 	export let id: string = '';
 	export let type: string = '';
 	export let selected: boolean = false;
+	export let data: any = {};
 
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
@@ -37,10 +49,10 @@
 
 	let isResizing = false;
 
-	let status: NodeStatus = 'idle';
+	export let status: NodeStatus = 'idle';
 
-	let errors: NodeError[] = [];
-	export let io: NodeIOHandler<any, any>;
+	export let errors: NodeError[] = [];
+	export let io: NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
@@ -64,9 +76,57 @@
 		if (!id) {
 			throw new Error('Node ID is required');
 		}
-		setInterval(() => {
-			onExecute(onExecuteCallbacks, false);
-		}, 50);
+		handlers[id] = () => onExecute(onExecuteCallbacks, false);
+		if (data.connectWith) {
+			const connectWith: ConnectWith = data.connectWith;
+			const connectWithIO = nodeIOHandlers[connectWith.id] as NodeIOHandler<
+				string,
+				string,
+				Input<string>[],
+				Output<string>[]
+			>;
+			if (connectWithIO) {
+				const handleToConnectTo = connectWithIO[
+					connectWith.type === 'input' ? 'inputs' : 'outputs'
+				].find((h) => h.id === connectWith.handle);
+				if (handleToConnectTo) {
+					const validHandle = io[connectWith.type === 'input' ? 'outputs' : 'inputs'].find((h) =>
+						canConnectTypes({
+							input: connectWith.type === 'input' ? handleToConnectTo.type : h.type,
+							output: connectWith.type === 'input' ? h.type : handleToConnectTo.type
+						})
+					);
+					if (validHandle) {
+						const source = connectWith.type === 'input' ? id : connectWith.id;
+						const target = connectWith.type === 'input' ? connectWith.id : id;
+						const sourceHandle = connectWith.type === 'input' ? validHandle.id : connectWith.handle;
+						const targetHandle = connectWith.type === 'input' ? connectWith.handle : validHandle.id;
+						nodes.update((nodes) => {
+							// remove data.connectWith
+							const node = nodes.find((n) => n.id === id);
+							if (node) {
+								delete node.data.connectWith;
+							}
+							return nodes;
+						});
+						edges.update((edges) => {
+							edges.push({
+								id: `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`,
+								source,
+								target,
+								sourceHandle,
+								targetHandle
+							});
+							return edges;
+						});
+					}
+				}
+			}
+		}
+	});
+
+	onDestroy(() => {
+		delete handlers[id];
 	});
 
 	$: rows = Math.max(io.inputs.length, io.outputs.length);

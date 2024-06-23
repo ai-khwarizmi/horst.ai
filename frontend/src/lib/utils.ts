@@ -6,7 +6,7 @@ import { edges, nodes, openai_key } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input } from "./types";
+import { NodeType, type Input, type NodeValueTypeConverted } from "./types";
 import { onDestroy } from "svelte";
 
 export const clearData = () => {
@@ -54,66 +54,46 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 }
 
 
-export const nodeIOHandlers = new Map<string, NodeIOHandler<any, any>>()
+export const nodeIOHandlers: Record<string, NodeIOHandler<any, any, any, any>> = {};
 
-export class NodeIOHandler<TInput extends string, TOutput extends string> {
-
-	// TODO store these in a writable so the CustomNode can process it dynamically
-
+export class NodeIOHandler<TInput extends string, TOutput extends string, TInputs extends Input<TInput>[], TOutputs extends Input<TOutput>[]> {
 	public nodeId: string;
-	public inputs: Input<TInput>[];
-	public outputs: Input<TOutput>[]
+	public inputs: TInputs;
+	public outputs: TOutputs;
 
-	constructor(
-		args: {
-			nodeId: string,
-			inputs: Input<TInput>[],
-			outputs: Input<TOutput>[]
-		}
-	) {
+	constructor(args: {
+		nodeId: string;
+		inputs: TInputs;
+		outputs: TOutputs;
+	}) {
 		this.nodeId = args.nodeId;
-		this.inputs = args.inputs;
-		this.outputs = args.outputs;
+		this.inputs = args.inputs ?? [] as unknown as TInputs;
+		this.outputs = args.outputs ?? [] as unknown as TOutputs;
 
-		//ensure no duplicate ids in inputs and outputs
-		const idsInput = new Set<string>();
-		const idsOutput = new Set<string>();
-		args.inputs.forEach(input => {
-			if (idsInput.has(input.id)) {
-				throw new Error(`Duplicate input id ${input.id}`);
-			}
-			idsInput.add(input.id);
-		});
-		args.outputs.forEach(output => {
-			if (idsOutput.has(output.id)) {
-				throw new Error(`Duplicate output id ${output.id}`);
-			}
-			idsOutput.add(output.id);
-		});
-
-		nodeIOHandlers.set(this.nodeId, this);
-		onDestroy(this.destroy)
+		nodeIOHandlers[this.nodeId] = this;
+		onDestroy(this.destroy);
 	}
 
 	destroy = () => {
-		nodeIOHandlers.delete(this.nodeId);
+		delete nodeIOHandlers[this.nodeId];
 	}
 
-	setOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id'], data: any) => {
+	setOutputData = <T extends TOutputs[number]['id']>(id: T, data: NodeValueTypeConverted<Extract<TOutputs[number], { id: T }>['type']> | null) => {
 		_setNodeOutputData(this.nodeId, {
-			[handle]: data
+			[id]: data
 		})
 	}
 
-	getOutputData = (handle: this['outputs'] extends [] ? never : this['outputs'][number]['id']) => {
-		return _getNodeOutputData(this.nodeId, handle);
+	getOutputData = <T extends TOutputs[number]['id']>(handle: T) => {
+		const data = _getNodeOutputData(this.nodeId, handle) ?? null;
+		return data as NodeValueTypeConverted<Extract<TOutputs[number], { id: T }>['type']> | null
 	}
 
-	getInputData = (handle: this['inputs'] extends [] ? never : this['inputs'][number]['id']) => {
-		return _getNodeInputData(this.nodeId, handle);
+	getInputData = <T extends TInputs[number]['id']>(handle: T) => {
+		const data = _getNodeInputData(this.nodeId, handle) ?? null;
+		return data as NodeValueTypeConverted<Extract<TInputs[number], { id: T }>['type']> | null
 	}
 }
-
 
 export const removeEdgeByIds = (...ids: string[]) => {
 	edges.update(e => e.filter(edge => !ids.includes(edge.id)));
@@ -177,37 +157,63 @@ export const flyAndScale = (
 	};
 };
 
-export const addNode = (type: CustomNodeName, pos: XYPosition) => {
+export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
+	id: string;
+	handle: string;
+}) => {
+	const node = {
+		id: Math.random().toString(36).substr(2, 9),
+		type,
+		data: {
+			connectWith,
+		},
+		selected: true,
+		position: pos
+	};
 	nodes.update((prev) => {
 		const nodes = prev.map(prev => ({
 			...prev,
 			selected: false
 		}))
-		nodes.push({
-			id: Math.random().toString(36).substr(2, 9),
-			type,
-			data: {},
-			selected: true,
-			position: pos
-		});
+		nodes.push(node);
 		return nodes;
 	});
+
+	return node
 };
 
+export const outputData: Record<string, Record<string, any>> = {};
+
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	nodes.update(n => {
-		const node = n.find(n => n.id === id);
-		if (!node) return n;
-		node.data = { ...node.data, ...data };
-		return n;
-	});
+	// nodes.update(n => {
+	// 	const node = n.find(n => n.id === id);
+	// 	if (!node) return n;
+	// 	node.data = { ...node.data, ...data };
+	// 	return n;
+	// });
+
+
+	// const n = get(nodes);
+	// const node = n.find(n => n.id === id);
+	// if (!node) return;
+	// node.data = { ...node.data, ...data };
+
+
+	outputData[id] = {
+		...outputData[id],
+		...data
+	}
 }
 
 export const _getNodeOutputData = (id: string, handle: string) => {
-	const n = get(nodes);
-	const node = n.find(n => n.id === id);
-	if (!node) return;
-	return node.data[handle];
+	// const n = get(nodes);
+	// const node = n.find(n => n.id === id);
+	// if (!node) return;
+	// return node.data[handle];
+
+	const data = outputData[id];
+	if (!data) return;
+	return data[handle];
 }
 
 export const _getNodeInputData = (id: string, handle: string) => {
@@ -215,13 +221,15 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 
-	const n = get(nodes);
-	const node = n.find(n => n.id === edge.source);
-	if (!node) return;
+	// const n = get(nodes);
+	// const node = n.find(n => n.id === edge.source);
+	// if (!node) return;
 
-	if (!edge.sourceHandle) return;
+	// if (!edge.sourceHandle) return;
 
-	return node.data[edge.sourceHandle]
+	// return node.data[edge.sourceHandle]
+
+	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
 
 

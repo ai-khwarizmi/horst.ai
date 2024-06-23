@@ -2,7 +2,7 @@
 	import { NodeIOHandler } from '$lib/utils';
 	import type { OnExecuteCallbacks } from '$lib/types';
 	import { writable } from 'svelte/store';
-	import CustomNode from '../CustomNode.svelte';
+	import CustomNode from '@/components/CustomNode.svelte';
 
 	export let id: string;
 
