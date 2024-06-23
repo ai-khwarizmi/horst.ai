@@ -84,14 +84,17 @@ export const saveToLocalStorage = () => {
     }
     const allProjectIds = getAllLocalProjectIds();
     const str = JSON.stringify(graph);
-    if (allProjectIds.length > 0 && !allProjectIds.includes(graph.id)) {
-        allProjectIds.push(graph.id);
-        window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify(allProjectIds));
+    if (allProjectIds.length > 0) {
+        if (!allProjectIds.includes(graph.id)) {
+            allProjectIds.push(graph.id);
+            window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify(allProjectIds));
+        }
     } else {
         window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify([graph.id]));
     }
     const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.id;
     window.localStorage.setItem(localStorageKey, str);
+    window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.id);
 }
 
 export const loadFromHash = (): boolean => {

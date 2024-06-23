@@ -36,6 +36,22 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 
+	  /* eslint-disable-next-line */
+	export let selectable: boolean = false;
+	export let deletable: boolean = false;
+	export let sourcePosition: string | undefined = undefined;
+	export let targetPosition: string | undefined = undefined;
+	export let zIndex: number | undefined = undefined;
+	export let dragging: boolean = false;
+	export let draggable: boolean = false;
+	export let dragHandle: string | undefined = undefined;
+	export let parentId: string | undefined = undefined;
+	export let isConnectable: boolean = false;
+	export let positionAbsoluteX: number | undefined = undefined;
+	export let positionAbsoluteY: number | undefined = undefined;
+	export let width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
+
 	// these are passed in
 	export let id: string = '';
 	export let type: string = '';
