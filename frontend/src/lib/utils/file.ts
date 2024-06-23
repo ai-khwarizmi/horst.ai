@@ -157,6 +157,9 @@ export const loadFromGraph = (graph: any) => {
         toast.error('URL: Invalid project file');
         return false;
     }
+    if (!graph.id) {
+        graph.id = generateProjectId('clt');
+    }
 
     let valid_nodes: Node[] = [];
     let valid_edges: Edge[] = [];
@@ -208,6 +211,7 @@ export const loadFromGraph = (graph: any) => {
         index === self.findIndex((t) => t.id === node.id)
     );
 
+    projectId.set(graph.id);
     nodes.set(valid_nodes);
     edges.set(valid_edges);
     if (graph.viewport) {
