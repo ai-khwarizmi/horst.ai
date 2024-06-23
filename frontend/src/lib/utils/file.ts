@@ -78,9 +78,10 @@ export function getAllLocalProjectIds(): string[] {
 export const saveToLocalStorage = () => {
     if (typeof window === 'undefined') return;
     const graph = getSaveData(true);
+
     //ensure that graph.id exists  
     if (!graph.id) {
-        throw new Error('graph.id is missing');
+        return;
     }
     const allProjectIds = getAllLocalProjectIds();
     const str = JSON.stringify(graph);
@@ -97,6 +98,15 @@ export const saveToLocalStorage = () => {
     window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.id);
 }
 
+export const loadFromProjectId = async (projectId: string): Promise<boolean> => {
+    if (typeof window === 'undefined') return false;
+    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + projectId;
+    const str = window.localStorage.getItem(localStorageKey);
+    if (!str) return false;
+    const graph = JSON.parse(str);
+    return loadFromGraph(graph);
+}
+
 export const loadFromHash = (): boolean => {
     if (typeof window === 'undefined') return false;
     const hash = window.location.hash;
@@ -108,15 +118,16 @@ export const loadFromHash = (): boolean => {
 }
 
 export const loadFromLocalStorage = () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return false;
 
     const lastProjectId = window.localStorage.getItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID);
-    if (!lastProjectId) return;
+    console.log('lastProjectId', lastProjectId);
+    if (!lastProjectId) return false;
 
     const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + lastProjectId;
     const str = window.localStorage.getItem(localStorageKey);
 
-    if (!str) return;
+    if (!str) return false;
     const graph = JSON.parse(str);
     return loadFromGraph(graph);
 }

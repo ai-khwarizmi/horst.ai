@@ -39,6 +39,7 @@ export function parseProjectId(base58ID: string): { prefix: Prefix, domain: stri
 		domain = `${domain}:${port}`;
 	}
 
+	console.log('Decoded:', { prefix, domain, timestamp, uuid });
 	if (prefix !== 'svr' && prefix !== 'clt') {
 		throw new Error('Invalid project ID prefix');
 	}
