@@ -48,7 +48,7 @@
 		}
 	};
 
-	const handleConnect = (connection: Connection) => {
+	const handleConnect = (_connection: Connection) => {
 		startNode = null;
 	};
 

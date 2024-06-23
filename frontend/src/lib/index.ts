@@ -3,6 +3,7 @@ import { writable } from "svelte/store";
 import { loadFromLocalStorage, saveToLocalStorage } from "./utils/file";
 import { browser } from "$app/environment";
 import type { ConnectWith } from "./types";
+import { generateProjectId } from "./utils/projectId";
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 
@@ -16,6 +17,7 @@ openai_key.subscribe((key) => {
     }
 });
 
+export const projectId = writable<string>(generateProjectId('clt'));
 export const projectName = writable<string>('');
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
