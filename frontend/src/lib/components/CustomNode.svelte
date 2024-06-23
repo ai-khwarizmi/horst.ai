@@ -24,7 +24,7 @@
 		type Output,
 		type Input
 	} from '@/types';
-	import { addEdge, NodeResizer, NodeToolbar, useConnection, useNodes } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection, } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -36,7 +36,7 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 
-	  /* eslint-disable-next-line */
+	/* eslint-disable*/
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -51,6 +51,7 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
+	/* eslint-enable*/
 
 	// these are passed in
 	export let id: string = '';

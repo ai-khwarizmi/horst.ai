@@ -4,8 +4,6 @@
 		Download,
 		ExternalLinkIcon,
 		FilePlus,
-		Github,
-		GithubIcon,
 		Handshake,
 		HelpCircle,
 		Info,

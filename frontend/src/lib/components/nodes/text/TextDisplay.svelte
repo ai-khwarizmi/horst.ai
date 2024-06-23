@@ -2,7 +2,7 @@
 	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
 	import Button from '@/components/ui/button/button.svelte';
-	import { Clipboard, Copy } from 'lucide-svelte';
+	import { Copy } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 
 	export let id: string;

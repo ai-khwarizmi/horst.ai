@@ -38,7 +38,7 @@ export default [
 			'build/',
 			'.svelte-kit/',
 			'dist/',
-			'src/lib/components/**',
+			'src/lib/components/ui/**',
 			'static'
 		]
 	}
