@@ -137,7 +137,7 @@ export const loadFromLocalStorage = () => {
 
 export const resetGraph = () => {
     window.location.hash = '';
-    projectId.set(generateProjectId('clt'));
+    projectId.set(generateProjectId('local'));
     projectName.set('');
     nodes.set([]);
     edges.set([]);
@@ -175,7 +175,7 @@ export const loadFromGraph = (graph: any) => {
         return false;
     }
     if (!graph.id) {
-        graph.id = generateProjectId('clt');
+        graph.id = generateProjectId('local');
     }
 
     let valid_nodes: Node[] = [];

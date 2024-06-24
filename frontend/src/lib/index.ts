@@ -43,7 +43,7 @@ const setProjectUrl = () => {
     const _edges = get(edges);
     if (_nodes.length === 0 && _edges.length === 0) return;
 
-    if (parsed && parsed.prefix) {
+    if (parsed && parsed.uuid) {
         const hashValue = window.location.hash;
 
         let targetPath = `/project/${_projectId}`;
