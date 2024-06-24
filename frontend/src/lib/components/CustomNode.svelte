@@ -24,7 +24,7 @@
 		type Output,
 		type Input
 	} from '@/types';
-	import { addEdge, NodeResizer, NodeToolbar, useConnection, useNodes } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection, } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -35,6 +35,23 @@
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
+
+	/* eslint-disable*/
+	export let selectable: boolean = false;
+	export let deletable: boolean = false;
+	export let sourcePosition: string | undefined = undefined;
+	export let targetPosition: string | undefined = undefined;
+	export let zIndex: number | undefined = undefined;
+	export let dragging: boolean = false;
+	export let draggable: boolean = false;
+	export let dragHandle: string | undefined = undefined;
+	export let parentId: string | undefined = undefined;
+	export let isConnectable: boolean = false;
+	export let positionAbsoluteX: number | undefined = undefined;
+	export let positionAbsoluteY: number | undefined = undefined;
+	export let width: number | undefined = undefined;
+	export let height: number | undefined = undefined;
+	/* eslint-enable*/
 
 	// these are passed in
 	export let id: string = '';

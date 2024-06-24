@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, nodeIOHandlers, removeEdgeByIds } from '@/utils';
+	import { cn, removeEdgeByIds } from '@/utils';
 	import { edges } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
@@ -11,9 +11,6 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let top: number;
-
-	// active connection
-	const activeConnection = useConnection();
 
 	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
 	$: inputConnections = $edges.filter((edge) => edge.target === nodeId);

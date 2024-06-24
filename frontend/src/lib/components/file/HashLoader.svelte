@@ -21,6 +21,7 @@
 						let success = loadFromHash();
 						if (success) {
 							window.location.hash = '';
+							console.log('Loaded project from URL');
 						} else {
 							toast.error('Failed to load project from URL');
 						}

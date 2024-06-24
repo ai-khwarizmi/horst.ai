@@ -105,6 +105,24 @@
 			url: 'https://github.com/pablo-abc/svelte-markdown',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'bs58': {
+			name: 'bs58',
+			url: 'https://github.com/cryptocoinjs/bs58',
+			branch: 'master',
+			license: 'MIT'
+		},
+		'buffer': {
+			name: 'buffer',
+			url: 'https://github.com/feross/buffer',
+			branch: 'master',
+			license: 'MIT'
+		},
+		'uuid': {
+			name: 'uuid',
+			url: 'https://github.com/uuidjs/uuid',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 

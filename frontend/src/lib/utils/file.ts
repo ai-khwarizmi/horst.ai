@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { edges, nodes, projectName, viewport } from "$lib";
+import { edges, nodes, projectName, projectId, viewport } from "$lib";
 import { FILE_VERSION } from "./version";
 import { registeredNodes } from "@/nodes";
 import { NodeType } from "@/types";
@@ -8,12 +8,17 @@ import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
 import { outputData } from "@/utils";
+import { generateProjectId } from "./projectId";
 
-const LOCALSTORAGE_KEY = 'horst.ai.graph'
+
+const LOCALSTORAGE_KEY_LAST_PROJECT_ID = 'horst.ai.last_project_id';
+const LOCALSTORAGE_KEY_SAVEFILES = 'horst.ai.savefiles';
+const LOCALSTORAGE_KEY_SAVEFILES_IDS = 'horst.ai.savefiles.ids';
 
 export function getSaveData(includeData: boolean): {
-    projectName: string, nodes: any; edges: any, version: number, viewport: any
+    id: string, projectName: string, nodes: any; edges: any, version: number, viewport: any
 } {
+    const id = get(projectId);
     const name = get(projectName);
     const n = get(nodes);
     const e = get(edges);
@@ -36,6 +41,7 @@ export function getSaveData(includeData: boolean): {
     }
 
     const json = JSON.parse(JSON.stringify({
+        id,
         name,
         nodes: n,
         edges: e,
@@ -62,11 +68,46 @@ export const saveGraph = () => {
     a.click();
 }
 
+export function getAllLocalProjectIds(): string[] {
+    if (typeof window === 'undefined') return [];
+    const ids = window.localStorage.getItem(LOCALSTORAGE_KEY_SAVEFILES_IDS);
+    if (!ids) return [];
+    return JSON.parse(ids);
+}
+
 export const saveToLocalStorage = () => {
     if (typeof window === 'undefined') return;
     const graph = getSaveData(true);
+
+    //ensure that graph.id exists  
+    if (!graph.id) {
+        return;
+    }
+    const allProjectIds = getAllLocalProjectIds();
+    if (graph.nodes?.length === 0 && graph.edges?.length === 0) {
+        return;
+    }
     const str = JSON.stringify(graph);
-    window.localStorage.setItem(LOCALSTORAGE_KEY, str);
+    if (allProjectIds.length > 0) {
+        if (!allProjectIds.includes(graph.id)) {
+            allProjectIds.push(graph.id);
+            window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify(allProjectIds));
+        }
+    } else {
+        window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify([graph.id]));
+    }
+    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.id;
+    window.localStorage.setItem(localStorageKey, str);
+    window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.id);
+}
+
+export const loadFromProjectId = async (projectId: string): Promise<boolean> => {
+    if (typeof window === 'undefined') return false;
+    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + projectId;
+    const str = window.localStorage.getItem(localStorageKey);
+    if (!str) return false;
+    const graph = JSON.parse(str);
+    return loadFromGraph(graph);
 }
 
 export const loadFromHash = (): boolean => {
@@ -76,21 +117,27 @@ export const loadFromHash = (): boolean => {
     const str = LZString.decompressFromBase64(hash.slice(1));
     if (!str) return false;
     const graph = JSON.parse(str);
+    window.location.hash = '';
     return loadFromGraph(graph);
 }
 
-
-
 export const loadFromLocalStorage = () => {
-    if (typeof window === 'undefined') return;
-    const str = window.localStorage.getItem(LOCALSTORAGE_KEY);
-    if (!str) return;
+    if (typeof window === 'undefined') return false;
+
+    const lastProjectId = window.localStorage.getItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID);
+    if (!lastProjectId) return false;
+
+    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + lastProjectId;
+    const str = window.localStorage.getItem(localStorageKey);
+
+    if (!str) return false;
     const graph = JSON.parse(str);
     return loadFromGraph(graph);
 }
 
 export const resetGraph = () => {
     window.location.hash = '';
+    projectId.set(generateProjectId('clt'));
     projectName.set('');
     nodes.set([]);
     edges.set([]);
@@ -126,6 +173,9 @@ export const loadFromGraph = (graph: any) => {
     if (!isValidGraph(graph)) {
         toast.error('URL: Invalid project file');
         return false;
+    }
+    if (!graph.id) {
+        graph.id = generateProjectId('clt');
     }
 
     let valid_nodes: Node[] = [];
@@ -178,6 +228,7 @@ export const loadFromGraph = (graph: any) => {
         index === self.findIndex((t) => t.id === node.id)
     );
 
+    projectId.set(graph.id);
     nodes.set(valid_nodes);
     edges.set(valid_edges);
     if (graph.viewport) {
