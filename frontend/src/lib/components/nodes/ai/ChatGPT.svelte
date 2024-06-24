@@ -64,7 +64,6 @@
 				callbacks.setStatus('loading');
 				await ratelimit('chatgpt', 10, async () => {
 					const response = await getModel().invoke(messages);
-					console.log('Response from GPT-4: ', response);
 					lastOutputValue = response.content as string;
 					io.setOutputData('response', lastOutputValue);
 					callbacks.setStatus('success');

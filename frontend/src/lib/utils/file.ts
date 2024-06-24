@@ -125,7 +125,6 @@ export const loadFromLocalStorage = () => {
     if (typeof window === 'undefined') return false;
 
     const lastProjectId = window.localStorage.getItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID);
-    console.log('lastProjectId', lastProjectId);
     if (!lastProjectId) return false;
 
     const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + lastProjectId;
