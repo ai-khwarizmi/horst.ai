@@ -20,11 +20,9 @@
 		type NodeStatus,
 		type NodeStatusWithoutError,
 		type NodeError,
-		type ConnectWith,
-		type Output,
-		type Input
+		type ConnectWith
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection, } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -35,6 +33,7 @@
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
+	import { get } from 'svelte/store';
 
 	/* eslint-disable*/
 	export let selectable: boolean = false;
@@ -69,7 +68,7 @@
 	export let status: NodeStatus = 'idle';
 
 	export let errors: NodeError[] = [];
-	export let io: NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
+	export let io: NodeIOHandler<string, string>;
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
@@ -93,25 +92,29 @@
 		if (!id) {
 			throw new Error('Node ID is required');
 		}
+
+		if (Array.isArray(data.inputs)) {
+			io.addInput(...data.inputs);
+		}
+		if (Array.isArray(data.outputs)) {
+			io.addOutput(...data.outputs);
+		}
+
 		handlers[id] = () => onExecute(onExecuteCallbacks, false);
 		if (data.connectWith) {
 			const connectWith: ConnectWith = data.connectWith;
-			const connectWithIO = nodeIOHandlers[connectWith.id] as NodeIOHandler<
-				string,
-				string,
-				Input<string>[],
-				Output<string>[]
-			>;
+			const connectWithIO = nodeIOHandlers[connectWith.id];
 			if (connectWithIO) {
-				const handleToConnectTo = connectWithIO[
-					connectWith.type === 'input' ? 'inputs' : 'outputs'
-				].find((h) => h.id === connectWith.handle);
+				const handleToConnectTo = get(
+					connectWithIO[connectWith.type === 'input' ? 'inputs' : 'outputs']
+				).find((h) => h.id === connectWith.handle);
 				if (handleToConnectTo) {
-					const validHandle = io[connectWith.type === 'input' ? 'outputs' : 'inputs'].find((h) =>
-						canConnectTypes({
-							input: connectWith.type === 'input' ? handleToConnectTo.type : h.type,
-							output: connectWith.type === 'input' ? h.type : handleToConnectTo.type
-						})
+					const validHandle = get(io[connectWith.type === 'input' ? 'outputs' : 'inputs']).find(
+						(h) =>
+							canConnectTypes({
+								input: connectWith.type === 'input' ? handleToConnectTo.type : h.type,
+								output: connectWith.type === 'input' ? h.type : handleToConnectTo.type
+							})
 					);
 					if (validHandle) {
 						const source = connectWith.type === 'input' ? id : connectWith.id;
@@ -146,7 +149,10 @@
 		delete handlers[id];
 	});
 
-	$: rows = Math.max(io.inputs.length, io.outputs.length);
+	$: inputs = io.inputs;
+	$: outputs = io.outputs;
+
+	$: rows = Math.max($inputs.length, $outputs.length);
 	$: hasContent = !!$$slots['default'];
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
@@ -277,22 +283,22 @@
 			<div
 				class="flex justify-between font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
 			>
-				{#if io.inputs.length > 0}
+				{#if $inputs.length > 0}
 					<div
-						class={cn('flex flex-col', io.outputs.length > 0 ? 'w-1/2' : 'w-full')}
+						class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}
 						style="gap: {ROW_GAP}px"
 					>
-						{#each io.inputs as input, index}
+						{#each $inputs as input, index}
 							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
 						{/each}
 					</div>
 				{/if}
-				{#if io.outputs.length > 0}
+				{#if $outputs.length > 0}
 					<div
-						class={cn('flex flex-col text-end ', io.inputs.length > 0 ? 'w-1/2' : 'w-full')}
+						class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}
 						style="gap: {ROW_GAP}px"
 					>
-						{#each io.outputs as output, index}
+						{#each $outputs as output, index}
 							<CustomHandle nodeId={id} type="output" base={output} top={top(index)} />
 						{/each}
 					</div>
