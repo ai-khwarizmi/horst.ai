@@ -27,7 +27,17 @@ export function generateProjectId(prefix: Prefix): string {
 	return bs58.encode(Buffer.from(id));
 }
 
+const decodeCache: Record<string, {
+	prefix: Prefix,
+	domain: string,
+	timestamp: string,
+	uuid: string
+}> = {};
+
 export function parseProjectId(base58ID: string): { prefix: Prefix, domain: string, timestamp: string, uuid: string } {
+	if (decodeCache[base58ID]) {
+		return decodeCache[base58ID];
+	}
 	const decoded = Buffer.from(bs58.decode(base58ID)).toString();
 	const parts = decoded.split(':');
 
@@ -39,7 +49,6 @@ export function parseProjectId(base58ID: string): { prefix: Prefix, domain: stri
 		domain = `${domain}:${port}`;
 	}
 
-	console.log('Decoded:', { prefix, domain, timestamp, uuid });
 	if (prefix !== 'svr' && prefix !== 'clt') {
 		throw new Error('Invalid project ID prefix');
 	}
@@ -47,6 +56,8 @@ export function parseProjectId(base58ID: string): { prefix: Prefix, domain: stri
 	if (!domain || !timestamp || !uuid) {
 		throw new Error('Invalid project ID');
 	}
+
+	decodeCache[base58ID] = { prefix, domain, timestamp, uuid };
 
 	return { prefix, domain, timestamp, uuid };
 }

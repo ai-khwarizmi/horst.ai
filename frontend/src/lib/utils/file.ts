@@ -84,6 +84,9 @@ export const saveToLocalStorage = () => {
         return;
     }
     const allProjectIds = getAllLocalProjectIds();
+    if (graph.nodes?.length === 0 && graph.edges?.length === 0) {
+        return;
+    }
     const str = JSON.stringify(graph);
     if (allProjectIds.length > 0) {
         if (!allProjectIds.includes(graph.id)) {

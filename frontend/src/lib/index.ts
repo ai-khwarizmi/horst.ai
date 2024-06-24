@@ -30,23 +30,40 @@ export const createNodeParams = writable<{
     position: XYPosition; node?: ConnectWith
 } | null>(null);
 
-//watch node and edge changes, save to local storage
-nodes.subscribe(saveToLocalStorage);
-edges.subscribe(saveToLocalStorage);
-viewport.subscribe(saveToLocalStorage);
 
-projectId.subscribe(() => {
+
+const setProjectUrl = () => {
     if (typeof history === 'undefined') return;
     if (typeof window === 'undefined') return;
     const _projectId = get(projectId);
     if (!_projectId || _projectId.length < 3) return;
     const parsed = parseProjectId(_projectId);
+
+    const _nodes = get(nodes);
+    const _edges = get(edges);
+    if (_nodes.length === 0 && _edges.length === 0) return;
+
     if (parsed && parsed.prefix) {
         const hashValue = window.location.hash;
+
+        let targetPath = `/project/${_projectId}`;
         if (hashValue && hashValue.length > 2) {
-            goto(`/project/${_projectId}${hashValue}`, { replaceState: true });
-        } else {
-            goto(`/project/${_projectId}`, { replaceState: true });
+            targetPath = `/project/${_projectId}${hashValue}`;
         }
+
+        const currentPath = window.location.pathname + window.location.hash;
+        if (currentPath === targetPath) return;
+
+        goto(targetPath, { replaceState: true });
     }
-})
+}
+
+const saveToLocalStorageAndSetProjectUrl = () => {
+    saveToLocalStorage();
+    setProjectUrl();
+}
+
+nodes.subscribe(saveToLocalStorageAndSetProjectUrl);
+edges.subscribe(saveToLocalStorageAndSetProjectUrl);
+viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
+projectId.subscribe(setProjectUrl)
