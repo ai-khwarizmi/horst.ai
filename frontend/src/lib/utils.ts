@@ -73,7 +73,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
-		onDestroy(this.destroy);
 	}
 
 	destroy = () => {
@@ -99,6 +98,28 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const inputsToAdd = newInputs.filter(input => !i.find(i2 => i2.id === input.id));
 			return [...i, ...inputsToAdd];
 		});
+	}
+
+	removeInput = (...ids: string[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+			node.data = { ...node.data, inputs: inputs.filter(i => !ids.includes(i.id)) };
+			return n;
+		})
+		this.inputs.update(i => i.filter(input => !ids.includes(input.id)));
+	}
+
+	removeOutput = (...ids: string[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+			node.data = { ...node.data, outputs: outputs.filter(o => !ids.includes(o.id)) };
+			return n;
+		})
+		this.outputs.update(o => o.filter(output => !ids.includes(output.id)));
 	}
 
 	addOutput = (...newOutputs: Output<TOutput>[]) => {

@@ -146,6 +146,7 @@
 	});
 
 	onDestroy(() => {
+		io.destroy();
 		delete handlers[id];
 	});
 
