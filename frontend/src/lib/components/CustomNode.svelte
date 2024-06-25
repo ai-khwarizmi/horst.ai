@@ -68,7 +68,7 @@
 	export let status: NodeStatus = 'idle';
 
 	export let errors: NodeError[] = [];
-	export let io: NodeIOHandler<string, string>;
+	export let io: NodeIOHandler<any, any>;
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
