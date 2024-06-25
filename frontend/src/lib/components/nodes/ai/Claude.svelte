@@ -17,7 +17,7 @@
 			const apiKey = get(anthropic_key) as string;
 			anthropic = new Anthropic({
 				apiKey,
-				baseURL: 'https://anthropic-proxy.till-584.workers.dev'
+				baseURL: 'https://anthropic-proxy.horst.ai'
 			});
 		}
 		return anthropic;
