@@ -106,23 +106,35 @@
 			branch: 'main',
 			license: 'MIT'
 		},
-		'bs58': {
+		bs58: {
 			name: 'bs58',
 			url: 'https://github.com/cryptocoinjs/bs58',
 			branch: 'master',
 			license: 'MIT'
 		},
-		'buffer': {
+		buffer: {
 			name: 'buffer',
 			url: 'https://github.com/feross/buffer',
 			branch: 'master',
 			license: 'MIT'
 		},
-		'uuid': {
+		uuid: {
 			name: 'uuid',
 			url: 'https://github.com/uuidjs/uuid',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'@anthropic-ai/sdk': {
+			name: '@anthropic-ai/sdk',
+			url: 'https://github.com/anthropics/anthropic-sdk-typescript',
+			branch: 'main',
+			license: 'MIT'
+		},
+		openai: {
+			name: 'openai',
+			url: 'https://github.com/openai/openai-node',
+			branch: 'master',
+			license: 'Apache License 2.0'
 		}
 	};
 
