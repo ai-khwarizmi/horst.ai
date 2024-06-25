@@ -8,6 +8,7 @@ import { get } from "svelte/store";
 import { parseProjectId } from "./utils/projectId";
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
+export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
 
 openai_key.subscribe((key) => {
     if (browser) {
@@ -15,6 +16,16 @@ openai_key.subscribe((key) => {
             localStorage.setItem('openai_api_key', key);
         } else {
             localStorage.removeItem('openai_api_key');
+        }
+    }
+});
+
+anthropic_key.subscribe((key) => {
+    if (browser) {
+        if (key && key.length > 0) {
+            localStorage.setItem('anthropic_api_key', key);
+        } else {
+            localStorage.removeItem('anthropic_api_key');
         }
     }
 });
@@ -43,7 +54,7 @@ const setProjectUrl = () => {
     const _edges = get(edges);
     if (_nodes.length === 0 && _edges.length === 0) return;
 
-    if (parsed && parsed.prefix) {
+    if (parsed && parsed.uuid) {
         const hashValue = window.location.hash;
 
         let targetPath = `/project/${_projectId}`;

@@ -5,13 +5,14 @@
 
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { openai_key } from '@/index';
+	import { anthropic_key, openai_key } from '@/index';
 	import Input from '../ui/input/input.svelte';
 	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
 
 	let visible = false;
+	let visibleAnthropic = false;
 </script>
 
 <Sheet.Root bind:open={$open}>
@@ -47,6 +48,29 @@
 						<strong>Error:</strong> OpenAI API key start with "sk-".
 					</p>
 				{/if}
+
+				<Label for="anthropic_key">Anthropic API Key</Label>
+				<div class="flex gap-2 items-center">
+					<Input
+						type={visibleAnthropic ? 'text' : 'password'}
+						bind:value={$anthropic_key}
+						id="anthropic_key"
+						placeholder="Anthropic API Key"
+					/>
+					<Button on:click={() => (visibleAnthropic = !visibleAnthropic)}>
+						{#if visibleAnthropic}
+							Hide
+						{:else}
+							Show
+						{/if}
+					</Button>
+				</div>
+				{#if $anthropic_key && !$anthropic_key.startsWith('sk-ant-')}
+					<p class="text-red-500 text-xs mt-2">
+						<strong>Error:</strong> Anthropic API key start with "sk-".
+					</p>
+				{/if}
+
 				<p class="text-gray-500">
 					<small>
 						<strong>Note:</strong> We don't store your API keys. They are stored in your browser's local

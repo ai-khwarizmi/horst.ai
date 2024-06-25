@@ -4,10 +4,9 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import { edges, nodes, openai_key } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type NodeValueTypeConverted } from "./types";
-import { onDestroy } from "svelte";
+import { NodeType, type Input, type Output } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -54,44 +53,97 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 }
 
 
-export const nodeIOHandlers: Record<string, NodeIOHandler<any, any, any, any>> = {};
+export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
 
-export class NodeIOHandler<TInput extends string, TOutput extends string, TInputs extends Input<TInput>[], TOutputs extends Input<TOutput>[]> {
+export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	public nodeId: string;
-	public inputs: TInputs;
-	public outputs: TOutputs;
+	readonly inputs = writable<Input<TInput>[]>([]);
+	readonly outputs = writable<Output<TOutput>[]>([]);
+
 
 	constructor(args: {
 		nodeId: string;
-		inputs: TInputs;
-		outputs: TOutputs;
+		inputs: Input<TInput>[];
+		outputs: Output<TOutput>[];
 	}) {
 		this.nodeId = args.nodeId;
-		this.inputs = args.inputs ?? [] as unknown as TInputs;
-		this.outputs = args.outputs ?? [] as unknown as TOutputs;
+
+		this.inputs.set(args.inputs);
+		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
-		onDestroy(this.destroy);
 	}
 
 	destroy = () => {
 		delete nodeIOHandlers[this.nodeId];
 	}
 
-	setOutputData = <T extends TOutputs[number]['id']>(id: T, data: NodeValueTypeConverted<Extract<TOutputs[number], { id: T }>['type']> | null) => {
+	setOutputData = (id: string, data: any) => {
 		_setNodeOutputData(this.nodeId, {
 			[id]: data
 		})
 	}
 
-	getOutputData = <T extends TOutputs[number]['id']>(handle: T) => {
-		const data = _getNodeOutputData(this.nodeId, handle) ?? null;
-		return data as NodeValueTypeConverted<Extract<TOutputs[number], { id: T }>['type']> | null
+	addInput = (...newInputs: Input<TInput>[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+			const inputsToAdd = newInputs.filter(i => !inputs.find(i2 => i2.id === i.id));
+			node.data = { ...node.data, inputs: [...inputs, ...inputsToAdd] };
+			return n;
+		})
+		this.inputs.update(i => {
+			const inputsToAdd = newInputs.filter(input => !i.find(i2 => i2.id === input.id));
+			return [...i, ...inputsToAdd];
+		});
 	}
 
-	getInputData = <T extends TInputs[number]['id']>(handle: T) => {
+	removeInput = (...ids: string[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+			node.data = { ...node.data, inputs: inputs.filter(i => !ids.includes(i.id)) };
+			return n;
+		})
+		this.inputs.update(i => i.filter(input => !ids.includes(input.id)));
+	}
+
+	removeOutput = (...ids: string[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+			node.data = { ...node.data, outputs: outputs.filter(o => !ids.includes(o.id)) };
+			return n;
+		})
+		this.outputs.update(o => o.filter(output => !ids.includes(output.id)));
+	}
+
+	addOutput = (...newOutputs: Output<TOutput>[]) => {
+		nodes.update(n => {
+			const node = n.find(n => n.id === this.nodeId);
+			if (!node) return n;
+			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+			const outputsToAdd = newOutputs.filter(o => !outputs.find(o2 => o2.id === o.id));
+			node.data = { ...node.data, outputs: [...outputs, ...outputsToAdd] };
+			return n;
+		})
+		this.outputs.update(o => {
+			const outputsToAdd = newOutputs.filter(output => !o.find(o2 => o2.id === output.id));
+			return [...o, ...outputsToAdd];
+		});
+	}
+
+	getOutputData = (handle: string) => {
+		const data = _getNodeOutputData(this.nodeId, handle) ?? null;
+		return data;
+	}
+
+	getInputData = (handle: string) => {
 		const data = _getNodeInputData(this.nodeId, handle) ?? null;
-		return data as NodeValueTypeConverted<Extract<TInputs[number], { id: T }>['type']> | null
+		return data;
 	}
 }
 

@@ -2,6 +2,7 @@ import { registeredNodes } from "@/nodes";
 import type { Input, NodeValueType, Output } from "@/types";
 import { NodeIOHandler, nodeIOHandlers } from "@/utils";
 import type { Connection, Edge, Node } from "@xyflow/svelte";
+import { get } from "svelte/store";
 
 export const canConnectTypes = (obj: {
     output: NodeValueType, input: NodeValueType
@@ -23,23 +24,26 @@ export const isValidConnection = (connection: Edge | Connection, checkIfNodeConn
     // }
 
     // check if the connection type is valid using nodeIOHandlers
-    const sourceNode = nodeIOHandlers[connection.source] as NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
-    const targetNode = nodeIOHandlers[connection.target] as NodeIOHandler<string, string, Input<string>[], Output<string>[]>;
+    const sourceNode = nodeIOHandlers[connection.source] as NodeIOHandler<string, string>;
+    const targetNode = nodeIOHandlers[connection.target] as NodeIOHandler<string, string>;
     if (!sourceNode || !targetNode) return false;
 
-    const sourceOutput = sourceNode.outputs.find(o => o.id === connection.sourceHandle);
-    const targetInput = targetNode.inputs.find(i => i.id === connection.targetHandle);
+    const sourceNodeOutputs = get(sourceNode.outputs);
+    const targetNodeInputs = get(targetNode.inputs);
+
+    const sourceOutput = sourceNodeOutputs.find(o => o.id === connection.sourceHandle);
+    const targetInput = targetNodeInputs.find(i => i.id === connection.targetHandle);
 
     if (!sourceOutput && !targetInput) return false;
     if (!sourceOutput || !targetInput) {
         if (!checkIfNodeConnectionPossible) return false;
         if (sourceOutput && !targetInput) {
-            return targetNode.inputs.some(i => canConnectTypes({
+            return targetNodeInputs.some(i => canConnectTypes({
                 output: sourceOutput.type,
                 input: i.type,
             }));
         } else if (!sourceOutput && targetInput) {
-            return sourceNode.outputs.some(o => canConnectTypes({
+            return sourceNodeOutputs.some(o => canConnectTypes({
                 output: o.type,
                 input: targetInput.type,
             }));

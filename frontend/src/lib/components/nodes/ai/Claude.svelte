@@ -4,23 +4,23 @@
 	import type { OnExecuteCallbacks } from '$lib/types';
 	import { onMount } from 'svelte';
 	import { SPECIAL_ERRORS } from '@/types';
-	import OpenAI from 'openai';
-	import { openai_key } from '@/index';
+	import Anthropic from '@anthropic-ai/sdk';
+	import { anthropic_key } from '@/index';
 	import { get } from 'svelte/store';
 
-	let openai: OpenAI;
+	let anthropic: Anthropic;
 
 	let temporaryOutput = '';
 
-	function getOpenai() {
-		if (!openai) {
-			const apiKey = get(openai_key) as string;
-			openai = new OpenAI({
+	function getAnthropic() {
+		if (!anthropic) {
+			const apiKey = get(anthropic_key) as string;
+			anthropic = new Anthropic({
 				apiKey,
-				dangerouslyAllowBrowser: true
+				baseURL: 'https://anthropic-proxy.horst.ai'
 			});
 		}
-		return openai;
+		return anthropic;
 	}
 
 	export let id: string;
@@ -42,7 +42,7 @@
 	});
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		const apiKey = get(openai_key) as string;
+		const apiKey = get(anthropic_key) as string;
 
 		const systemPrompt = io.getInputData('prompt_system') as string;
 		const userPrompt = io.getInputData('prompt_user') as string;
@@ -55,7 +55,7 @@
 			}
 			lastExecutedValue = newValue;
 			if (!apiKey) {
-				callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
+				callbacks.setErrors([SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;
@@ -63,27 +63,26 @@
 			temporaryOutput = '';
 			io.setOutputData('response', null);
 
-			const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-				{ role: 'system', content: systemPrompt },
-				{ role: 'user', content: userPrompt }
+			const messages: Anthropic.MessageParam[] = [
+				{ role: 'user', content: `${systemPrompt}\n\n${userPrompt}` }
 			];
 			try {
 				callbacks.setStatus('loading');
 
-				const stream = await getOpenai().chat.completions.create({
-					model: 'gpt-4o',
+				const stream = await getAnthropic().messages.create({
+					max_tokens: 1024,
 					messages: messages,
+					model: 'claude-3-5-sonnet-20240620',
 					stream: true
 				});
 
 				let output = '';
 				for await (const chunk of stream) {
-					//process.stdout.write(chunk.choices[0]?.delta?.content || '');
-					output += chunk.choices[0]?.delta?.content || '';
-					if (lastExecutedValue === newValue) {
-						temporaryOutput = output;
-					} else {
-						//ignore
+					if (chunk.type === 'content_block_delta') {
+						output += chunk.delta.text || '';
+						if (lastExecutedValue === newValue) {
+							temporaryOutput = output;
+						}
 					}
 				}
 
@@ -92,16 +91,9 @@
 					io.setOutputData('response', lastOutputValue);
 					callbacks.setStatus('success');
 				}
-
-				/* old
-					const response = await getModel().invoke(messages);
-					lastOutputValue = response.content as string;
-					io.setOutputData('response', lastOutputValue);
-					callbacks.setStatus('success');
-				*/
 			} catch (error) {
-				console.error('Error calling GPT-4: ', error);
-				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
+				console.error('Error calling Claude: ', error);
+				callbacks.setErrors(['Error calling Claude', JSON.stringify(error)]);
 			}
 		} else {
 			if (lastOutputValue !== null) {

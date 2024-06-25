@@ -12,6 +12,7 @@ import TextContains from "./components/nodes/text/TextContains.svelte";
 import TextEncode from "./components/nodes/text/TextEncode.svelte";
 import TextDecode from "./components/nodes/text/TextDecode.svelte";
 import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
+import Claude from "./components/nodes/ai/Claude.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -83,6 +84,12 @@ const nodes = {
     }),
     dalle3: registerNode(Dalle3, {
         name: "DALL-E 3",
+        nodeType: NodeType.FUNCTION,
+        Icon: ImagePlus,
+        category: NodeCategory.AI,
+    }),
+    claude: registerNode(Claude, {
+        name: "Claude",
         nodeType: NodeType.FUNCTION,
         Icon: ImagePlus,
         category: NodeCategory.AI,

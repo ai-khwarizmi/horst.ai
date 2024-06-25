@@ -9,7 +9,15 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, openai_key, viewport, commandOpen, createNodeParams } from '$lib';
+	import {
+		nodes,
+		edges,
+		openai_key,
+		viewport,
+		commandOpen,
+		createNodeParams,
+		anthropic_key
+	} from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -38,14 +46,17 @@
 		if (existingOpenaiApiKey) {
 			openai_key.set(existingOpenaiApiKey);
 		}
-
+		const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
+		if (existingAnthropicApiKey) {
+			anthropic_key.set(existingAnthropicApiKey);
+		}
 
 		//loading logic
 		let loaded = false;
-		if(projectId) {
+		if (projectId) {
 			loaded = await loadFromProjectId(projectId);
 		}
-		if(!loaded) {
+		if (!loaded) {
 			console.log('Loading from local storage');
 			loaded = await loadFromLocalStorage();
 		}
