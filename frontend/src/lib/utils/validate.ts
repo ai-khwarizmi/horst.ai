@@ -1,5 +1,5 @@
 import { registeredNodes } from "@/nodes";
-import type { Input, NodeValueType, Output } from "@/types";
+import type { NodeValueType } from "@/types";
 import { NodeIOHandler, nodeIOHandlers } from "@/utils";
 import type { Connection, Edge, Node } from "@xyflow/svelte";
 import { get } from "svelte/store";
