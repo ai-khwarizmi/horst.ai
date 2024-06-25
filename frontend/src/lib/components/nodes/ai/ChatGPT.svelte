@@ -2,24 +2,25 @@
 	import CustomNode from '../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
 	import type { OnExecuteCallbacks } from '$lib/types';
-	import { ChatOpenAI } from '@langchain/openai';
-	import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-	import { getApiKeys } from '../../../utils';
-	import { ratelimit } from '../../../utils/ratelimit';
 	import { onMount } from 'svelte';
 	import { SPECIAL_ERRORS } from '@/types';
+	import OpenAI from 'openai';
+	import { openai_key } from '@/index';
+	import { get } from 'svelte/store';
 
-	let model: ChatOpenAI;
+	let openai: OpenAI;
 
-	function getModel() {
-		const apiKeys = getApiKeys();
-		if (!model) {
-			model = new ChatOpenAI({
-				model: 'gpt-4o',
-				openAIApiKey: apiKeys.openai!
+	let temporaryOutput = '';
+
+	function getOpenai() {
+		if (!openai) {
+			const apiKey = get(openai_key) as string;
+			openai = new OpenAI({
+				apiKey,
+				dangerouslyAllowBrowser: true
 			});
 		}
-		return model;
+		return openai;
 	}
 
 	export let id: string;
@@ -41,33 +42,63 @@
 	});
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		const apiKeys = getApiKeys();
-		const systemPrompt = io.getInputData('prompt_system');
-		const userPrompt = io.getInputData('prompt_user');
+		const apiKey = get(openai_key) as string;
 
-		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKeys.openai });
+		const systemPrompt = io.getInputData('prompt_system') as string;
+		const userPrompt = io.getInputData('prompt_user') as string;
+
+		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKey });
 
 		if (systemPrompt && userPrompt) {
 			if (!forceExecute && newValue === lastExecutedValue) {
 				return;
 			}
 			lastExecutedValue = newValue;
-			if (!apiKeys.openai) {
+			if (!apiKey) {
 				callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;
 			lastExecutedValue = newValue;
+			temporaryOutput = '';
 			io.setOutputData('response', null);
-			const messages = [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)];
+
+			const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt }
+			];
 			try {
 				callbacks.setStatus('loading');
-				await ratelimit('chatgpt', 10, async () => {
+
+				const stream = await getOpenai().chat.completions.create({
+					model: 'gpt-4o',
+					messages: messages,
+					stream: true
+				});
+
+				let output = '';
+				for await (const chunk of stream) {
+					//process.stdout.write(chunk.choices[0]?.delta?.content || '');
+					output += chunk.choices[0]?.delta?.content || '';
+					if (lastExecutedValue === newValue) {
+						temporaryOutput = output;
+					} else {
+						//ignore
+					}
+				}
+
+				if (lastExecutedValue === newValue) {
+					lastOutputValue = output;
+					io.setOutputData('response', lastOutputValue);
+					callbacks.setStatus('success');
+				}
+
+				/* old
 					const response = await getModel().invoke(messages);
 					lastOutputValue = response.content as string;
 					io.setOutputData('response', lastOutputValue);
 					callbacks.setStatus('success');
-				});
+				*/
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
 				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
@@ -81,4 +112,6 @@
 	};
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}></CustomNode>
+<CustomNode {io} {onExecute} {...$$props}>
+	<p>{temporaryOutput}</p>
+</CustomNode>

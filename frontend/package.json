@@ -62,6 +62,7 @@
 		"langchain": "^0.2.6",
 		"lucide-svelte": "^0.394.0",
 		"lz-string": "^1.5.0",
+		"openai": "^4.52.0",
 		"svelte-markdown": "^0.4.1",
 		"svelte-sonner": "^0.3.24",
 		"tailwind-merge": "^2.3.0",

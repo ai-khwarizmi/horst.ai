@@ -4,7 +4,6 @@
 	import type { OnExecuteCallbacks } from '$lib/types';
 	import { DallEAPIWrapper } from '@langchain/openai';
 	import { getApiKeys } from '../../../utils';
-	import { ratelimit } from '../../../utils/ratelimit';
 	import { SPECIAL_ERRORS } from '@/types';
 
 	let tool: DallEAPIWrapper;
@@ -52,14 +51,12 @@
 			lastOutputValue = null;
 			io.setOutputData('image_url', null);
 			try {
-				await ratelimit('dalle', 10, async () => {
-					callbacks.setStatus('loading');
-					const imageUrl = await getTool().invoke(prompt);
-					console.log('Generated image URL: ', imageUrl);
-					lastOutputValue = imageUrl;
-					io.setOutputData('image_url', lastOutputValue);
-					callbacks.setStatus('success');
-				});
+				callbacks.setStatus('loading');
+				const imageUrl = await getTool().invoke(prompt);
+				console.log('Generated image URL: ', imageUrl);
+				lastOutputValue = imageUrl;
+				io.setOutputData('image_url', lastOutputValue);
+				callbacks.setStatus('success');
 			} catch (error: any) {
 				callbacks.setErrors(['Error calling DALL-E', error.message]);
 				console.error('Error calling DALL-E: ', error);

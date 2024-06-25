@@ -6,8 +6,7 @@ import { edges, nodes, openai_key } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type NodeValueTypeConverted, type Output } from "./types";
-import { onDestroy } from "svelte";
+import { NodeType, type Input, type Output } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -79,7 +78,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		delete nodeIOHandlers[this.nodeId];
 	}
 
-	setOutputData = <T extends Output<TOutput>['id']>(id: T, data: NodeValueTypeConverted<Extract<Output<TOutput>, { id: T }>['type']> | null) => {
+	setOutputData = (id: string, data: any) => {
 		_setNodeOutputData(this.nodeId, {
 			[id]: data
 		})
@@ -137,14 +136,14 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		});
 	}
 
-	getOutputData = <T extends Output<TOutput>['id']>(handle: T) => {
+	getOutputData = (handle: string) => {
 		const data = _getNodeOutputData(this.nodeId, handle) ?? null;
-		return data as NodeValueTypeConverted<Extract<Output<TOutput>, { id: T }>['type']> | null
+		return data;
 	}
 
-	getInputData = <T extends Input<TInput>['id']>(handle: T) => {
+	getInputData = (handle: string) => {
 		const data = _getNodeInputData(this.nodeId, handle) ?? null;
-		return data as NodeValueTypeConverted<Extract<Input<TInput>, { id: T }>['type']> | null
+		return data;
 	}
 }
 

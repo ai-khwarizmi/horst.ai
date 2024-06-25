@@ -47,6 +47,9 @@ importers:
       lz-string:
         specifier: ^1.5.0
         version: 1.5.0
+      openai:
+        specifier: ^4.52.0
+        version: 4.52.0
       svelte-markdown:
         specifier: ^0.4.1
         version: 0.4.1(svelte@4.2.18)
@@ -2520,7 +2523,7 @@ snapshots:
 
   '@types/node-fetch@2.6.11':
     dependencies:
-      '@types/node': 18.19.39
+      '@types/node': 20.14.2
       form-data: 4.0.0
 
   '@types/node@18.19.39':
@@ -2530,7 +2533,6 @@ snapshots:
   '@types/node@20.14.2':
     dependencies:
       undici-types: 5.26.5
-    optional: true
 
   '@types/pug@2.0.10': {}
 
