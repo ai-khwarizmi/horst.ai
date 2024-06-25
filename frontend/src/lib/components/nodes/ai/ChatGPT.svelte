@@ -42,8 +42,8 @@
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKeys = getApiKeys();
-		const systemPrompt = io.getInputData('prompt_system') as string;
-		const userPrompt = io.getInputData('prompt_user') as string;
+		const systemPrompt = io.getInputData('prompt_system');
+		const userPrompt = io.getInputData('prompt_user');
 
 		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKeys.openai });
 

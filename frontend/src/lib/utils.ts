@@ -142,9 +142,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		return data as NodeValueTypeConverted<Extract<Output<TOutput>, { id: T }>['type']> | null
 	}
 
-	getInputData = <T extends Output<TOutput>['id']>(handle: T) => {
+	getInputData = <T extends Input<TInput>['id']>(handle: T) => {
 		const data = _getNodeInputData(this.nodeId, handle) ?? null;
-		return data as NodeValueTypeConverted<Extract<Output<TOutput>, { id: T }>['type']> | null
+		return data as NodeValueTypeConverted<Extract<Input<TInput>, { id: T }>['type']> | null
 	}
 }
 
