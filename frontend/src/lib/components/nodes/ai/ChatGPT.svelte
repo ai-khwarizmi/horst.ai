@@ -29,7 +29,8 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
+			{ id: 'temperature', type: 'text', label: 'Temperature', optional: true }
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
 	});

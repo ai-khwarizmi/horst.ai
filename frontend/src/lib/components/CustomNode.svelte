@@ -27,7 +27,7 @@
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
-	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
+	import { Circle, LoaderCircle, TriangleAlert, Check, Settings2 } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
@@ -84,8 +84,12 @@
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
 
 	const forceExecute = () => {
-		console.log('Forcing execute');
 		onExecute(onExecuteCallbacks, true);
+	};
+
+	const toggleOptionalInputs = () => {
+		console.log('toggleOptionalInputs', showOptionalInputs);
+		showOptionalInputs = !showOptionalInputs;
 	};
 
 	onMount(() => {
@@ -166,6 +170,9 @@
 		5 +
 		(hasContent ? 20 : 0);
 
+	$: hasOptionalInputs = $inputs.some((input) => input.optional);
+	let showOptionalInputs = true;
+
 	let hovered = false;
 
 	const c = useConnection();
@@ -239,6 +246,13 @@
 					<Check class="w-6 h-6 text-green-500" />
 				{/if}
 			</div>
+
+			{#if hasOptionalInputs}
+				<Button on:click={toggleOptionalInputs}>
+					<Settings2 class={cn('w-6 h-6 text-gray-500', showOptionalInputs && 'text-blue-500')} />
+				</Button>
+			{/if}
+
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
 				<Button size="flat" on:click={forceExecute}>Re-run</Button>
 			{/if}
@@ -290,7 +304,13 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each $inputs as input, index}
-							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								top={top(index)}
+							/>
 						{/each}
 					</div>
 				{/if}
