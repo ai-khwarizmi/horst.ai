@@ -289,24 +289,16 @@
 				colors.border
 			)}
 		>
-			<div
-				class="flex justify-between font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
-			>
+			<div class="flex justify-between font-semibold leading-none max-w-full flex-shrink-0">
 				{#if $inputs.length > 0}
-					<div
-						class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
+					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $inputs as input}
 							<CustomHandle {showOptionalInputs} nodeId={id} type="input" base={input} />
 						{/each}
 					</div>
 				{/if}
 				{#if $outputs.length > 0}
-					<div
-						class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
+					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $outputs as output}
 							<CustomHandle nodeId={id} type="output" base={output} />
 						{/each}
@@ -314,7 +306,7 @@
 				{/if}
 			</div>
 			{#if hasOptionalInputs}
-				<div class="flex justify-left items-center ml-2 mt-4">
+				<div class="flex justify-left items-center ml-2">
 					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
 						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
 					</Button>

@@ -76,7 +76,11 @@
 	`;
 </script>
 
-<div class="handle-container" style="flex-direction: {type === 'input' ? 'row' : 'row-reverse'};">
+<div
+	style="flex-direction: {type === 'input' ? 'row' : 'row-reverse'};"
+	class="handle-container mb-4"
+	class:optional-input-hidden={canHideOptionalInput}
+>
 	<Handle
 		type={type === 'input' ? 'target' : 'source'}
 		position={type === 'input' ? Position.Left : Position.Right}
@@ -88,6 +92,7 @@
 			position: relative;
 			height: ${ROW_HEIGHT}px;
 			width: ${HANDLE_WIDTH}px;
+			overflow: visible !important;
 			${getStyle}
 		`}
 	/>
