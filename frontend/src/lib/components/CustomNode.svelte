@@ -29,7 +29,7 @@
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
 
-	/* eslint-disable*/
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -44,7 +44,7 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable*/
+	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
@@ -175,6 +175,12 @@
 			true
 		) &&
 		$c.startHandle.nodeId !== id;
+
+	const stopPropagation = (e: any) => {
+		if (e.key === 'Enter' && e.target.click) {
+			e.target.click();
+		}
+	};
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -190,13 +196,16 @@
 		</div>
 	</div>
 {/if}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
 	on:click|stopPropagation
+	on:keydown|stopPropagation={stopPropagation}
+	role="button"
+	tabindex="0"
 >
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
