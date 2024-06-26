@@ -183,10 +183,9 @@
 	<div
 		class={cn(
 			'w-full h-full flex items-center',
-			isInput ? 'pl-4' : 'pr-4', // Increased padding to make room for the handle
+			isInput ? 'pl-4' : 'pr-4',
 			canHideOptionalInput && 'hidden'
 		)}
-		style="text-align: {isInput ? 'left' : 'right'};"
 	>
 		{#if isInput && 'input' in base}
 			<div class="flex flex-col w-full justify-center">
@@ -247,12 +246,19 @@
 				{/if}
 			</div>
 		{:else}
-			<div class="flex-grow">
-				{#if base.label}
-					{base.label} ({base.type})
-				{:else if 'input' in base}
-					{base.type}
-				{/if}
+			<div
+				class="flex-grow flex flex-col {isInput
+					? 'items-start'
+					: 'items-end'} justify-center h-full"
+			>
+				<span class="text-xs text-muted-foreground">{base.label || ''}</span>
+				<span class="text-sm font-medium">
+					{#if connected.length === 0 && isInput}
+						...connect [{base.type}]
+					{:else}
+						[{base.type}]
+					{/if}
+				</span>
 			</div>
 		{/if}
 	</div>

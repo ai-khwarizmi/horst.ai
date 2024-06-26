@@ -43,7 +43,7 @@
 				label: 'System Prompt',
 				input: {
 					inputOptionType: 'input-field',
-					default: 'Enter your system prompt'
+					default: undefined
 				}
 			},
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
