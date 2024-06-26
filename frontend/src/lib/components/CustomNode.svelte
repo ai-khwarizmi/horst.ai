@@ -193,7 +193,7 @@
 		(hasContent ? 20 : 0);
 
 	$: hasOptionalInputs = $inputs.some((input) => input.optional);
-	let showOptionalInputs = true;
+	let showOptionalInputs = false;
 
 	let hovered = false;
 	const c = useConnection();
