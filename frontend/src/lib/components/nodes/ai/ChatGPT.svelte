@@ -29,7 +29,8 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
+			{ id: 'max_tokens', type: 'text', label: 'Max Tokens', optional: true }
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
 	});

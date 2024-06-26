@@ -10,8 +10,6 @@
 	export let nodeId: string;
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
-	export let top: number;
-	export let topWithoutOptionalNonconnected: number = top;
 	export let showOptionalInputs: boolean = true;
 
 	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
@@ -69,9 +67,7 @@
 			visibility: hidden !important;
 		`
 				: `
-			${type === 'input' ? 'left' : 'right'}: 1px;
 			opacity: ${shouldDimHandle ? 0.3 : 1};
-			top: ${!showOptionalInputs && !canHideOptionalInput ? topWithoutOptionalNonconnected : top}px;
 			height: ${ROW_HEIGHT}px;
 			width: ${HANDLE_WIDTH}px;
 			border-radius: ${HANDLE_WIDTH / 2}px;
@@ -80,35 +76,46 @@
 	`;
 </script>
 
-<Handle
-	type={type === 'input' ? 'target' : 'source'}
-	position={type === 'input' ? Position.Left : Position.Right}
-	class={cn(connected.length ? '!bg-green-500' : '!bg-gray-500 ')}
-	style={getStyle}
-	id={base.id}
-	{isValidConnection}
-	{onconnect}
-/>
-
-<div
-	class={cn(
-		'text-ellipsis truncate overflow-hidden w-full -mt-[1px]',
-		type === 'input' && 'pl-2',
-		type === 'output' && 'pr-2',
-		canHideOptionalInput && 'optional-input-hidden'
-	)}
-	style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
->
-	{#if base.label}
-		{base.label} ({base.type})
-	{:else}
-		{base.type}
-	{/if}
+<div class="handle-container" style="flex-direction: {type === 'input' ? 'row' : 'row-reverse'};">
+	<Handle
+		type={type === 'input' ? 'target' : 'source'}
+		position={type === 'input' ? Position.Left : Position.Right}
+		class={cn('handle', connected.length ? '!bg-green-500' : '!bg-gray-500')}
+		id={base.id}
+		{isValidConnection}
+		{onconnect}
+		style={`
+			position: relative;
+			height: ${ROW_HEIGHT}px;
+			width: ${HANDLE_WIDTH}px;
+			${getStyle}
+		`}
+	/>
+	<div
+		class={cn(
+			'text-ellipsis truncate overflow-hidden w-full',
+			type === 'input' ? 'pl-2' : 'pr-2',
+			canHideOptionalInput && 'optional-input-hidden'
+		)}
+		style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px; text-align: {type === 'input'
+			? 'left'
+			: 'right'};"
+	>
+		{#if base.label}
+			{base.label} ({base.type})
+		{:else}
+			{base.type}
+		{/if}
+	</div>
 </div>
 
 <style>
 	.optional-input-hidden {
 		display: none !important;
 		visibility: hidden !important;
+	}
+	.handle-container {
+		display: flex;
+		align-items: center;
 	}
 </style>
