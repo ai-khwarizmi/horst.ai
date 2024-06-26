@@ -100,7 +100,7 @@
 	style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 >
 	{#if base.label}
-		{base.label} ({base.type}) top: {top} : {topWithoutOptionalNonconnected}
+		{base.label} ({base.type})
 	{:else}
 		{base.type}
 	{/if}
