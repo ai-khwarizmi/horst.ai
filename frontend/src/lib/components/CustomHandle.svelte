@@ -13,17 +13,14 @@
 	export let base: Input<string> | Output<string>;
 	export let showOptionalInputs: boolean = true;
 
-	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
-	$: inputConnections = $edges.filter((edge) => edge.target === nodeId);
+	$: connections =
+		type === 'output'
+			? $edges.filter((edge) => edge.source === nodeId)
+			: $edges.filter((edge) => edge.target === nodeId);
 
-	$: connections = type === 'output' ? outputConnections : inputConnections;
-	$: connected = connections.filter((edge) => {
-		if (type === 'output') {
-			return edge.sourceHandle === base.id;
-		} else {
-			return edge.targetHandle === base.id;
-		}
-	});
+	$: connected = connections.filter((edge) =>
+		type === 'output' ? edge.sourceHandle === base.id : edge.targetHandle === base.id
+	);
 
 	const onconnect = (connections: Connection[]) => {
 		const edgesToRemove: string[] = [];
@@ -44,19 +41,15 @@
 
 	const c = useConnection();
 
-	$: startType = $c.startHandle?.type;
-
-	// Determine if the handle should be hidden based on the connection validity
-	// The handle should be hidden if the connection is not valid and the start handle node ID is different from the current node ID
 	$: shouldDimHandle =
 		$c.startHandle?.handleId &&
+		$c.startHandle.nodeId !== nodeId &&
 		!isValidConnection({
-			source: startType === 'source' ? $c.startHandle.nodeId : nodeId,
-			sourceHandle: startType === 'source' ? $c.startHandle.handleId : base.id,
-			target: startType === 'source' ? nodeId : $c.startHandle.nodeId,
-			targetHandle: startType === 'source' ? base.id : $c.startHandle.handleId
-		}) &&
-		$c.startHandle.nodeId !== nodeId;
+			source: $c.startHandle.type === 'source' ? $c.startHandle.nodeId : nodeId,
+			sourceHandle: $c.startHandle.type === 'source' ? $c.startHandle.handleId : base.id,
+			target: $c.startHandle.type === 'source' ? nodeId : $c.startHandle.nodeId,
+			targetHandle: $c.startHandle.type === 'source' ? base.id : $c.startHandle.handleId
+		});
 
 	$: canHideOptionalInput = base.optional && !showOptionalInputs && connected.length === 0;
 
@@ -91,7 +84,6 @@
 		{onconnect}
 		style={`
 			position: relative;
-			overflow: visible !important;
 			${getStyle}
 		`}
 	/>
