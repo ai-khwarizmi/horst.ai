@@ -29,12 +29,7 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
-			{ id: 'temperature', type: 'text', label: 'Temperature', optional: true },
-			{ id: 'max_tokens', type: 'text', label: 'Max Tokens', optional: true },
-			{ id: 'top_p', type: 'text', label: 'Top P', optional: false },
-			{ id: 'frequency_penalty', type: 'text', label: 'Frequency Penalty', optional: true },
-			{ id: 'presence_penalty', type: 'text', label: 'Presence Penalty', optional: true }
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
 	});
