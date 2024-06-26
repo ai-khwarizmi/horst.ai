@@ -22,7 +22,7 @@
 		type NodeError,
 		type ConnectWith
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -70,6 +70,8 @@
 	export let errors: NodeError[] = [];
 	export let io: NodeIOHandler<any, any>;
 
+	const updateNodeInternals = useUpdateNodeInternals();
+
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
 			errors = [];
@@ -90,6 +92,7 @@
 	const toggleOptionalInputs = () => {
 		console.log('toggleOptionalInputs', showOptionalInputs);
 		showOptionalInputs = !showOptionalInputs;
+		updateNodeInternals(id);
 	};
 
 	onMount(() => {
