@@ -3,9 +3,11 @@
 	import { edges } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
-	import { HANDLE_WIDTH, ROW_HEIGHT } from './CustomNode.svelte';
 	import { get } from 'svelte/store';
 	import { isValidConnection } from '@/utils/validate';
+
+	const HANDLE_WIDTH = 12;
+	const ROW_HEIGHT = 30;
 
 	export let nodeId: string;
 	export let type: 'input' | 'output';

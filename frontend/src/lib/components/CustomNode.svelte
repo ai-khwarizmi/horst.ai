@@ -1,10 +1,4 @@
 <script lang="ts" context="module">
-	export const HANDLE_WIDTH = 12;
-	export const ROW_HEIGHT = 30;
-	export const ROW_GAP = 10;
-	export const BORDER_WIDTH = 2;
-	export const HEADER_HEIGHT = 40;
-
 	const handlers: Record<string, () => void> = {};
 
 	// Should we change this to timeouts to avoid overlapping executions?
@@ -159,17 +153,7 @@
 	$: inputs = io.inputs;
 	$: outputs = io.outputs;
 
-	$: rows = Math.max($inputs.length, $outputs.length);
 	$: hasContent = !!$$slots['default'];
-
-	$: minHeight =
-		HEADER_HEIGHT +
-		ROW_HEIGHT * rows +
-		ROW_GAP * rows +
-		BORDER_WIDTH * 2 +
-		4 +
-		5 +
-		(hasContent ? 20 : 0);
 
 	$: hasOptionalInputs = $inputs.some((input) => input.optional);
 	let showOptionalInputs = false;
@@ -255,7 +239,6 @@
 
 	<NodeResizer
 		minWidth={200}
-		{minHeight}
 		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
@@ -267,7 +250,7 @@
 			colors.fullbackground,
 			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
 		)}
-		style="height: {HEADER_HEIGHT}px;"
+		style="height: 40px;"
 	>
 		{label}
 	</div>
@@ -278,7 +261,7 @@
 			colors.border,
 			errors.length && 'border-red-500'
 		)}
-		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
+		style="min-width: 200px; border-width: 2px"
 	>
 		<div
 			class={cn(
