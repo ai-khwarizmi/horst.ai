@@ -11,6 +11,7 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let top: number;
+	export let topWithoutOptionalNonconnected: number;
 	export let showOptionalInputs: boolean = true;
 
 	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
@@ -70,7 +71,7 @@
 				: `
 			${type === 'input' ? 'left' : 'right'}: 1px;
 			opacity: ${shouldDimHandle ? 0.3 : 1};
-			top: ${top}px;
+			top: ${!showOptionalInputs && !canHideOptionalInput ? topWithoutOptionalNonconnected : top}px;
 			height: ${ROW_HEIGHT}px;
 			width: ${HANDLE_WIDTH}px;
 			border-radius: ${HANDLE_WIDTH / 2}px;
@@ -99,7 +100,7 @@
 	style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 >
 	{#if base.label}
-		{base.label} ({base.type})
+		{base.label} ({base.type}) top: {top} : {topWithoutOptionalNonconnected}
 	{:else}
 		{base.type}
 	{/if}

@@ -161,6 +161,26 @@
 	$: hasContent = !!$$slots['default'];
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
+
+	//number of connections for each input
+	$: numConnectionsForInput = (index: number) => {
+		const _edges = get(edges);
+		const connections = _edges.filter(
+			(edge: any) => edge.source === id && edge.sourceHandle === ($inputs as any)[index].id
+		);
+		return connections.length;
+	};
+	// top without optional non-connected inputs
+	$: indexWithoutOptionalNonconnected = (index: number) => {
+		let nonOptionalIndex = 0;
+		for (let i = 0; i < index; i++) {
+			if (!$inputs[i].optional || numConnectionsForInput(i) > 0) {
+				nonOptionalIndex++;
+			}
+		}
+		return nonOptionalIndex;
+	};
+
 	$: minHeight =
 		HEADER_HEIGHT +
 		ROW_HEIGHT * rows +
@@ -303,6 +323,7 @@
 								type="input"
 								base={input}
 								top={top(index)}
+								topWithoutOptionalNonconnected={top(indexWithoutOptionalNonconnected(index))}
 							/>
 						{/each}
 					</div>
