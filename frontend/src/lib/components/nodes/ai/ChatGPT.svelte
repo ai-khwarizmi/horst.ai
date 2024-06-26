@@ -28,6 +28,16 @@
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
+			{
+				id: 'model',
+				type: 'text',
+				label: 'Model',
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['gpt-4o', 'gpt-4-turbo'],
+					default: 'gpt-4o'
+				}
+			},
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
 			{ id: 'max_tokens', type: 'text', label: 'Max Tokens', optional: true }

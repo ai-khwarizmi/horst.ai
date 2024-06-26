@@ -109,13 +109,13 @@ export type OnExecuteCallbacks = {
 };
 
 
+
 /**
  * Node I/O
  * id - unique id of the output, stays relevant for project file, if changed, the project file will be invalid
  * type - type of the output, used for validation
  * label - label of the output, used for display
  */
-
 type BaseIO<TNodeID extends string> = {
     id: TNodeID;
     type: NodeValueType;
@@ -123,5 +123,19 @@ type BaseIO<TNodeID extends string> = {
     optional?: boolean;
 }
 
-export type Input<TNodeID extends string> = BaseIO<TNodeID>
+type InputOptionInputField = {
+    inputOptionType: 'input-field';
+    default: undefined | any;
+}
+type InputOptionDropdown = {
+    inputOptionType: 'dropdown';
+    options: any[];
+    default: undefined | any;
+}
+
+type InputOption = InputOptionInputField | InputOptionDropdown;
+
+export type Input<TNodeID extends string> = BaseIO<TNodeID> & {
+    input?: InputOption;
+}
 export type Output<TNodeID extends string> = BaseIO<TNodeID>
