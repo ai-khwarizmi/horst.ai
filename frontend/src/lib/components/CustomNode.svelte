@@ -196,6 +196,7 @@
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
+	on:click|stopPropagation
 >
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
