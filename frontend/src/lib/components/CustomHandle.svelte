@@ -85,8 +85,14 @@
 	let selectedIndex = -1;
 	let isOpen = false;
 
+	let inputValue = '';
+
 	if ('input' in base && base.input?.default) {
-		selectedOption = base.input.default;
+		if (base.input.inputOptionType === 'dropdown') {
+			selectedOption = base.input.default;
+		} else if (base.input.inputOptionType === 'input-field') {
+			inputValue = base.input.default;
+		}
 	}
 
 	function fuzzySearch(query: string, text: string): boolean {
@@ -172,24 +178,13 @@
 		`}
 	/>
 	<div
-		class={cn(
-			'w-full flex items-center',
-			isInput ? 'pl-2' : 'pr-2',
-			canHideOptionalInput && 'optional-input-hidden'
-		)}
+		class={cn('w-full', isInput ? 'pl-2' : 'pr-2', canHideOptionalInput && 'optional-input-hidden')}
 		style="text-align: {isInput ? 'left' : 'right'};"
 	>
-		<div class="flex-grow">
-			{#if base.label}
-				{base.label} ({base.type})
-			{:else if 'input' in base}
-				{base.type}
-			{/if}
-		</div>
-
 		{#if isInput && 'input' in base}
-			{#if base.input?.inputOptionType === 'dropdown'}
-				<div class="custom-dropdown-wrapper ml-2">
+			<div class="input-container">
+				<label class="input-label">{base.label || base.type}</label>
+				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>
 						<DropdownMenuTrigger class="dropdown-trigger">
 							<Button size="flat" class="text-button w-full justify-between">
@@ -226,8 +221,23 @@
 							{/each}
 						</DropdownMenuContent>
 					</DropdownMenu>
-				</div>
-			{/if}
+				{:else if base.input?.inputOptionType === 'input-field'}
+					<input
+						type="text"
+						bind:value={inputValue}
+						class="custom-input"
+						placeholder="Enter value..."
+					/>
+				{/if}
+			</div>
+		{:else}
+			<div class="flex-grow">
+				{#if base.label}
+					{base.label} ({base.type})
+				{:else if 'input' in base}
+					{base.type}
+				{/if}
+			</div>
 		{/if}
 	</div>
 </div>
@@ -242,12 +252,36 @@
 		align-items: center;
 	}
 
-	.custom-dropdown-wrapper {
-		flex-shrink: 0;
+	.input-container {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
 	}
 
-	.dropdown-trigger {
+	.input-label {
+		font-size: 0.75rem;
+		color: var(--muted-foreground, #666);
+		margin-bottom: 0.25rem;
+	}
+
+	.dropdown-trigger,
+	.custom-input {
 		width: 100%;
+	}
+
+	.custom-input {
+		padding: 0.25rem 0.5rem;
+		border: 1px solid var(--border, #ccc);
+		border-radius: 4px;
+		font-size: 0.875rem;
+		background-color: var(--background, white);
+		color: var(--foreground, #333);
+	}
+
+	.custom-input:focus {
+		outline: none;
+		border-color: var(--ring, #d4b3ff);
+		box-shadow: 0 0 0 2px rgba(212, 179, 255, 0.2);
 	}
 
 	.dropdown-arrow {

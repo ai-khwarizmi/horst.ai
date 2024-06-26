@@ -9,7 +9,6 @@
 	import { get } from 'svelte/store';
 
 	let openai: OpenAI;
-
 	let temporaryOutput = '';
 
 	function getOpenai() {
@@ -34,11 +33,19 @@
 				label: 'Model',
 				input: {
 					inputOptionType: 'dropdown',
-					options: ['gpt-4o', 'gpt-4-turbo'],
+					options: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5', 'gpt-3.5-turbo'],
 					default: 'gpt-4o'
 				}
 			},
-			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
+			{
+				id: 'prompt_system',
+				type: 'text',
+				label: 'System Prompt',
+				input: {
+					inputOptionType: 'input-field',
+					default: 'Enter your system prompt'
+				}
+			},
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
 			{ id: 'max_tokens', type: 'text', label: 'Max Tokens', optional: true }
 		],
@@ -54,10 +61,8 @@
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKey = get(openai_key) as string;
-
 		const systemPrompt = io.getInputData('prompt_system') as string;
 		const userPrompt = io.getInputData('prompt_user') as string;
-
 		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKey });
 
 		if (systemPrompt && userPrompt) {
@@ -70,7 +75,6 @@
 				return;
 			}
 			lastOutputValue = null;
-			lastExecutedValue = newValue;
 			temporaryOutput = '';
 			io.setOutputData('response', null);
 
@@ -89,12 +93,9 @@
 
 				let output = '';
 				for await (const chunk of stream) {
-					//process.stdout.write(chunk.choices[0]?.delta?.content || '');
 					output += chunk.choices[0]?.delta?.content || '';
 					if (lastExecutedValue === newValue) {
 						temporaryOutput = output;
-					} else {
-						//ignore
 					}
 				}
 
@@ -103,13 +104,6 @@
 					io.setOutputData('response', lastOutputValue);
 					callbacks.setStatus('success');
 				}
-
-				/* old
-					const response = await getModel().invoke(messages);
-					lastOutputValue = response.content as string;
-					io.setOutputData('response', lastOutputValue);
-					callbacks.setStatus('success');
-				*/
 			} catch (error) {
 				console.error('Error calling GPT-4: ', error);
 				callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
