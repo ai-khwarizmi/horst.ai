@@ -22,7 +22,7 @@
 		type NodeError,
 		type ConnectWith
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -70,6 +70,8 @@
 	export let errors: NodeError[] = [];
 	export let io: NodeIOHandler<any, any>;
 
+	const updateNodeInternals = useUpdateNodeInternals();
+
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
 			errors = [];
@@ -84,8 +86,12 @@
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
 
 	const forceExecute = () => {
-		console.log('Forcing execute');
 		onExecute(onExecuteCallbacks, true);
+	};
+
+	const toggleOptionalInputs = () => {
+		showOptionalInputs = !showOptionalInputs;
+		updateNodeInternals(id);
 	};
 
 	onMount(() => {
@@ -157,6 +163,26 @@
 	$: hasContent = !!$$slots['default'];
 	$: top = (index: number) =>
 		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
+
+	//number of connections for each input
+	$: numConnectionsForInput = (index: number) => {
+		const _edges = get(edges);
+		const connections = _edges.filter(
+			(edge: any) => edge.source === id && edge.sourceHandle === ($inputs as any)[index].id
+		);
+		return connections.length;
+	};
+	// top without optional non-connected inputs
+	$: indexWithoutOptionalNonconnected = (index: number) => {
+		let nonOptionalIndex = 0;
+		for (let i = 0; i < index; i++) {
+			if (!$inputs[i].optional || numConnectionsForInput(i) > 0) {
+				nonOptionalIndex++;
+			}
+		}
+		return nonOptionalIndex;
+	};
+
 	$: minHeight =
 		HEADER_HEIGHT +
 		ROW_HEIGHT * rows +
@@ -166,8 +192,10 @@
 		5 +
 		(hasContent ? 20 : 0);
 
-	let hovered = false;
+	$: hasOptionalInputs = $inputs.some((input) => input.optional);
+	let showOptionalInputs = true;
 
+	let hovered = false;
 	const c = useConnection();
 
 	$: startType = $c.startHandle?.type;
@@ -239,6 +267,7 @@
 					<Check class="w-6 h-6 text-green-500" />
 				{/if}
 			</div>
+
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
 				<Button size="flat" on:click={forceExecute}>Re-run</Button>
 			{/if}
@@ -290,7 +319,14 @@
 						style="gap: {ROW_GAP}px"
 					>
 						{#each $inputs as input, index}
-							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								top={top(index)}
+								topWithoutOptionalNonconnected={top(indexWithoutOptionalNonconnected(index))}
+							/>
 						{/each}
 					</div>
 				{/if}
@@ -305,7 +341,15 @@
 					</div>
 				{/if}
 			</div>
+			{#if hasOptionalInputs}
+				<div class="flex justify-left items-center ml-2 mt-4">
+					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
+						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
+					</Button>
+				</div>
+			{/if}
 		</div>
+
 		{#if hasContent}
 			<div
 				class={cn(

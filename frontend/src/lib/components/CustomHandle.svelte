@@ -11,6 +11,8 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let top: number;
+	export let topWithoutOptionalNonconnected: number = top;
+	export let showOptionalInputs: boolean = true;
 
 	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
 	$: inputConnections = $edges.filter((edge) => edge.target === nodeId);
@@ -45,7 +47,9 @@
 
 	$: startType = $c.startHandle?.type;
 
-	$: hide =
+	// Determine if the handle should be hidden based on the connection validity
+	// The handle should be hidden if the connection is not valid and the start handle node ID is different from the current node ID
+	$: shouldDimHandle =
 		$c.startHandle?.handleId &&
 		!isValidConnection({
 			source: startType === 'source' ? $c.startHandle.nodeId : nodeId,
@@ -54,16 +58,33 @@
 			targetHandle: startType === 'source' ? base.id : $c.startHandle.handleId
 		}) &&
 		$c.startHandle.nodeId !== nodeId;
+
+	$: canHideOptionalInput = base.optional && !showOptionalInputs && connected.length === 0;
+
+	$: getStyle = `
+		${
+			canHideOptionalInput
+				? `
+			display: none !important;
+			visibility: hidden !important;
+		`
+				: `
+			${type === 'input' ? 'left' : 'right'}: 1px;
+			opacity: ${shouldDimHandle ? 0.3 : 1};
+			top: ${!showOptionalInputs && !canHideOptionalInput ? topWithoutOptionalNonconnected : top}px;
+			height: ${ROW_HEIGHT}px;
+			width: ${HANDLE_WIDTH}px;
+			border-radius: ${HANDLE_WIDTH / 2}px;
+		`
+		}
+	`;
 </script>
 
 <Handle
 	type={type === 'input' ? 'target' : 'source'}
 	position={type === 'input' ? Position.Left : Position.Right}
-	class={cn(connected.length ? '!bg-green-500' : '!bg-gray-500 ')}
-	style="{type === 'input' ? 'left' : 'right'}: 1px; opacity: {hide
-		? 0.3
-		: 1}; top: {top}px; height: {ROW_HEIGHT}px; width: {HANDLE_WIDTH}px; border-radius: {HANDLE_WIDTH /
-		2}px;"
+	class={cn(connected.length ? 'bg-green-500' : 'bg-gray-500 ')}
+	style={getStyle}
 	id={base.id}
 	{isValidConnection}
 	{onconnect}
@@ -73,7 +94,8 @@
 	class={cn(
 		'text-ellipsis truncate overflow-hidden w-full -mt-[1px]',
 		type === 'input' && 'pl-2',
-		type === 'output' && 'pr-2'
+		type === 'output' && 'pr-2',
+		canHideOptionalInput && 'optional-input-hidden'
 	)}
 	style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px;"
 >
@@ -83,3 +105,10 @@
 		{base.type}
 	{/if}
 </div>
+
+<style>
+	.optional-input-hidden {
+		display: none !important;
+		visibility: hidden !important;
+	}
+</style>

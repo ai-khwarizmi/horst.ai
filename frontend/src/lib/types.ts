@@ -120,6 +120,7 @@ type BaseIO<TNodeID extends string> = {
     id: TNodeID;
     type: NodeValueType;
     label?: string;
+    optional?: boolean;
 }
 
 export type Input<TNodeID extends string> = BaseIO<TNodeID>
