@@ -27,7 +27,7 @@
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
-	import { Circle, LoaderCircle, TriangleAlert, Check, Settings2 } from 'lucide-svelte';
+	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
@@ -174,7 +174,6 @@
 	let showOptionalInputs = true;
 
 	let hovered = false;
-
 	const c = useConnection();
 
 	$: startType = $c.startHandle?.type;
@@ -246,12 +245,6 @@
 					<Check class="w-6 h-6 text-green-500" />
 				{/if}
 			</div>
-
-			{#if hasOptionalInputs}
-				<Button on:click={toggleOptionalInputs}>
-					<Settings2 class={cn('w-6 h-6 text-gray-500', showOptionalInputs && 'text-blue-500')} />
-				</Button>
-			{/if}
 
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
 				<Button size="flat" on:click={forceExecute}>Re-run</Button>
@@ -325,7 +318,15 @@
 					</div>
 				{/if}
 			</div>
+			{#if hasOptionalInputs}
+				<div class="flex justify-left items-center ml-2 mt-4">
+					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
+						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
+					</Button>
+				</div>
+			{/if}
 		</div>
+
 		{#if hasContent}
 			<div
 				class={cn(
