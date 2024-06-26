@@ -90,7 +90,6 @@
 	};
 
 	const toggleOptionalInputs = () => {
-		console.log('toggleOptionalInputs', showOptionalInputs);
 		showOptionalInputs = !showOptionalInputs;
 		updateNodeInternals(id);
 	};

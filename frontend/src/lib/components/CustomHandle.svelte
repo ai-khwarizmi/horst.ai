@@ -11,7 +11,7 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let top: number;
-	export let topWithoutOptionalNonconnected: number;
+	export let topWithoutOptionalNonconnected: number = top;
 	export let showOptionalInputs: boolean = true;
 
 	$: outputConnections = $edges.filter((edge) => edge.source === nodeId);
