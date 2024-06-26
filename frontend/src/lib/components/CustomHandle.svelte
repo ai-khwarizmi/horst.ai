@@ -7,7 +7,6 @@
 	import { isValidConnection } from '@/utils/validate';
 
 	const HANDLE_WIDTH = 12;
-	const ROW_HEIGHT = 30;
 
 	export let nodeId: string;
 	export let type: 'input' | 'output';
@@ -70,7 +69,7 @@
 		`
 				: `
 			opacity: ${shouldDimHandle ? 0.3 : 1};
-			height: ${ROW_HEIGHT}px;
+			height: 30px;
 			width: ${HANDLE_WIDTH}px;
 			border-radius: ${HANDLE_WIDTH / 2}px;
 		`
@@ -92,8 +91,6 @@
 		{onconnect}
 		style={`
 			position: relative;
-			height: ${ROW_HEIGHT}px;
-			width: ${HANDLE_WIDTH}px;
 			overflow: visible !important;
 			${getStyle}
 		`}
@@ -104,9 +101,7 @@
 			type === 'input' ? 'pl-2' : 'pr-2',
 			canHideOptionalInput && 'optional-input-hidden'
 		)}
-		style="height: {ROW_HEIGHT}px; line-height: {ROW_HEIGHT}px; text-align: {type === 'input'
-			? 'left'
-			: 'right'};"
+		style="text-align: {type === 'input' ? 'left' : 'right'};"
 	>
 		{#if base.label}
 			{base.label} ({base.type})
