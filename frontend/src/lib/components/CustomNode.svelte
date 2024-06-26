@@ -289,7 +289,7 @@
 				{/if}
 			</div>
 			{#if hasOptionalInputs}
-				<div class="flex justify-left items-center ml-2">
+				<div class="flex justify-left items-center ml-5">
 					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
 						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
 					</Button>

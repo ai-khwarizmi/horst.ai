@@ -162,8 +162,8 @@
 
 <div
 	style="flex-direction: {isInput ? 'row' : 'row-reverse'};"
-	class="handle-container mb-4"
-	class:optional-input-hidden={canHideOptionalInput}
+	class="flex items-center mb-4 h-[40px] relative"
+	class:hidden={canHideOptionalInput}
 >
 	<Handle
 		type={isInput ? 'target' : 'source'}
@@ -173,32 +173,48 @@
 		{isValidConnection}
 		{onconnect}
 		style={`
-			position: relative;
+			position: absolute; // Changed from 'relative' to 'absolute'
+			top: 50%; // Center vertically
+			transform: translateY(-50%); // Adjust for exact centering
+			${isInput ? 'left: 0;' : 'right: 0;'} // Position on the correct side
 			${getStyle}
 		`}
 	/>
 	<div
-		class={cn('w-full', isInput ? 'pl-2' : 'pr-2', canHideOptionalInput && 'optional-input-hidden')}
+		class={cn(
+			'w-full h-full flex items-center',
+			isInput ? 'pl-4' : 'pr-4', // Increased padding to make room for the handle
+			canHideOptionalInput && 'hidden'
+		)}
 		style="text-align: {isInput ? 'left' : 'right'};"
 	>
 		{#if isInput && 'input' in base}
-			<div class="input-container">
-				<label class="input-label">{base.label || base.type}</label>
+			<div class="flex flex-col w-full justify-center">
+				<label class="text-xs text-muted-foreground" for="input-element"
+					>{base.label || base.type}</label
+				>
 				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>
-						<DropdownMenuTrigger class="dropdown-trigger">
-							<Button size="flat" class="text-button w-full justify-between">
-								<span>{selectedOption}</span>
-								<ChevronDown class="dropdown-arrow" size={16} />
+						<DropdownMenuTrigger class="w-full">
+							<Button
+								size="sm"
+								class="text-button w-full justify-between h-[24px]"
+								id="input-element"
+							>
+								<span class="truncate">{selectedOption}</span>
+								<ChevronDown class="flex-shrink-0 ml-2" size={16} />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent class="dropdown-menu-content" on:keydown={handleKeyDown}>
-							<div class="search-container">
+						<DropdownMenuContent
+							class="min-w-[120px] border border-border rounded-md bg-background shadow-md max-h-[200px] overflow-y-auto"
+							on:keydown={handleKeyDown}
+						>
+							<div class="p-2">
 								<input
 									type="text"
 									placeholder="Search..."
 									bind:value={searchTerm}
-									class="search-input"
+									class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20"
 									on:keydown={handleKeyDown}
 									on:focus={handleFocus}
 									bind:this={searchInput}
@@ -206,7 +222,7 @@
 								/>
 							</div>
 							{#each filteredOptions as option, index}
-								<div class={index === selectedIndex ? 'selected-item' : ''}>
+								<div class={index === selectedIndex ? 'border-2 border-black' : ''}>
 									<DropdownMenuItem
 										on:click={() => handleSelect(option)}
 										on:keydown={(e) => {
@@ -225,7 +241,7 @@
 					<input
 						type="text"
 						bind:value={inputValue}
-						class="custom-input"
+						class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px]"
 						placeholder="Enter value..."
 					/>
 				{/if}
@@ -243,86 +259,6 @@
 </div>
 
 <style>
-	.optional-input-hidden {
-		display: none !important;
-		visibility: hidden !important;
-	}
-	.handle-container {
-		display: flex;
-		align-items: center;
-	}
-
-	.input-container {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
-
-	.input-label {
-		font-size: 0.75rem;
-		color: var(--muted-foreground, #666);
-		margin-bottom: 0.25rem;
-	}
-
-	.dropdown-trigger,
-	.custom-input {
-		width: 100%;
-	}
-
-	.custom-input {
-		padding: 0.25rem 0.5rem;
-		border: 1px solid var(--border, #ccc);
-		border-radius: 4px;
-		font-size: 0.875rem;
-		background-color: var(--background, white);
-		color: var(--foreground, #333);
-	}
-
-	.custom-input:focus {
-		outline: none;
-		border-color: var(--ring, #d4b3ff);
-		box-shadow: 0 0 0 2px rgba(212, 179, 255, 0.2);
-	}
-
-	.dropdown-arrow {
-		flex-shrink: 0;
-		margin-left: 0.5rem;
-	}
-
-	.custom-dropdown-wrapper :global(.dropdown-menu-content) {
-		min-width: 120px;
-		border: 1px solid var(--border, #ccc);
-		border-radius: 4px;
-		background-color: var(--background, white);
-		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-		max-height: 200px;
-		overflow-y: auto;
-	}
-
-	.search-container {
-		padding: 0.5rem;
-	}
-
-	.search-input {
-		width: 100%;
-		padding: 0.25rem 0.5rem;
-		border: 1px solid var(--border, #ccc);
-		border-radius: 4px;
-		font-size: 0.875rem;
-		background-color: var(--background, white);
-		color: var(--foreground, #333);
-	}
-
-	.search-input::placeholder {
-		color: var(--muted-foreground, #999);
-	}
-
-	.search-input:focus {
-		outline: none;
-		border-color: var(--ring, #d4b3ff);
-		box-shadow: 0 0 0 2px rgba(212, 179, 255, 0.2);
-	}
-
 	.selected-item {
 		border: 2px solid black !important;
 	}

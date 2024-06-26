@@ -10,7 +10,7 @@
 
 	const io = new NodeIOHandler({
 		nodeId: id,
-		inputs: [{ id: 'data', type: 'any' }],
+		inputs: [{ id: 'data', type: 'any', label: 'Data' }],
 		outputs: []
 	});
 
