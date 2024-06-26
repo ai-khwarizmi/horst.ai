@@ -83,7 +83,7 @@
 <Handle
 	type={type === 'input' ? 'target' : 'source'}
 	position={type === 'input' ? Position.Left : Position.Right}
-	class={cn(connected.length ? 'bg-green-500' : 'bg-gray-500 ')}
+	class={cn(connected.length ? '!bg-green-500' : '!bg-gray-500 ')}
 	style={getStyle}
 	id={base.id}
 	{isValidConnection}
