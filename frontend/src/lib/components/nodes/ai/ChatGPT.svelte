@@ -33,7 +33,29 @@
 				label: 'Model',
 				input: {
 					inputOptionType: 'dropdown',
-					options: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5', 'gpt-3.5-turbo'],
+					options: [
+						// GPT-4o
+						'gpt-4o',
+						'gpt-4o-2024-05-13',
+						// GPT-4 Turbo
+						'gpt-4-turbo',
+						'gpt-4-turbo-2024-04-09',
+						'gpt-4-turbo-preview',
+						'gpt-4-0125-preview',
+						'gpt-4-1106-preview',
+						// GPT-4
+						'gpt-4',
+						'gpt-4-0613',
+						'gpt-4-0314',
+						// GPT-3.5 Turbo
+						'gpt-3.5-turbo',
+						'gpt-3.5-turbo-0125',
+						'gpt-3.5-turbo-1106',
+						'gpt-3.5-turbo-instruct',
+						// GPT base models
+						'babbage-002',
+						'davinci-002'
+					],
 					default: 'gpt-4o'
 				}
 			},
@@ -47,7 +69,16 @@
 				}
 			},
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
-			{ id: 'max_tokens', type: 'text', label: 'Max Tokens', optional: true }
+			{ id: 'max_tokens', type: 'number', label: 'Max Tokens', optional: true },
+			{ id: 'temperature', type: 'number', label: 'Temperature', optional: true },
+			{ id: 'top_p', type: 'number', label: 'Top P', optional: true },
+			{ id: 'n', type: 'number', label: 'N (Number of completions)', optional: true },
+			{ id: 'stream', type: 'boolean', label: 'Stream', optional: true },
+			{ id: 'stop', type: 'text', label: 'Stop Sequences', optional: true },
+			{ id: 'presence_penalty', type: 'number', label: 'Presence Penalty', optional: true },
+			{ id: 'frequency_penalty', type: 'number', label: 'Frequency Penalty', optional: true },
+			{ id: 'logit_bias', type: 'text', label: 'Logit Bias (JSON)', optional: true },
+			{ id: 'user', type: 'text', label: 'User Identifier', optional: true }
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
 	});
@@ -86,7 +117,7 @@
 				callbacks.setStatus('loading');
 
 				const stream = await getOpenai().chat.completions.create({
-					model: 'gpt-4o',
+					model: io.getInputData('model') as string, // Use the selected model
 					messages: messages,
 					stream: true
 				});

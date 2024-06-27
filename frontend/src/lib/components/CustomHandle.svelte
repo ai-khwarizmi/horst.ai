@@ -100,8 +100,10 @@
 		return words.every((word) => text.toLowerCase().includes(word));
 	}
 
-	$: if ('input' in base && base.input?.options) {
-		filteredOptions = base.input.options.filter((option) => fuzzySearch(searchTerm, option));
+	$: if ('input' in base && base.input && 'options' in base.input) {
+		filteredOptions = (base.input.options as string[]).filter((option) =>
+			fuzzySearch(searchTerm, option)
+		);
 	}
 
 	function handleSelect(option: string) {
@@ -112,9 +114,7 @@
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
-		console.log('event', event.key);
 		if (event.key === 'Escape') {
-			console.log('Escape');
 			event.preventDefault();
 			isOpen = false;
 			searchTerm = '';
@@ -208,7 +208,7 @@
 							class="min-w-[120px] border border-border rounded-md bg-background shadow-md max-h-[200px] overflow-y-auto"
 							on:keydown={handleKeyDown}
 						>
-							<div class="p-2">
+							<div class="p-2 sticky top-0 bg-background z-10">
 								<input
 									type="text"
 									placeholder="Search..."
@@ -220,20 +220,22 @@
 									use:focusSearchInput
 								/>
 							</div>
-							{#each filteredOptions as option, index}
-								<div class={index === selectedIndex ? 'border-2 border-black' : ''}>
-									<DropdownMenuItem
-										on:click={() => handleSelect(option)}
-										on:keydown={(e) => {
-											if (e.key === 'Enter') {
-												handleSelect(option);
-											}
-										}}
-									>
-										{option}
-									</DropdownMenuItem>
-								</div>
-							{/each}
+							<div class="overflow-y-auto">
+								{#each filteredOptions as option, index}
+									<div class={index === selectedIndex ? 'border-2 border-black' : ''}>
+										<DropdownMenuItem
+											on:click={() => handleSelect(option)}
+											on:keydown={(e) => {
+												if (e.key === 'Enter') {
+													handleSelect(option);
+												}
+											}}
+										>
+											{option}
+										</DropdownMenuItem>
+									</div>
+								{/each}
+							</div>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				{:else if base.input?.inputOptionType === 'input-field'}
