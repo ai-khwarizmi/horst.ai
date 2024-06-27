@@ -5,6 +5,14 @@
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
 	import { get } from 'svelte/store';
 	import { isValidConnection } from '@/utils/validate';
+	import {
+		DropdownMenu,
+		DropdownMenuContent,
+		DropdownMenuItem,
+		DropdownMenuTrigger
+	} from '$lib/components/ui/dropdown-menu';
+	import { ChevronDown } from 'lucide-svelte';
+	import Button from './ui/button/button.svelte';
 
 	const HANDLE_WIDTH = 12;
 
@@ -12,6 +20,9 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let showOptionalInputs: boolean = true;
+	export let setInputPlaceholderData: ((handleId: string, value: any) => void) | undefined;
+
+	$: isInput = type === 'input';
 
 	$: connections =
 		type === 'output'
@@ -68,48 +79,224 @@
 		`
 		}
 	`;
+
+	let selectedOption = 'Select option';
+	let searchTerm = '';
+	let filteredOptions: string[] = [];
+	let selectedIndex = -1;
+	let isOpen = false;
+
+	let inputValue = '';
+
+	if ('input' in base && base.input?.default) {
+		if (base.input.inputOptionType === 'dropdown') {
+			selectedOption = base.input.default;
+		} else if (base.input.inputOptionType === 'input-field') {
+			inputValue = base.input.default;
+		}
+	}
+
+	function fuzzySearch(query: string, text: string): boolean {
+		const words = query.toLowerCase().split(/\s+/);
+		return words.every((word) => text.toLowerCase().includes(word));
+	}
+
+	$: if ('input' in base && base.input && 'options' in base.input) {
+		filteredOptions = (base.input.options as string[]).filter((option) =>
+			fuzzySearch(searchTerm, option)
+		);
+	}
+
+	function handleSelect(option: string) {
+		selectedOption = option;
+		searchTerm = '';
+		selectedIndex = -1;
+		isOpen = false;
+		setInputPlaceholderData!(base.id, option);
+	}
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			isOpen = false;
+			searchTerm = '';
+			selectedIndex = -1;
+			return;
+		}
+
+		if (isOpen) {
+			event.stopPropagation();
+			if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
+				event.preventDefault();
+				selectedIndex = (selectedIndex + 1) % filteredOptions.length;
+				scrollToSelectedItem();
+			} else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
+				event.preventDefault();
+				selectedIndex = (selectedIndex - 1 + filteredOptions.length) % filteredOptions.length;
+				scrollToSelectedItem();
+			} else if (event.key === 'Enter') {
+				if (selectedIndex !== -1) {
+					handleSelect(filteredOptions[selectedIndex]);
+				}
+				isOpen = false;
+			}
+		}
+	}
+
+	function handleFocus() {
+		if (selectedIndex === -1 && filteredOptions.length > 0) {
+			selectedIndex = 0;
+		}
+	}
+
+	let searchInput: HTMLInputElement;
+	let dropdownContent: HTMLElement | null = null;
+
+	const focusSearchInput = (node: HTMLInputElement) => {
+		if (isOpen) {
+			node.focus();
+		}
+	};
+
+	$: if (isOpen) {
+		setTimeout(() => {
+			searchInput?.focus();
+		}, 0);
+	}
+
+	function scrollToSelectedItem() {
+		if (dropdownContent && selectedIndex !== -1) {
+			const selectedItem = dropdownContent.querySelector(`[data-index="${selectedIndex}"]`);
+			if (selectedItem instanceof HTMLElement) {
+				selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			}
+		}
+	}
+
+	function bindDropdownContent(node: HTMLElement) {
+		dropdownContent = node;
+		return {
+			destroy() {
+				dropdownContent = null;
+			}
+		};
+	}
 </script>
 
 <div
-	style="flex-direction: {type === 'input' ? 'row' : 'row-reverse'};"
-	class="handle-container mb-4"
-	class:optional-input-hidden={canHideOptionalInput}
+	style="flex-direction: {isInput ? 'row' : 'row-reverse'};"
+	class="flex items-center mb-4 h-[40px] relative"
+	class:hidden={canHideOptionalInput}
 >
 	<Handle
-		type={type === 'input' ? 'target' : 'source'}
-		position={type === 'input' ? Position.Left : Position.Right}
+		type={isInput ? 'target' : 'source'}
+		position={isInput ? Position.Left : Position.Right}
 		class={cn('handle', connected.length ? '!bg-green-500' : '!bg-gray-500')}
 		id={base.id}
 		{isValidConnection}
 		{onconnect}
 		style={`
-			position: relative;
+			position: absolute; // Changed from 'relative' to 'absolute'
+			top: 50%; // Center vertically
+			transform: translateY(-50%); // Adjust for exact centering
+			${isInput ? 'left: 0;' : 'right: 0;'} // Position on the correct side
 			${getStyle}
 		`}
 	/>
 	<div
 		class={cn(
-			'text-ellipsis truncate overflow-hidden w-full',
-			type === 'input' ? 'pl-2' : 'pr-2',
-			canHideOptionalInput && 'optional-input-hidden'
+			'w-full h-full flex items-center',
+			isInput ? 'pl-4' : 'pr-4',
+			canHideOptionalInput && 'hidden'
 		)}
-		style="text-align: {type === 'input' ? 'left' : 'right'};"
 	>
-		{#if base.label}
-			{base.label} ({base.type})
+		{#if isInput && 'input' in base}
+			<div class="flex flex-col w-full justify-center">
+				<label class="text-xs text-muted-foreground" for="input-element"
+					>{base.label || base.type}</label
+				>
+				{#if base.input?.inputOptionType === 'dropdown'}
+					<DropdownMenu bind:open={isOpen}>
+						<DropdownMenuTrigger class="w-full">
+							<Button
+								size="sm"
+								class="text-button w-full justify-between h-[24px] bg-white hover:bg-gray-100 text-black"
+								id="input-element"
+							>
+								<span class="truncate">{selectedOption}</span>
+								<ChevronDown class="flex-shrink-0 ml-2" size={16} />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							class="min-w-[120px] border border-border rounded-md bg-background shadow-md max-h-[200px] overflow-y-auto"
+							on:keydown={handleKeyDown}
+						>
+							<div bind:this={dropdownContent} class="overflow-y-auto">
+								<div class="p-2 sticky top-0 bg-background z-10">
+									<input
+										type="text"
+										placeholder="Search..."
+										bind:value={searchTerm}
+										class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20"
+										on:keydown={handleKeyDown}
+										on:focus={handleFocus}
+										bind:this={searchInput}
+										use:focusSearchInput
+									/>
+								</div>
+								<div>
+									{#each filteredOptions as option, index}
+										<div
+											class={index === selectedIndex ? 'border-2 border-black' : ''}
+											data-index={index}
+										>
+											<DropdownMenuItem
+												on:click={() => handleSelect(option)}
+												on:keydown={(e) => {
+													if (e.key === 'Enter') {
+														handleSelect(option);
+													}
+												}}
+											>
+												{option}
+											</DropdownMenuItem>
+										</div>
+									{/each}
+								</div>
+							</div>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				{:else if base.input?.inputOptionType === 'input-field'}
+					<input
+						type="text"
+						bind:value={inputValue}
+						class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px]"
+						placeholder="Enter value..."
+						on:input={() => setInputPlaceholderData(base.id, inputValue)}
+					/>
+				{/if}
+			</div>
 		{:else}
-			{base.type}
+			<div
+				class="flex-grow flex flex-col {isInput
+					? 'items-start'
+					: 'items-end'} justify-center h-full"
+			>
+				<span class="text-xs text-muted-foreground">{base.label || ''}</span>
+				<span class="text-sm font-medium">
+					{#if connected.length === 0 && isInput}
+						...connect [{base.type}]
+					{:else}
+						[{base.type}]
+					{/if}
+				</span>
+			</div>
 		{/if}
 	</div>
 </div>
 
 <style>
-	.optional-input-hidden {
-		display: none !important;
-		visibility: hidden !important;
-	}
-	.handle-container {
-		display: flex;
-		align-items: center;
+	.selected-item {
+		border: 2px solid black !important;
 	}
 </style>

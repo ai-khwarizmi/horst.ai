@@ -29,7 +29,7 @@
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
 
-	/* eslint-disable*/
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -44,7 +44,7 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable*/
+	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
@@ -78,6 +78,10 @@
 	};
 
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
+
+	const setInputPlaceholderData = (handleId: string, value: any) => {
+		io.setInputPlaceholderData(handleId, value);
+	};
 
 	const forceExecute = () => {
 		onExecute(onExecuteCallbacks, true);
@@ -175,6 +179,12 @@
 			true
 		) &&
 		$c.startHandle.nodeId !== id;
+
+	const stopPropagation = (e: any) => {
+		if (e.key === 'Enter' && e.target.click) {
+			e.target.click();
+		}
+	};
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -190,12 +200,16 @@
 		</div>
 	</div>
 {/if}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
+	on:click|stopPropagation
+	on:keydown|stopPropagation={stopPropagation}
+	role="button"
+	tabindex="0"
 >
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
@@ -276,20 +290,32 @@
 				{#if $inputs.length > 0}
 					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $inputs as input}
-							<CustomHandle {showOptionalInputs} nodeId={id} type="input" base={input} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								{setInputPlaceholderData}
+							/>
 						{/each}
 					</div>
 				{/if}
 				{#if $outputs.length > 0}
 					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $outputs as output}
-							<CustomHandle nodeId={id} type="output" base={output} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="output"
+								base={output}
+								setInputPlaceholderData={undefined}
+							/>
 						{/each}
 					</div>
 				{/if}
 			</div>
 			{#if hasOptionalInputs}
-				<div class="flex justify-left items-center ml-2">
+				<div class="flex justify-left items-center ml-5">
 					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
 						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
 					</Button>
