@@ -127,9 +127,11 @@
 			if (event.key === 'ArrowDown' || (event.key === 'Tab' && !event.shiftKey)) {
 				event.preventDefault();
 				selectedIndex = (selectedIndex + 1) % filteredOptions.length;
+				scrollToSelectedItem();
 			} else if (event.key === 'ArrowUp' || (event.key === 'Tab' && event.shiftKey)) {
 				event.preventDefault();
 				selectedIndex = (selectedIndex - 1 + filteredOptions.length) % filteredOptions.length;
+				scrollToSelectedItem();
 			} else if (event.key === 'Enter') {
 				if (selectedIndex !== -1) {
 					handleSelect(filteredOptions[selectedIndex]);
@@ -146,6 +148,7 @@
 	}
 
 	let searchInput: HTMLInputElement;
+	let dropdownContent: HTMLElement | null = null;
 
 	const focusSearchInput = (node: HTMLInputElement) => {
 		if (isOpen) {
@@ -157,6 +160,24 @@
 		setTimeout(() => {
 			searchInput?.focus();
 		}, 0);
+	}
+
+	function scrollToSelectedItem() {
+		if (dropdownContent && selectedIndex !== -1) {
+			const selectedItem = dropdownContent.querySelector(`[data-index="${selectedIndex}"]`);
+			if (selectedItem instanceof HTMLElement) {
+				selectedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+			}
+		}
+	}
+
+	function bindDropdownContent(node: HTMLElement) {
+		dropdownContent = node;
+		return {
+			destroy() {
+				dropdownContent = null;
+			}
+		};
 	}
 </script>
 
@@ -208,33 +229,38 @@
 							class="min-w-[120px] border border-border rounded-md bg-background shadow-md max-h-[200px] overflow-y-auto"
 							on:keydown={handleKeyDown}
 						>
-							<div class="p-2 sticky top-0 bg-background z-10">
-								<input
-									type="text"
-									placeholder="Search..."
-									bind:value={searchTerm}
-									class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20"
-									on:keydown={handleKeyDown}
-									on:focus={handleFocus}
-									bind:this={searchInput}
-									use:focusSearchInput
-								/>
-							</div>
-							<div class="overflow-y-auto">
-								{#each filteredOptions as option, index}
-									<div class={index === selectedIndex ? 'border-2 border-black' : ''}>
-										<DropdownMenuItem
-											on:click={() => handleSelect(option)}
-											on:keydown={(e) => {
-												if (e.key === 'Enter') {
-													handleSelect(option);
-												}
-											}}
+							<div bind:this={dropdownContent} class="overflow-y-auto">
+								<div class="p-2 sticky top-0 bg-background z-10">
+									<input
+										type="text"
+										placeholder="Search..."
+										bind:value={searchTerm}
+										class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20"
+										on:keydown={handleKeyDown}
+										on:focus={handleFocus}
+										bind:this={searchInput}
+										use:focusSearchInput
+									/>
+								</div>
+								<div>
+									{#each filteredOptions as option, index}
+										<div
+											class={index === selectedIndex ? 'border-2 border-black' : ''}
+											data-index={index}
 										>
-											{option}
-										</DropdownMenuItem>
-									</div>
-								{/each}
+											<DropdownMenuItem
+												on:click={() => handleSelect(option)}
+												on:keydown={(e) => {
+													if (e.key === 'Enter') {
+														handleSelect(option);
+													}
+												}}
+											>
+												{option}
+											</DropdownMenuItem>
+										</div>
+									{/each}
+								</div>
 							</div>
 						</DropdownMenuContent>
 					</DropdownMenu>
