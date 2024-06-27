@@ -94,7 +94,34 @@
 		const apiKey = get(openai_key) as string;
 		const systemPrompt = io.getInputData('prompt_system') as string;
 		const userPrompt = io.getInputData('prompt_user') as string;
-		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKey });
+		const model = io.getInputData('model') as string;
+		const maxTokens = io.getInputData('max_tokens') as number;
+		const temperature = io.getInputData('temperature') as number;
+		const topP = io.getInputData('top_p') as number;
+		const n = io.getInputData('n') as number;
+		const stream = io.getInputData('stream') as boolean;
+		const stop = io.getInputData('stop') as string;
+		const presencePenalty = io.getInputData('presence_penalty') as number;
+		const frequencyPenalty = io.getInputData('frequency_penalty') as number;
+		const logitBias = io.getInputData('logit_bias') as string;
+		const user = io.getInputData('user') as string;
+
+		const newValue = JSON.stringify({
+			systemPrompt,
+			userPrompt,
+			apiKey: apiKey,
+			model,
+			maxTokens,
+			temperature,
+			topP,
+			n,
+			stream,
+			stop,
+			presencePenalty,
+			frequencyPenalty,
+			logitBias,
+			user
+		});
 
 		if (systemPrompt && userPrompt) {
 			if (!forceExecute && newValue === lastExecutedValue) {
@@ -116,11 +143,23 @@
 			try {
 				callbacks.setStatus('loading');
 
-				const stream = await getOpenai().chat.completions.create({
-					model: io.getInputData('model') as string, // Use the selected model
+				const request: OpenAI.Chat.ChatCompletionCreateParams = {
+					model: model,
 					messages: messages,
 					stream: true
-				});
+				};
+
+				if (maxTokens) request.max_tokens = maxTokens;
+				if (temperature) request.temperature = temperature;
+				if (topP) request.top_p = topP;
+				if (n) request.n = n;
+				if (stop) request.stop = stop;
+				if (presencePenalty) request.presence_penalty = presencePenalty;
+				if (frequencyPenalty) request.frequency_penalty = frequencyPenalty;
+				if (logitBias) request.logit_bias = JSON.parse(logitBias);
+				if (user) request.user = user;
+
+				const stream = await getOpenai().chat.completions.create(request);
 
 				let output = '';
 				for await (const chunk of stream) {
