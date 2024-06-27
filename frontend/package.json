@@ -50,6 +50,7 @@
 	"type": "module",
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.24.0",
+		"@clerk/clerk-js": "^5.7.2",
 		"@internationalized/date": "^3.5.4",
 		"@langchain/core": "^0.2.9",
 		"@langchain/openai": "^0.1.3",

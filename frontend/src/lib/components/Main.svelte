@@ -38,6 +38,9 @@
 	import type { ConnectWith } from '@/types';
 	import ProjectSettings from '@/components/ProjectSettings.svelte';
 	import { loadFromLocalStorage, loadFromProjectId, resetGraph } from '@/utils/file';
+	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
+	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
+	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -136,6 +139,9 @@
 					How to Use
 				</Button>
 			{/if}
+			<ClerkSigninButton />
+			<ClerkProfileButton />
+			<ClerkSignoutButton />
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />
