@@ -197,7 +197,7 @@
 						<DropdownMenuTrigger class="w-full">
 							<Button
 								size="sm"
-								class="text-button w-full justify-between h-[24px]"
+								class="text-button w-full justify-between h-[24px] bg-white hover:bg-gray-100 text-black"
 								id="input-element"
 							>
 								<span class="truncate">{selectedOption}</span>
