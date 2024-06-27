@@ -144,6 +144,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	getInputData = (handle: string) => {
 		let data = _getNodeInputData(this.nodeId, handle);
 
+		if (data === null || data === undefined)
+			data = _getNodeInputPlaceholderData(this.nodeId, handle);
+
 		const inputDef = get(this.inputs).find(input => input.id === handle);
 
 		if (inputDef && data) {
@@ -179,6 +182,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				}
 				return false;
 		}
+	}
+
+	setInputPlaceholderData(handleId: string, value: any) {
+		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
 	}
 }
 
@@ -270,35 +277,30 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 };
 
 export const outputData: Record<string, Record<string, any>> = {};
+export const inputPlaceholderData: Record<string, Record<string, any>> = {};
 
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	// nodes.update(n => {
-	// 	const node = n.find(n => n.id === id);
-	// 	if (!node) return n;
-	// 	node.data = { ...node.data, ...data };
-	// 	return n;
-	// });
-
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// node.data = { ...node.data, ...data };
-
-
 	outputData[id] = {
 		...outputData[id],
 		...data
 	}
 }
 
-export const _getNodeOutputData = (id: string, handle: string) => {
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// return node.data[handle];
+export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
+	inputPlaceholderData[id] = {
+		...inputPlaceholderData[id],
+		...data
+	}
+}
 
+export const _getNodeOutputData = (id: string, handle: string) => {
 	const data = outputData[id];
+	if (!data) return;
+	return data[handle];
+}
+
+export const _getNodeInputPlaceholderData = (id: string, handle: string) => {
+	const data = inputPlaceholderData[id];
 	if (!data) return;
 	return data[handle];
 }
@@ -307,18 +309,8 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	const e = get(edges);
 	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === edge.source);
-	// if (!node) return;
-
-	// if (!edge.sourceHandle) return;
-
-	// return node.data[edge.sourceHandle]
-
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
-
 
 export type ApiKeys = {
 	openai: string | null

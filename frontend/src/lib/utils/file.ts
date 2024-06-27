@@ -7,7 +7,7 @@ import * as LZString from 'lz-string';
 import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
-import { outputData } from "@/utils";
+import { inputPlaceholderData, outputData } from "@/utils";
 import { generateProjectId } from "./projectId";
 
 
@@ -24,6 +24,7 @@ export function getSaveData(includeData: boolean): {
     const e = get(edges);
     const v = get(viewport);
     const data: any = {};
+    const _inputPlaceholderData: any = {};
 
     for (const node of n) {
         if (!node?.type) {
@@ -38,6 +39,9 @@ export function getSaveData(includeData: boolean): {
         if (includeData && nodeType === NodeType.INPUT) {
             data[node.id] = outputData[node.id]
         }
+        if (includeData) {
+            _inputPlaceholderData[node.id] = inputPlaceholderData[node.id]
+        }
     }
 
     const json = JSON.parse(JSON.stringify({
@@ -47,6 +51,7 @@ export function getSaveData(includeData: boolean): {
         edges: e,
         viewport: v,
         data,
+        inputPlaceholderData: _inputPlaceholderData,
         version: FILE_VERSION
     }));
 
@@ -166,7 +171,6 @@ export const loadFromFile = async (file: File) => {
 
 export const loadFromGraph = (graph: any) => {
     if (graph.version !== FILE_VERSION) {
-        // TODO: migrate graph to newest version
         toast.error('URL: Version mismatch');
         return false;
     }
@@ -219,11 +223,16 @@ export const loadFromGraph = (graph: any) => {
         }
     }
 
-    // remove duplicate nodes (by id)
+    if (graph.inputPlaceholderData) {
+        for (const [id, data] of Object.entries(graph.inputPlaceholderData)) {
+            inputPlaceholderData[id] = data as Record<string, any>;
+        }
+    }
+
     valid_edges = valid_edges.filter((edge, index, self) =>
         index === self.findIndex((t) => t.id === edge.id)
     );
-    // remove duplicate edges (by id)
+
     valid_nodes = valid_nodes.filter((node, index, self) =>
         index === self.findIndex((t) => t.id === node.id)
     );

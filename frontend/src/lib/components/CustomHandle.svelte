@@ -20,6 +20,7 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let showOptionalInputs: boolean = true;
+	export let setInputPlaceholderData: ((handleId: string, value: any) => void) | undefined;
 
 	$: isInput = type === 'input';
 
@@ -111,6 +112,7 @@
 		searchTerm = '';
 		selectedIndex = -1;
 		isOpen = false;
+		setInputPlaceholderData!(base.id, option);
 	}
 
 	function handleKeyDown(event: KeyboardEvent) {
@@ -270,6 +272,7 @@
 						bind:value={inputValue}
 						class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px]"
 						placeholder="Enter value..."
+						on:input={() => setInputPlaceholderData(base.id, inputValue)}
 					/>
 				{/if}
 			</div>

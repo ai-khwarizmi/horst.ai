@@ -79,6 +79,10 @@
 
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
 
+	const setInputPlaceholderData = (handleId: string, value: any) => {
+		io.setInputPlaceholderData(handleId, value);
+	};
+
 	const forceExecute = () => {
 		onExecute(onExecuteCallbacks, true);
 	};
@@ -286,14 +290,26 @@
 				{#if $inputs.length > 0}
 					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $inputs as input}
-							<CustomHandle {showOptionalInputs} nodeId={id} type="input" base={input} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								{setInputPlaceholderData}
+							/>
 						{/each}
 					</div>
 				{/if}
 				{#if $outputs.length > 0}
 					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $outputs as output}
-							<CustomHandle nodeId={id} type="output" base={output} />
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="output"
+								base={output}
+								setInputPlaceholderData={undefined}
+							/>
 						{/each}
 					</div>
 				{/if}
