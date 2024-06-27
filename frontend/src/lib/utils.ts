@@ -6,7 +6,7 @@ import { edges, nodes, openai_key } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type Output } from "./types";
+import { NodeType, type Input, type Output, type NodeValueType } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -142,8 +142,50 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	getInputData = (handle: string) => {
-		const data = _getNodeInputData(this.nodeId, handle) ?? null;
-		return data;
+		let data = _getNodeInputData(this.nodeId, handle);
+
+		if (data === null || data === undefined)
+			data = _getNodeInputPlaceholderData(this.nodeId, handle);
+
+		const inputDef = get(this.inputs).find(input => input.id === handle);
+
+		if (inputDef && data) {
+			if (typeof data === 'string' && inputDef.type === 'number') {
+				data = parseFloat(data);
+			}
+			if (typeof data === 'string' && inputDef.type === 'json') {
+				data = JSON.parse(data);
+			}
+			if (!this.validateDataType(data, inputDef.type)) {
+				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${typeof data}`);
+			}
+		}
+
+		return data ?? null;
+	}
+
+	private validateDataType(data: any, expectedType: NodeValueType): boolean {
+		switch (expectedType) {
+			case 'number':
+				return typeof data === 'number' && !isNaN(data);
+			case 'text':
+				return typeof data === 'string';
+			case 'boolean':
+				return typeof data === 'boolean';
+			case 'any':
+				return true;
+			default:
+				// Handle array types
+				if (expectedType.endsWith('[]')) {
+					const baseType = expectedType.slice(0, -2) as 'number' | 'text' | 'boolean';
+					return Array.isArray(data) && data.every(item => this.validateDataType(item, baseType));
+				}
+				return false;
+		}
+	}
+
+	setInputPlaceholderData(handleId: string, value: any) {
+		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
 	}
 }
 
@@ -235,35 +277,30 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 };
 
 export const outputData: Record<string, Record<string, any>> = {};
+export const inputPlaceholderData: Record<string, Record<string, any>> = {};
 
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	// nodes.update(n => {
-	// 	const node = n.find(n => n.id === id);
-	// 	if (!node) return n;
-	// 	node.data = { ...node.data, ...data };
-	// 	return n;
-	// });
-
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// node.data = { ...node.data, ...data };
-
-
 	outputData[id] = {
 		...outputData[id],
 		...data
 	}
 }
 
-export const _getNodeOutputData = (id: string, handle: string) => {
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// return node.data[handle];
+export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
+	inputPlaceholderData[id] = {
+		...inputPlaceholderData[id],
+		...data
+	}
+}
 
+export const _getNodeOutputData = (id: string, handle: string) => {
 	const data = outputData[id];
+	if (!data) return;
+	return data[handle];
+}
+
+export const _getNodeInputPlaceholderData = (id: string, handle: string) => {
+	const data = inputPlaceholderData[id];
 	if (!data) return;
 	return data[handle];
 }
@@ -272,18 +309,8 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	const e = get(edges);
 	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === edge.source);
-	// if (!node) return;
-
-	// if (!edge.sourceHandle) return;
-
-	// return node.data[edge.sourceHandle]
-
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
-
 
 export type ApiKeys = {
 	openai: string | null

@@ -1,10 +1,4 @@
 <script lang="ts" context="module">
-	export const HANDLE_WIDTH = 12;
-	export const ROW_HEIGHT = 30;
-	export const ROW_GAP = 10;
-	export const BORDER_WIDTH = 2;
-	export const HEADER_HEIGHT = 40;
-
 	const handlers: Record<string, () => void> = {};
 
 	// Should we change this to timeouts to avoid overlapping executions?
@@ -22,7 +16,7 @@
 		type NodeError,
 		type ConnectWith
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
+	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
@@ -35,7 +29,7 @@
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
 
-	/* eslint-disable*/
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -50,7 +44,7 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable*/
+	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
@@ -70,6 +64,8 @@
 	export let errors: NodeError[] = [];
 	export let io: NodeIOHandler<any, any>;
 
+	const updateNodeInternals = useUpdateNodeInternals();
+
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
 			errors = [];
@@ -83,9 +79,17 @@
 
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
 
+	const setInputPlaceholderData = (handleId: string, value: any) => {
+		io.setInputPlaceholderData(handleId, value);
+	};
+
 	const forceExecute = () => {
-		console.log('Forcing execute');
 		onExecute(onExecuteCallbacks, true);
+	};
+
+	const toggleOptionalInputs = () => {
+		showOptionalInputs = !showOptionalInputs;
+		updateNodeInternals(id);
 	};
 
 	onMount(() => {
@@ -153,21 +157,12 @@
 	$: inputs = io.inputs;
 	$: outputs = io.outputs;
 
-	$: rows = Math.max($inputs.length, $outputs.length);
 	$: hasContent = !!$$slots['default'];
-	$: top = (index: number) =>
-		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
-	$: minHeight =
-		HEADER_HEIGHT +
-		ROW_HEIGHT * rows +
-		ROW_GAP * rows +
-		BORDER_WIDTH * 2 +
-		4 +
-		5 +
-		(hasContent ? 20 : 0);
+
+	$: hasOptionalInputs = $inputs.some((input) => input.optional);
+	let showOptionalInputs = false;
 
 	let hovered = false;
-
 	const c = useConnection();
 
 	$: startType = $c.startHandle?.type;
@@ -184,6 +179,12 @@
 			true
 		) &&
 		$c.startHandle.nodeId !== id;
+
+	const stopPropagation = (e: any) => {
+		if (e.key === 'Enter' && e.target.click) {
+			e.target.click();
+		}
+	};
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -199,12 +200,16 @@
 		</div>
 	</div>
 {/if}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
+	on:click|stopPropagation
+	on:keydown|stopPropagation={stopPropagation}
+	role="button"
+	tabindex="0"
 >
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
@@ -239,6 +244,7 @@
 					<Check class="w-6 h-6 text-green-500" />
 				{/if}
 			</div>
+
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
 				<Button size="flat" on:click={forceExecute}>Re-run</Button>
 			{/if}
@@ -247,7 +253,6 @@
 
 	<NodeResizer
 		minWidth={200}
-		{minHeight}
 		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
@@ -259,7 +264,7 @@
 			colors.fullbackground,
 			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
 		)}
-		style="height: {HEADER_HEIGHT}px;"
+		style="height: 40px;"
 	>
 		{label}
 	</div>
@@ -270,7 +275,7 @@
 			colors.border,
 			errors.length && 'border-red-500'
 		)}
-		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
+		style="min-width: 200px; border-width: 2px"
 	>
 		<div
 			class={cn(
@@ -281,31 +286,43 @@
 				colors.border
 			)}
 		>
-			<div
-				class="flex justify-between font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
-			>
+			<div class="flex justify-between font-semibold leading-none max-w-full flex-shrink-0">
 				{#if $inputs.length > 0}
-					<div
-						class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
-						{#each $inputs as input, index}
-							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
+					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
+						{#each $inputs as input}
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								{setInputPlaceholderData}
+							/>
 						{/each}
 					</div>
 				{/if}
 				{#if $outputs.length > 0}
-					<div
-						class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
-						{#each $outputs as output, index}
-							<CustomHandle nodeId={id} type="output" base={output} top={top(index)} />
+					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
+						{#each $outputs as output}
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="output"
+								base={output}
+								setInputPlaceholderData={undefined}
+							/>
 						{/each}
 					</div>
 				{/if}
 			</div>
+			{#if hasOptionalInputs}
+				<div class="flex justify-left items-center ml-5">
+					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
+						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
+					</Button>
+				</div>
+			{/if}
 		</div>
+
 		{#if hasContent}
 			<div
 				class={cn(
