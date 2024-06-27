@@ -6,7 +6,7 @@ import { edges, nodes, openai_key } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type Output } from "./types";
+import { NodeType, type Input, type Output, type NodeValueType } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -142,8 +142,43 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	getInputData = (handle: string) => {
-		const data = _getNodeInputData(this.nodeId, handle) ?? null;
-		return data;
+		let data = _getNodeInputData(this.nodeId, handle);
+
+		const inputDef = get(this.inputs).find(input => input.id === handle);
+
+		if (inputDef && data) {
+			if (typeof data === 'string' && inputDef.type === 'number') {
+				data = parseFloat(data);
+			}
+			if (typeof data === 'string' && inputDef.type === 'json') {
+				data = JSON.parse(data);
+			}
+			if (!this.validateDataType(data, inputDef.type)) {
+				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${typeof data}`);
+			}
+		}
+
+		return data ?? null;
+	}
+
+	private validateDataType(data: any, expectedType: NodeValueType): boolean {
+		switch (expectedType) {
+			case 'number':
+				return typeof data === 'number' && !isNaN(data);
+			case 'text':
+				return typeof data === 'string';
+			case 'boolean':
+				return typeof data === 'boolean';
+			case 'any':
+				return true;
+			default:
+				// Handle array types
+				if (expectedType.endsWith('[]')) {
+					const baseType = expectedType.slice(0, -2) as 'number' | 'text' | 'boolean';
+					return Array.isArray(data) && data.every(item => this.validateDataType(item, baseType));
+				}
+				return false;
+		}
 	}
 }
 

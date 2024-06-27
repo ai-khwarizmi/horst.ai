@@ -8,6 +8,7 @@ export const canConnectTypes = (obj: {
     output: NodeValueType, input: NodeValueType
 }) => {
     if (obj.input === 'any') return true;
+    if (obj.input === 'number' && obj.output === 'text') return true;
     return obj.output === obj.input;
 }
 
