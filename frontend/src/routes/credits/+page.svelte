@@ -135,6 +135,12 @@
 			url: 'https://github.com/openai/openai-node',
 			branch: 'master',
 			license: 'Apache License 2.0'
+		},
+		'@clerk/clerk-js': {
+			name: '@clerk/clerk-js',
+			url: 'https://github.com/clerk/javascript',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 
