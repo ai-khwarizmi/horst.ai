@@ -127,13 +127,20 @@ type InputOptionInputField = {
     inputOptionType: 'input-field';
     default: undefined | any;
 }
+type InputOptionNumber = {
+    inputOptionType: 'number';
+    default: undefined | any;
+    min: number;
+    max: number;
+    step: number;
+}
 type InputOptionDropdown = {
     inputOptionType: 'dropdown';
     options: any[];
     default: undefined | any;
 }
 
-type InputOption = InputOptionInputField | InputOptionDropdown;
+type InputOption = InputOptionInputField | InputOptionDropdown | InputOptionNumber;
 
 export type Input<TNodeID extends string> = BaseIO<TNodeID> & {
     input?: InputOption;
