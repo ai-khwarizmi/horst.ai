@@ -35,11 +35,10 @@ export const attemptClerkInit = async () => {
 
 const initClerk = (clerk: CLERK.Clerk) => {
     if (!browser) return;
-    clerk.addListener(({ _client, _organization, user }) => {
+    clerk.addListener(({ user }) => {
         if (user) {
             const email = user.primaryEmailAddress?.emailAddress || null;
             const emailVerified = user.primaryEmailAddress?.verification.status === "verified";
-
             session.set({
                 id: user.id,
                 name: user.username || user.firstName || user.fullName || null,
