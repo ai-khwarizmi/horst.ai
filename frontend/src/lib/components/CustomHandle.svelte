@@ -13,14 +13,24 @@
 	} from '$lib/components/ui/dropdown-menu';
 	import { ChevronDown } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
+	import { onMount } from 'svelte';
 
 	const HANDLE_WIDTH = 12;
+	const c = useConnection();
 
 	export let nodeId: string;
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let showOptionalInputs: boolean = true;
 	export let setInputPlaceholderData: ((handleId: string, value: any) => void);
+	export let getCurrentInputPlaceholderData: ((handleId: string) => any);
+
+	let selectedOption = 'Select option';
+	let searchTerm = '';
+	let filteredOptions: string[] = [];
+	let selectedIndex = -1;
+	let isOpen = false;
+	let inputValue = '';
 
 	$: isInput = type === 'input';
 
@@ -50,7 +60,6 @@
 		removeEdgeByIds(...edgesToRemove);
 	};
 
-	const c = useConnection();
 
 	$: shouldDimHandle =
 		$c.startHandle?.handleId &&
@@ -79,14 +88,6 @@
 		`
 		}
 	`;
-
-	let selectedOption = 'Select option';
-	let searchTerm = '';
-	let filteredOptions: string[] = [];
-	let selectedIndex = -1;
-	let isOpen = false;
-
-	let inputValue = '';
 
 	if ('input' in base && base.input?.default) {
 		if (base.input.inputOptionType === 'dropdown') {
@@ -173,6 +174,16 @@
 		}
 	}
 
+	onMount(() => {
+		//set defaults depending on type
+		const currentValue = getCurrentInputPlaceholderData(base.id);
+		if ('input' in base && base.input?.inputOptionType === 'dropdown' && currentValue) {
+			selectedOption = currentValue;
+		}
+		if ('input' in base && base.input?.inputOptionType === 'input-field' && currentValue) {
+			inputValue = currentValue;
+		}
+	})
 </script>
 
 <div

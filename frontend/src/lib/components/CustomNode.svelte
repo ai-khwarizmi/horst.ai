@@ -81,6 +81,10 @@
 		io.setInputPlaceholderData(handleId, value);
 	};
 
+	const getCurrentInputPlaceholderData = (handleId: string) => {
+		return io.getInputPlaceholderData(handleId);
+	}
+
 	const forceExecute = () => {
 		onExecute(onExecuteCallbacks, true);
 	};
@@ -341,6 +345,7 @@
 								type="input"
 								base={input}
 								{setInputPlaceholderData}
+								getCurrentInputPlaceholderData={getCurrentInputPlaceholderData}
 							/>
 						{/each}
 					</div>
@@ -353,7 +358,8 @@
 								nodeId={id}
 								type="output"
 								base={output}
-								setInputPlaceholderData={undefined}
+								setInputPlaceholderData={() => {}}
+								getCurrentInputPlaceholderData={() => {}}
 							/>
 						{/each}
 					</div>
