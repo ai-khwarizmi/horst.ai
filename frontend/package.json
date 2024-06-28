@@ -26,6 +26,11 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write ."
 	},
+	"husky": {
+		"hooks": {
+			"pre-push": "npm run build || (echo 'Build failed. Push aborted.' && exit 1)"
+		}
+	},
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^3.1.1",
 		"@types/eslint": "^8.56.10",
@@ -36,6 +41,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.41.0",
 		"globals": "^15.6.0",
+		"husky": "^9.0.11",
 		"mode-watcher": "^0.3.1",
 		"postcss": "^8.4.38",
 		"prettier": "^3.3.2",
