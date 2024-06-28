@@ -17,7 +17,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { onDestroy, onMount} from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';

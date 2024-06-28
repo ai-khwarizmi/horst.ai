@@ -3,7 +3,10 @@ import { env } from "$env/dynamic/public";
 import * as CLERK from "@clerk/clerk-js";
 import { writable } from "svelte/store";
 
-const PUBLIC_CLERK_PUBLISHABLE_KEY = env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+let PUBLIC_CLERK_PUBLISHABLE_KEY: string | undefined = undefined;
+if (browser) {
+    PUBLIC_CLERK_PUBLISHABLE_KEY = env.PUBLIC_CLERK_PUBLISHABLE_KEY;
+}
 
 export const clerk = writable<CLERK.Clerk | null>(null);
 
@@ -31,7 +34,8 @@ export const attemptClerkInit = async () => {
 }
 
 const initClerk = (clerk: CLERK.Clerk) => {
-    clerk.addListener(({ client, organization, user }) => {
+    if (!browser) return;
+    clerk.addListener(({ _client, _organization, user }) => {
         if (user) {
             const email = user.primaryEmailAddress?.emailAddress || null;
             const emailVerified = user.primaryEmailAddress?.verification.status === "verified";

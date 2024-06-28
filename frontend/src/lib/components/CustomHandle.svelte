@@ -20,7 +20,7 @@
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
 	export let showOptionalInputs: boolean = true;
-	export let setInputPlaceholderData: ((handleId: string, value: any) => void) | undefined;
+	export let setInputPlaceholderData: ((handleId: string, value: any) => void);
 
 	$: isInput = type === 'input';
 
@@ -173,14 +173,6 @@
 		}
 	}
 
-	function bindDropdownContent(node: HTMLElement) {
-		dropdownContent = node;
-		return {
-			destroy() {
-				dropdownContent = null;
-			}
-		};
-	}
 </script>
 
 <div
