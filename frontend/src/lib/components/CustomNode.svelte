@@ -17,7 +17,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -180,9 +180,23 @@
 		) &&
 		$c.startHandle.nodeId !== id;
 
-	const stopPropagation = (e: any) => {
-		if (e.key === 'Enter' && e.target.click) {
-			e.target.click();
+	const onClick = async (e: MouseEvent) => {
+		//this hacky stuff is only needed for newly selected nodes
+		if (selected) return;
+		const clickedElement = e.target as HTMLElement;
+
+		if (!selected && clickedElement.tagName === 'TEXTAREA') {
+			const textarea = clickedElement as HTMLTextAreaElement;
+			const focusElement = () => {
+				console.log('Attempting to focus');
+				textarea.focus();
+			};
+			for (let i = 0; i < 20; i++) {
+				//... sorry about this, i tried lots of other things like listening to blur, waiting for next tick
+				// i don't understand why the textbox still gets deselected
+				await new Promise((resolve) => setTimeout(resolve, 5));
+				focusElement();
+			}
 		}
 	};
 </script>
@@ -206,8 +220,8 @@
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
-	on:click|stopPropagation
-	on:keydown|stopPropagation={stopPropagation}
+	on:click={onClick}
+	on:keydown={() => {}}
 	role="button"
 	tabindex="0"
 >
