@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { edges, nodes, projectName, projectId, viewport } from "$lib";
+import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData } from "$lib";
 import { FILE_VERSION } from "./version";
 import { registeredNodes } from "@/nodes";
 import { NodeType } from "@/types";
@@ -7,7 +7,6 @@ import * as LZString from 'lz-string';
 import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
-import { inputPlaceholderData, outputData } from "@/utils";
 import { generateProjectId } from "./projectId";
 
 
@@ -202,6 +201,7 @@ export const loadFromGraph = (graph: any) => {
     let invalid_edges = 0;
     for (const edge of graph.edges) {
         if (!isValidEdge(edge, valid_nodes)) {
+            console.log('edge', edge);
             toast.error('URL: Invalid edge');
             invalid_edges++;
             continue;

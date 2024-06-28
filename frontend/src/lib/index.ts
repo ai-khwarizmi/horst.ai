@@ -10,6 +10,19 @@ import { parseProjectId } from "./utils/projectId";
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
 
+export const projectId = writable<string>('');
+export const projectName = writable<string>('');
+export const nodes = writable<Node[]>([]);
+export const edges = writable<Edge[]>([]);
+export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
+export const outputData: Record<string, Record<string, any>> = {};
+export const inputPlaceholderData: Record<string, Record<string, any>> = {};
+
+export const commandOpen = writable(false);
+export const createNodeParams = writable<{
+    position: XYPosition; node?: ConnectWith
+} | null>(null);
+
 openai_key.subscribe((key) => {
     if (browser) {
         if (key && key.length > 0) {
@@ -30,19 +43,6 @@ anthropic_key.subscribe((key) => {
     }
 });
 
-export const projectId = writable<string>('');
-export const projectName = writable<string>('');
-export const nodes = writable<Node[]>([]);
-export const edges = writable<Edge[]>([]);
-export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
-
-export const commandOpen = writable(false);
-export const createNodeParams = writable<{
-    position: XYPosition; node?: ConnectWith
-} | null>(null);
-
-
-
 const setProjectUrl = () => {
     if (typeof history === 'undefined') return;
     if (typeof window === 'undefined') return;
@@ -57,13 +57,15 @@ const setProjectUrl = () => {
     if (parsed && parsed.uuid) {
         const hashValue = window.location.hash;
 
-        let targetPath = `/project/${_projectId}`;
+        let targetPath = `/project/${_projectId}/`;
         if (hashValue && hashValue.length > 2) {
             targetPath = `/project/${_projectId}${hashValue}`;
         }
 
         const currentPath = window.location.pathname + window.location.hash;
         if (currentPath === targetPath) return;
+        console.log(currentPath, 'current path');
+        console.log(targetPath, 'target path');
 
         goto(targetPath, { replaceState: true });
     }

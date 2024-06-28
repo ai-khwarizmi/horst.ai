@@ -28,6 +28,8 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
+	import Input from './ui/input/input.svelte';
+	import { Input as InputType } from './ui/input';
 
 	/* eslint-disable */
 	export let selectable: boolean = false;
@@ -51,6 +53,9 @@
 	export let type: string = '';
 	export let selected: boolean = false;
 	export let data: any = {};
+	export let status: NodeStatus = 'idle';
+	export let errors: NodeError[] = [];
+	export let io: NodeIOHandler<any, any>;
 
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
@@ -58,11 +63,6 @@
 	$: colors = getNodeColors(nodeType);
 
 	let isResizing = false;
-
-	export let status: NodeStatus = 'idle';
-
-	export let errors: NodeError[] = [];
-	export let io: NodeIOHandler<any, any>;
 
 	const updateNodeInternals = useUpdateNodeInternals();
 
@@ -92,19 +92,12 @@
 		updateNodeInternals(id);
 	};
 
-	onMount(() => {
-		if (!id) {
-			throw new Error('Node ID is required');
-		}
-
-		if (Array.isArray(data.inputs)) {
-			io.addInput(...data.inputs);
-		}
-		if (Array.isArray(data.outputs)) {
-			io.addOutput(...data.outputs);
-		}
-
-		handlers[id] = () => onExecute(onExecuteCallbacks, false);
+	/*
+		This function connects the newly added node to an existing node specified in `connectWith`.
+		This occurs when you drag an edge to an empty space (without a connector) 
+		and then select a new node to add.
+	*/
+	const connectToNodeOnMount = () => {
 		if (data.connectWith) {
 			const connectWith: ConnectWith = data.connectWith;
 			const connectWithIO = nodeIOHandlers[connectWith.id];
@@ -147,6 +140,46 @@
 				}
 			}
 		}
+	}
+	const setInputPlaceholderDataOnMount = () => {
+		get(io.inputs).forEach((input) => {
+
+		//get current default, if it exists
+		const defaultValue = io.getInputPlaceholderData(input.id);
+		if(defaultValue)
+			return;
+
+		switch (input.input?.inputOptionType) {
+			case 'input-field':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			case 'number':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			case 'dropdown':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			default:
+				break;
+		}
+		});
+	}
+	onMount(() => {
+		if (!id) {
+			throw new Error('Node ID is required');
+		}
+
+		if (Array.isArray(data.inputs)) {
+			io.addInput(...data.inputs);
+		}
+		if (Array.isArray(data.outputs)) {
+			io.addOutput(...data.outputs);
+		}
+
+		connectToNodeOnMount();
+		setInputPlaceholderDataOnMount();
+
+		handlers[id] = () => onExecute(onExecuteCallbacks, false);
 	});
 
 	onDestroy(() => {

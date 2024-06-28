@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, nodes, openai_key } from "$lib";
+import { edges, inputPlaceholderData, nodes, openai_key, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
@@ -89,7 +89,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
-			const inputsToAdd = newInputs.filter(i => !inputs.find(i2 => i2.id === i.id));
+			const inputsToAdd = newInputs.filter(i => !inputs.find((i2: any) => i2.id === i.id));
 			node.data = { ...node.data, inputs: [...inputs, ...inputsToAdd] };
 			return n;
 		})
@@ -115,7 +115,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			node.data = { ...node.data, outputs: outputs.filter(o => !ids.includes(o.id)) };
+			node.data = { ...node.data, outputs: outputs.filter((o: any) => !ids.includes(o.id)) };
 			return n;
 		})
 		this.outputs.update(o => o.filter(output => !ids.includes(output.id)));
@@ -126,7 +126,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			const outputsToAdd = newOutputs.filter(o => !outputs.find(o2 => o2.id === o.id));
+			const outputsToAdd = newOutputs.filter(o => !outputs.find((o2: any) => o2.id === o.id));
 			node.data = { ...node.data, outputs: [...outputs, ...outputsToAdd] };
 			return n;
 		})
@@ -138,6 +138,11 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	getOutputData = (handle: string) => {
 		const data = _getNodeOutputData(this.nodeId, handle) ?? null;
+		return data;
+	}
+
+	getInputPlaceholderData = (handle: string) => {
+		const data = _getNodeInputPlaceholderData(this.nodeId, handle) ?? null;
 		return data;
 	}
 
@@ -275,9 +280,6 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 
 	return node
 };
-
-export const outputData: Record<string, Record<string, any>> = {};
-export const inputPlaceholderData: Record<string, Record<string, any>> = {};
 
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
 	outputData[id] = {
