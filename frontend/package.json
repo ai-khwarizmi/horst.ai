@@ -59,8 +59,6 @@
 		"@sveltejs/kit": "^2.5.17",
 		"@xyflow/svelte": "^0.1.7",
 		"bits-ui": "^0.21.11",
-		"bs58": "^5.0.0",
-		"buffer": "^6.0.3",
 		"cmdk-sv": "^0.0.17",
 		"lucide-svelte": "^0.394.0",
 		"lz-string": "^1.5.0",
