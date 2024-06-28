@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+cd frontend && pnpm run build || (echo "Build failed. Push aborted." && exit 1)
