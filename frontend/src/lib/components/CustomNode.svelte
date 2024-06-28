@@ -28,8 +28,6 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
-	import Input from './ui/input/input.svelte';
-	import { Input as InputType } from './ui/input';
 
 	/* eslint-disable */
 	export let selectable: boolean = false;
