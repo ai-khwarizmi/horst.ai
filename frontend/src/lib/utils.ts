@@ -145,7 +145,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				}
 			})
 			if (changedWithoutPlaceholders) {
-				console.log('setting new input data without placeholders', _inputDataWithoutPlaceholders);
 				inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
 			}
 			if (changed) {
