@@ -123,6 +123,12 @@
 			url: 'https://github.com/clerk/javascript',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'lodash-es': {
+			name: 'lodash-es',
+			url: 'https://github.com/lodash/lodash',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 

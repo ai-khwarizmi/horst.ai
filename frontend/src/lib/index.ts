@@ -7,6 +7,7 @@ import { goto } from "$app/navigation";
 import { get } from "svelte/store";
 import { generateProjectId, parseProjectId } from "./utils/projectId";
 import { nodeIOHandlers } from "./utils";
+import { debounce } from 'lodash-es';
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
@@ -83,8 +84,6 @@ const setProjectUrl = () => {
 
         const currentPath = window.location.pathname + window.location.hash;
         if (currentPath === targetPath) return;
-        console.log(currentPath, 'current path');
-        console.log(targetPath, 'target path');
 
         goto(targetPath, { replaceState: true });
     }
@@ -100,15 +99,16 @@ edges.subscribe(saveToLocalStorageAndSetProjectUrl);
 viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
 projectId.subscribe(setProjectUrl)
 
+const debouncedHandleChanges = debounce(() => {
+    Object.values(nodeIOHandlers).forEach((ioHandler) => {
+        ioHandler.onOutputsChanged();
+    });
+}, 50);
+
 outputData.subscribe(() => {
-    console.log('output data changed');
-    Object.values(nodeIOHandlers).forEach((ioHandler) => {
-        ioHandler.onOutputsChanged();
-    })
+    debouncedHandleChanges();
 });
+
 edges.subscribe(() => {
-    console.log('edges changed');
-    Object.values(nodeIOHandlers).forEach((ioHandler) => {
-        ioHandler.onOutputsChanged();
-    })
+    debouncedHandleChanges();
 });
