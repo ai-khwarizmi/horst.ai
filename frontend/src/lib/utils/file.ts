@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData } from "$lib";
+import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData, resetProject } from "$lib";
 import { FILE_VERSION } from "./version";
 import { registeredNodes } from "@/nodes";
 import { NodeType } from "@/types";
@@ -139,15 +139,6 @@ export const loadFromLocalStorage = () => {
     return loadFromGraph(graph);
 }
 
-export const resetGraph = () => {
-    window.location.hash = '';
-    projectId.set(generateProjectId('local'));
-    projectName.set('');
-    nodes.set([]);
-    edges.set([]);
-    viewport.set({ x: 0, y: 0, zoom: 1 });
-}
-
 export const loadGraph = async () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -169,6 +160,8 @@ export const loadFromFile = async (file: File) => {
 }
 
 export const loadFromGraph = (graph: any) => {
+    resetProject();
+
     if (graph.version !== FILE_VERSION) {
         toast.error('URL: Version mismatch');
         return false;

@@ -10,7 +10,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
-	import { resetGraph } from '@/utils/file';
+	import { resetProject } from '@/index';
 </script>
 
 <Dialog.Root bind:open={$newFileOpen}>
@@ -28,7 +28,7 @@
 				<Button
 					variant="default"
 					on:click={() => {
-						resetGraph();
+						resetProject();
 						newFileOpen.set(false);
 					}}
 				>

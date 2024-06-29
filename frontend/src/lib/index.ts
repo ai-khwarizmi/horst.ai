@@ -5,7 +5,7 @@ import { browser } from "$app/environment";
 import type { ConnectWith } from "./types";
 import { goto } from "$app/navigation";
 import { get } from "svelte/store";
-import { parseProjectId } from "./utils/projectId";
+import { generateProjectId, parseProjectId } from "./utils/projectId";
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
@@ -17,6 +17,22 @@ export const edges = writable<Edge[]>([]);
 export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
 export const outputData: Record<string, Record<string, any>> = {};
 export const inputPlaceholderData: Record<string, Record<string, any>> = {};
+export const inputData: Record<string, Record<string, any>> = {};
+export const inputDataWithoutPlaceholder: Record<string, Record<string, any>> = {};
+
+export function resetProject() {
+    window.location.hash = '';
+    projectId.set(generateProjectId('local'));
+    projectName.set('');
+    viewport.set({ x: 0, y: 0, zoom: 1 });
+    Object.keys(outputData).forEach(key => delete outputData[key]);
+    Object.keys(inputPlaceholderData).forEach(key => delete inputPlaceholderData[key]);
+    Object.keys(inputData).forEach(key => delete inputData[key]);
+    Object.keys(inputDataWithoutPlaceholder).forEach(key => delete inputDataWithoutPlaceholder[key]);
+    nodes.set([]);
+    edges.set([]);
+}
+
 
 export const commandOpen = writable(false);
 export const createNodeParams = writable<{
