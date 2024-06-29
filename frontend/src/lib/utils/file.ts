@@ -36,10 +36,10 @@ export function getSaveData(includeData: boolean): {
         }
         const nodeType = registeredNodes[node.type].nodeType;
         if (includeData && nodeType === NodeType.INPUT) {
-            data[node.id] = outputData[node.id]
+            data[node.id] = get(outputData)[node.id]
         }
         if (includeData) {
-            _inputPlaceholderData[node.id] = inputPlaceholderData[node.id]
+            _inputPlaceholderData[node.id] = get(inputPlaceholderData)[node.id]
         }
     }
 
@@ -212,13 +212,19 @@ export const loadFromGraph = (graph: any) => {
 
     if (graph.data) {
         for (const [id, data] of Object.entries(graph.data)) {
-            outputData[id] = data as Record<string, any>;
+            outputData.update(currentData => ({
+                ...currentData,
+                [id]: data as Record<string, any>
+            }));
         }
     }
 
     if (graph.inputPlaceholderData) {
         for (const [id, data] of Object.entries(graph.inputPlaceholderData)) {
-            inputPlaceholderData[id] = data as Record<string, any>;
+            inputPlaceholderData.update(currentData => ({
+                ...currentData,
+                [id]: data as Record<string, any>
+            }));
         }
     }
 

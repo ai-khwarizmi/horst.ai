@@ -282,27 +282,33 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 };
 
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	outputData[id] = {
-		...outputData[id],
-		...data
-	}
+	outputData.update(currentData => ({
+		...currentData,
+		[id]: {
+			...currentData[id],
+			...data
+		}
+	}));
 }
 
 export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
-	inputPlaceholderData[id] = {
-		...inputPlaceholderData[id],
-		...data
-	}
+	inputPlaceholderData.update(currentData => ({
+		...currentData,
+		[id]: {
+			...currentData[id],
+			...data
+		}
+	}));
 }
 
 export const _getNodeOutputData = (id: string, handle: string) => {
-	const data = outputData[id];
+	const data = get(outputData)[id];
 	if (!data) return;
 	return data[handle];
 }
 
 export const _getNodeInputPlaceholderData = (id: string, handle: string) => {
-	const data = inputPlaceholderData[id];
+	const data = get(inputPlaceholderData)[id];
 	if (!data) return;
 	return data[handle];
 }

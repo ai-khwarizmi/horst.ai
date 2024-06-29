@@ -15,20 +15,20 @@ export const projectName = writable<string>('');
 export const nodes = writable<Node[]>([]);
 export const edges = writable<Edge[]>([]);
 export const viewport = writable<Viewport>({ x: 0, y: 0, zoom: 1 });
-export const outputData: Record<string, Record<string, any>> = {};
-export const inputPlaceholderData: Record<string, Record<string, any>> = {};
-export const inputData: Record<string, Record<string, any>> = {};
-export const inputDataWithoutPlaceholder: Record<string, Record<string, any>> = {};
+export const outputData = writable<Record<string, Record<string, any>>>({});
+export const inputPlaceholderData = writable<Record<string, Record<string, any>>>({});
+export const inputData = writable<Record<string, Record<string, any>>>({});
+export const inputDataWithoutPlaceholder = writable<Record<string, Record<string, any>>>({});
 
 export function resetProject() {
     window.location.hash = '';
     projectId.set(generateProjectId('local'));
     projectName.set('');
     viewport.set({ x: 0, y: 0, zoom: 1 });
-    Object.keys(outputData).forEach(key => delete outputData[key]);
-    Object.keys(inputPlaceholderData).forEach(key => delete inputPlaceholderData[key]);
-    Object.keys(inputData).forEach(key => delete inputData[key]);
-    Object.keys(inputDataWithoutPlaceholder).forEach(key => delete inputDataWithoutPlaceholder[key]);
+    outputData.set({});
+    inputPlaceholderData.set({});
+    inputData.set({});
+    inputDataWithoutPlaceholder.set({});
     nodes.set([]);
     edges.set([]);
 }
