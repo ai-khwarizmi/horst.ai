@@ -122,6 +122,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	onOutputsChanged = () => {
 		//iterate over all inputs, and check if their value changed
 		let changed = false;
+		let changedWithoutPlaceholders = false;
 		const _inputData = get(inputData);
 		const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
 		get(this.inputs).forEach((input) => {
@@ -134,11 +135,14 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
 			if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[input.id]) {
 				_inputDataWithoutPlaceholders[input.id] = inputValueWithoutPlaceholder;
+				changedWithoutPlaceholders = true;
 			}
 		})
+		if (changedWithoutPlaceholders) {
+			inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
+		}
 		if (changed) {
 			inputData.set(_inputData);
-			inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
 			this.onExecute(this.onExecuteCallbacks!, false);
 		} else {
 			console.log('input data for node', this.nodeId, ' NOT changed', _inputData);
