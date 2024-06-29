@@ -228,7 +228,7 @@
 		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
 			<div class="flex flex-col w-full justify-center">
 				<label class="text-xs text-muted-foreground" for="input-element"
-					>{base.label || base.type}</label
+					>{base.label} <span class="text-gray-500 bg-white">[{base.type}]</span></label
 				>
 				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>
@@ -286,7 +286,7 @@
 						type="text"
 						bind:value={tempInputValue}
 						class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px]"
-						placeholder="Enter value..."
+						placeholder="Enter value or connect"
 						on:input={handleInput}
 						on:blur={saveInputValue}
 						on:keydown={handleKeyDown}

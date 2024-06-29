@@ -108,8 +108,6 @@ export type OnExecuteCallbacks = {
     setErrors: (newErrors: NodeError[]) => void;
 };
 
-
-
 /**
  * Node I/O
  * id - unique id of the output, stays relevant for project file, if changed, the project file will be invalid
@@ -127,21 +125,20 @@ type InputOptionInputField = {
     inputOptionType: 'input-field';
     default: undefined | any;
 }
-type InputOptionNumber = {
-    inputOptionType: 'number';
-    default: undefined | any;
-    min: number;
-    max: number;
-    step: number;
-}
 type InputOptionDropdown = {
     inputOptionType: 'dropdown';
     options: any[];
     default: undefined | any;
 }
 
-type InputOption = InputOptionInputField | InputOptionDropdown | InputOptionNumber;
+type InputOption = InputOptionInputField | InputOptionDropdown;
 
+export function basicInputOptionInput(): InputOptionInputField {
+    return {
+        inputOptionType: 'input-field',
+        default: undefined
+    }
+}
 export type Input<TNodeID extends string> = BaseIO<TNodeID> & {
     input?: InputOption;
 }
