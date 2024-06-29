@@ -216,7 +216,6 @@
 		if (!selected && clickedElement.tagName === 'TEXTAREA') {
 			const textarea = clickedElement as HTMLTextAreaElement;
 			const focusElement = () => {
-				console.log('Attempting to focus');
 				textarea.focus();
 			};
 			for (let i = 0; i < 20; i++) {
@@ -263,7 +262,7 @@
 						<HoverCard.Trigger>
 							<TriangleAlert class="w-6 h-6 text-red-500" />
 						</HoverCard.Trigger>
-						<HoverCard.Content class="p-2 text-xs">
+						<HoverCard.Content class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words">
 							<ul class="list-disc list-inside">
 								{#each errors as error}
 									{#if typeof error === 'string'}
@@ -271,9 +270,6 @@
 									{:else}
 										<li>
 											{error.message}
-											<button class="text-blue-500 hover:underline" on:click={error.resolve}>
-												Resolve
-											</button>
 										</li>
 									{/if}
 								{/each}

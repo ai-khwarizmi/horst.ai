@@ -76,7 +76,6 @@ viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
 projectId.subscribe(setProjectUrl)
 
 const debouncedHandleChanges = debounce(() => {
-    console.log('debounced handle changes');
     Object.values(nodeIOHandlers).forEach((ioHandler) => {
         ioHandler.onOutputsChanged();
     });
