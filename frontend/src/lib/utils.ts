@@ -121,37 +121,42 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	onOutputsChanged = () => {
 		//iterate over all inputs, and check if their value changed
-		let changed = false;
-		let changedWithoutPlaceholders = false;
-		const _inputData = get(inputData);
-		const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
-		get(this.inputs).forEach((input) => {
-			const inputValue = this.getInputData(input.id);
-			if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
-				if (!_inputData[this.nodeId]) {
-					_inputData[this.nodeId] = {};
+		try {
+			let changed = false;
+			let changedWithoutPlaceholders = false;
+			const _inputData = get(inputData);
+			const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
+			get(this.inputs).forEach((input) => {
+				const inputValue = this.getInputData(input.id);
+				if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
+					if (!_inputData[this.nodeId]) {
+						_inputData[this.nodeId] = {};
+					}
+					_inputData[this.nodeId][input.id] = inputValue;
+					changed = true;
 				}
-				_inputData[this.nodeId][input.id] = inputValue;
-				changed = true;
-			}
-			const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
-			if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
-				if (!_inputDataWithoutPlaceholders[this.nodeId]) {
-					_inputDataWithoutPlaceholders[this.nodeId] = {};
+				const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
+				if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
+					if (!_inputDataWithoutPlaceholders[this.nodeId]) {
+						_inputDataWithoutPlaceholders[this.nodeId] = {};
+					}
+					_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
+					changedWithoutPlaceholders = true;
 				}
-				_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
-				changedWithoutPlaceholders = true;
+			})
+			if (changedWithoutPlaceholders) {
+				console.log('setting new input data without placeholders', _inputDataWithoutPlaceholders);
+				inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
 			}
-		})
-		if (changedWithoutPlaceholders) {
-			console.log('setting new input data without placeholders', _inputDataWithoutPlaceholders);
-			inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
+			if (changed) {
+				inputData.set(_inputData);
+				this.onExecute(this.onExecuteCallbacks!, false);
+			}
+			return changed;
+		} catch (e: any) {
+			this.onExecuteCallbacks?.setErrors([e.toString()]);
+			return false;
 		}
-		if (changed) {
-			inputData.set(_inputData);
-			this.onExecute(this.onExecuteCallbacks!, false);
-		}
-		return changed;
 	}
 
 	removeInput = (...ids: string[]) => {
@@ -217,7 +222,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				data = JSON.parse(data);
 			}
 			if (!this.validateDataType(data, inputDef.type)) {
-				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${typeof data}`);
+				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${data}`);
 			}
 		}
 
