@@ -128,7 +128,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		get(this.inputs).forEach((input) => {
 			const inputValue = this.getInputData(input.id);
 			if (inputValue !== _inputData[input.id]) {
-				console.log('input data for node', this.nodeId, ' changed', input.id, 'from', _inputData[input.id], 'to', inputValue);
 				changed = true;
 				_inputData[input.id] = inputValue;
 			}
@@ -144,8 +143,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		if (changed) {
 			inputData.set(_inputData);
 			this.onExecute(this.onExecuteCallbacks!, false);
-		} else {
-			console.log('input data for node', this.nodeId, ' NOT changed', _inputData);
 		}
 		return changed;
 	}

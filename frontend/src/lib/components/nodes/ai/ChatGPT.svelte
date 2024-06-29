@@ -110,11 +110,11 @@
 						callbacks.setStatus('success');
 					}
 				} catch (error) {
-					console.error('Error calling GPT-4: ', error);
 					callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 				}
 			} else {
 				if (lastOutputValue !== null) {
+				temporaryOutput = '';
 					lastOutputValue = null;
 					io.setOutputData('response', null);
 				}
@@ -123,6 +123,7 @@
 			callbacks.setErrors(['Error executing ChatGPT node', error.toString?.() || 'Unknown error']);
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
+				temporaryOutput = '';
 				io.setOutputData('response', null);
 			}
 		}
