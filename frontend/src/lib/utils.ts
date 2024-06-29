@@ -127,17 +127,24 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
 		get(this.inputs).forEach((input) => {
 			const inputValue = this.getInputData(input.id);
-			if (inputValue !== _inputData[input.id]) {
+			if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
+				if (!_inputData[this.nodeId]) {
+					_inputData[this.nodeId] = {};
+				}
+				_inputData[this.nodeId][input.id] = inputValue;
 				changed = true;
-				_inputData[input.id] = inputValue;
 			}
 			const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
-			if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[input.id]) {
-				_inputDataWithoutPlaceholders[input.id] = inputValueWithoutPlaceholder;
+			if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
+				if (!_inputDataWithoutPlaceholders[this.nodeId]) {
+					_inputDataWithoutPlaceholders[this.nodeId] = {};
+				}
+				_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
 				changedWithoutPlaceholders = true;
 			}
 		})
 		if (changedWithoutPlaceholders) {
+			console.log('setting new input data without placeholders', _inputDataWithoutPlaceholders);
 			inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
 		}
 		if (changed) {

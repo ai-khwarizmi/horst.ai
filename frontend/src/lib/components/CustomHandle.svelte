@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn, removeEdgeByIds } from '@/utils';
-	import { edges } from '..';
+	import { edges, inputDataWithoutPlaceholder } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
 	import { get } from 'svelte/store';
@@ -224,7 +224,8 @@
 			canHideOptionalInput && 'hidden'
 		)}
 	>
-		{#if isInput && 'input' in base}
+
+		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
 			<div class="flex flex-col w-full justify-center">
 				<label class="text-xs text-muted-foreground" for="input-element"
 					>{base.label || base.type}</label
@@ -294,18 +295,25 @@
 			</div>
 		{:else}
 			<div
-				class="flex-grow flex flex-col {isInput
+				class="flex-grow flex flex-col w-full {isInput
 					? 'items-start'
 					: 'items-end'} justify-center h-full"
 			>
-				<span class="text-xs text-muted-foreground">{base.label || ''}</span>
-				<span class="text-sm font-medium">
+				<span class="text-xs text-muted-foreground whitespace-nowrap">{base.label || ''}</span>
+				<div class="text-sm font-medium w-full overflow-hidden">
 					{#if connected.length === 0 && isInput}
-						...connect [{base.type}]
+						<span class="truncate block">...connect [{base.type}]</span>
+					{:else if isInput}
+						<span 
+							class="truncate block whitespace-nowrap text-gray-700 text-sm" 
+							title="{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}"
+						>
+							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}
+						</span>
 					{:else}
-						[{base.type}]
+						<span class="truncate block">[{base.type}]</span>
 					{/if}
-				</span>
+				</div>
 			</div>
 		{/if}
 	</div>
