@@ -99,9 +99,16 @@ nodes.subscribe(saveToLocalStorageAndSetProjectUrl);
 edges.subscribe(saveToLocalStorageAndSetProjectUrl);
 viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
 projectId.subscribe(setProjectUrl)
+
 outputData.subscribe(() => {
     console.log('output data changed');
     Object.values(nodeIOHandlers).forEach((ioHandler) => {
         ioHandler.onOutputsChanged();
     })
-})
+});
+edges.subscribe(() => {
+    console.log('edges changed');
+    Object.values(nodeIOHandlers).forEach((ioHandler) => {
+        ioHandler.onOutputsChanged();
+    })
+});
