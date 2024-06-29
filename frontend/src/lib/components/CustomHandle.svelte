@@ -30,7 +30,7 @@
 	let filteredOptions: string[] = [];
 	let selectedIndex = -1;
 	let isOpen = false;
-	let inputValue = '';
+	let tempInputValue = '';
 
 	$: isInput = type === 'input';
 
@@ -93,7 +93,7 @@
 		if (base.input.inputOptionType === 'dropdown') {
 			selectedOption = base.input.default;
 		} else if (base.input.inputOptionType === 'input-field') {
-			inputValue = base.input.default;
+			tempInputValue = base.input.default;
 		}
 	}
 
@@ -141,6 +141,9 @@
 				}
 				isOpen = false;
 			}
+		} else if (event.key === 'Enter' || ((event.ctrlKey || event.metaKey) && event.key === 's')) {
+			event.preventDefault();
+			saveInputValue();
 		}
 	}
 
@@ -174,6 +177,14 @@
 		}
 	}
 
+	function handleInput(event: Event) {
+		tempInputValue = (event.target as HTMLInputElement).value;
+	}
+
+	function saveInputValue() {
+		setInputPlaceholderData(base.id, tempInputValue);
+	}
+
 	onMount(() => {
 		//set defaults depending on type
 		const currentValue = getCurrentInputPlaceholderData(base.id);
@@ -181,7 +192,7 @@
 			selectedOption = currentValue;
 		}
 		if ('input' in base && base.input?.inputOptionType === 'input-field' && currentValue) {
-			inputValue = currentValue;
+			tempInputValue = currentValue;
 		}
 	})
 </script>
@@ -272,10 +283,12 @@
 				{:else if base.input?.inputOptionType === 'input-field'}
 					<input
 						type="text"
-						bind:value={inputValue}
+						bind:value={tempInputValue}
 						class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px]"
 						placeholder="Enter value..."
-						on:input={() => setInputPlaceholderData(base.id, inputValue)}
+						on:input={handleInput}
+						on:blur={saveInputValue}
+						on:keydown={handleKeyDown}
 					/>
 				{/if}
 			</div>

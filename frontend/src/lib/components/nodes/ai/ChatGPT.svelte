@@ -28,6 +28,24 @@
 		nodeId: id,
 		inputs: [
 			{
+				id: 'prompt_system',
+				type: 'text',
+				label: 'System Prompt',
+				input: {
+					inputOptionType: 'input-field',
+					default: undefined
+				}
+			},
+			{
+				id: 'prompt_user',
+				type: 'text',
+				label: 'User Prompt',
+				input: {
+					inputOptionType: 'input-field',
+					default: undefined
+				}
+			},
+			{
 				id: 'model',
 				type: 'text',
 				label: 'Model',
@@ -59,16 +77,6 @@
 					default: 'gpt-4o'
 				}
 			},
-			{
-				id: 'prompt_system',
-				type: 'text',
-				label: 'System Prompt',
-				input: {
-					inputOptionType: 'input-field',
-					default: undefined
-				}
-			},
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
 			{ id: 'max_tokens', type: 'number', label: 'Max Tokens', optional: true },
 			{ id: 'temperature', type: 'number', label: 'Temperature', optional: true },
 			{ id: 'top_p', type: 'number', label: 'Top P', optional: true },
