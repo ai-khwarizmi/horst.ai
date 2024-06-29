@@ -3,11 +3,6 @@
 	import { NodeIOHandler } from '@/utils';
 
 	export let id: string;
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [{ id: 'encoded', type: 'text', label: 'Base64' }],
-		outputs: [{ id: 'data', type: 'text' }]
-	});
 
 	const onExecute = () => {
 		const input = io.getInputData('encoded');
@@ -16,6 +11,13 @@
 		}
 		io.setOutputData('data', atob(input));
 	};
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'encoded', type: 'text', label: 'Base64' }],
+		outputs: [{ id: 'data', type: 'text' }],
+		onExecute: onExecute
+	});
+
 </script>
 
 <CustomNode {io} {onExecute} {...$$props} />

@@ -8,13 +8,7 @@
 	export let id: string;
 	let data: string | null = null;
 
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [{ id: 'data', type: 'any', label: 'Data' }],
-		outputs: []
-	});
-
-	function onExecute() {
+	const onExecute = () => {
 		const input = io.getInputData('data') ?? null;
 		if (input === null) {
 			data = null;
@@ -27,6 +21,13 @@
 		}
 		data = input.toString();
 	}
+
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [{ id: 'data', type: 'any', label: 'Data' }],
+		outputs: [],
+		onExecute: onExecute
+	});
 
 	function copyToClipboard() {
 		if (data) {

@@ -1,12 +1,3 @@
-<script lang="ts" context="module">
-	const handlers: Record<string, () => void> = {};
-
-	// Should we change this to timeouts to avoid overlapping executions?
-	setInterval(() => {
-		Object.values(handlers).forEach((handler) => handler());
-	}, 50);
-</script>
-
 <script lang="ts">
 	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
@@ -171,22 +162,24 @@
 			throw new Error('Node ID is required');
 		}
 
+		/*
 		if (Array.isArray(data.inputs)) {
 			io.addInput(...data.inputs);
 		}
 		if (Array.isArray(data.outputs)) {
 			io.addOutput(...data.outputs);
 		}
+		*/
+		io.setOnExecuteCallbacks(onExecuteCallbacks);
 
 		connectToNodeOnMount();
 		setInputPlaceholderDataOnMount();
 
-		handlers[id] = () => onExecute(onExecuteCallbacks, false);
+		io.setHandler(() => onExecute(onExecuteCallbacks, false));
 	});
 
 	onDestroy(() => {
 		io.destroy();
-		delete handlers[id];
 	});
 
 	$: inputs = io.inputs;

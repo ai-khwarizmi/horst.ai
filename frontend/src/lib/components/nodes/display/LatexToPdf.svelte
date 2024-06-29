@@ -6,10 +6,40 @@
 
 	export let id: string;
 
+	async function onExecute(callbacks: OnExecuteCallbacks) {
+		const latexCode = io.getInputData('code') as string;
+		if (lastCompiledCode === latexCode) {
+			return;
+		}
+		if (latexCode) {
+			console.log('Received LaTeX code:', latexCode);
+			lastCompiledCode = latexCode;
+			const cleanedLatexCode = extractLatexCode(latexCode);
+			try {
+				callbacks.setStatus('loading');
+				const result = await compileLatex(cleanedLatexCode);
+				if (result.success) {
+					callbacks.setStatus('success');
+				} else {
+					console.error('Error compiling LaTeX:', result.errorLogs);
+					callbacks.setErrors(['Error compiling LaTeX', result.errorLogs]);
+					pdfUrl.set(null);
+				}
+			} catch (error) {
+				console.error('Error compiling LaTeX:', error);
+				callbacks.setErrors(['Error compiling LaTeX', JSON.stringify(error)]);
+				pdfUrl.set(null);
+			}
+		} else {
+			callbacks.setStatus('idle');
+		}
+	}
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'code', type: 'text', label: 'LaTeX code' }],
-		outputs: []
+		outputs: [],
+		onExecute: onExecute
 	});
 
 	let lastCompiledCode: string | null = null;
@@ -55,35 +85,6 @@
 				success: false,
 				errorLogs: result.log
 			};
-		}
-	}
-
-	async function onExecute(callbacks: OnExecuteCallbacks) {
-		const latexCode = io.getInputData('code') as string;
-		if (lastCompiledCode === latexCode) {
-			return;
-		}
-		if (latexCode) {
-			console.log('Received LaTeX code:', latexCode);
-			lastCompiledCode = latexCode;
-			const cleanedLatexCode = extractLatexCode(latexCode);
-			try {
-				callbacks.setStatus('loading');
-				const result = await compileLatex(cleanedLatexCode);
-				if (result.success) {
-					callbacks.setStatus('success');
-				} else {
-					console.error('Error compiling LaTeX:', result.errorLogs);
-					callbacks.setErrors(['Error compiling LaTeX', result.errorLogs]);
-					pdfUrl.set(null);
-				}
-			} catch (error) {
-				console.error('Error compiling LaTeX:', error);
-				callbacks.setErrors(['Error compiling LaTeX', JSON.stringify(error)]);
-				pdfUrl.set(null);
-			}
-		} else {
-			callbacks.setStatus('idle');
 		}
 	}
 </script>

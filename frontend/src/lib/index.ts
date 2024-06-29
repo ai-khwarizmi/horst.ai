@@ -6,6 +6,7 @@ import type { ConnectWith } from "./types";
 import { goto } from "$app/navigation";
 import { get } from "svelte/store";
 import { generateProjectId, parseProjectId } from "./utils/projectId";
+import { nodeIOHandlers } from "./utils";
 
 export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
 export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
@@ -19,6 +20,7 @@ export const outputData = writable<Record<string, Record<string, any>>>({});
 export const inputPlaceholderData = writable<Record<string, Record<string, any>>>({});
 export const inputData = writable<Record<string, Record<string, any>>>({});
 export const inputDataWithoutPlaceholder = writable<Record<string, Record<string, any>>>({});
+export let handlers: Record<string, () => void> = {};
 
 export function resetProject() {
     window.location.hash = '';
@@ -31,6 +33,7 @@ export function resetProject() {
     inputDataWithoutPlaceholder.set({});
     nodes.set([]);
     edges.set([]);
+    handlers = {};
 }
 
 
@@ -96,3 +99,9 @@ nodes.subscribe(saveToLocalStorageAndSetProjectUrl);
 edges.subscribe(saveToLocalStorageAndSetProjectUrl);
 viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
 projectId.subscribe(setProjectUrl)
+outputData.subscribe(() => {
+    console.log('output data changed');
+    Object.values(nodeIOHandlers).forEach((ioHandler) => {
+        ioHandler.onOutputsChanged();
+    })
+})

@@ -2,11 +2,11 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, inputPlaceholderData, nodes, openai_key, outputData } from "$lib";
+import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, openai_key, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type Output, type NodeValueType } from "./types";
+import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -60,11 +60,15 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly inputs = writable<Input<TInput>[]>([]);
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
+	onExecuteCallbacks: OnExecuteCallbacks | null = null;
+
+	onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
 
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
+		onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
 	}) {
 		this.nodeId = args.nodeId;
 
@@ -72,10 +76,26 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
+		this.onExecute = args.onExecute;
+		setTimeout(() => {
+			this.onOutputsChanged();
+		}, 1);
 	}
 
 	destroy = () => {
+		this.deleteHandler();
 		delete nodeIOHandlers[this.nodeId];
+	}
+
+	setOnExecuteCallbacks(callbacks: OnExecuteCallbacks) {
+		this.onExecuteCallbacks = callbacks;
+	}
+
+	setHandler(handler: () => void) {
+		handlers[this.nodeId] = handler;
+	}
+	deleteHandler() {
+		delete handlers[this.nodeId];
 	}
 
 	setOutputData = (id: string, data: any) => {
@@ -97,6 +117,33 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const inputsToAdd = newInputs.filter(input => !i.find(i2 => i2.id === input.id));
 			return [...i, ...inputsToAdd];
 		});
+	}
+
+	onOutputsChanged = () => {
+		//iterate over all inputs, and check if their value changed
+		let changed = false;
+		const _inputData = get(inputData);
+		const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
+		get(this.inputs).forEach((input) => {
+			const inputValue = this.getInputData(input.id);
+			if (inputValue !== _inputData[input.id]) {
+				console.log('input data for node', this.nodeId, ' changed', input.id, 'from', _inputData[input.id], 'to', inputValue);
+				changed = true;
+				_inputData[input.id] = inputValue;
+			}
+			const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
+			if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[input.id]) {
+				_inputDataWithoutPlaceholders[input.id] = inputValueWithoutPlaceholder;
+			}
+		})
+		if (changed) {
+			inputData.set(_inputData);
+			inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
+			this.onExecute(this.onExecuteCallbacks!, false);
+		} else {
+			console.log('input data for node', this.nodeId, ' NOT changed', _inputData);
+		}
+		return changed;
 	}
 
 	removeInput = (...ids: string[]) => {
@@ -146,10 +193,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		return data;
 	}
 
-	getInputData = (handle: string) => {
+	getInputData = (handle: string, ignorePlaceholder = false) => {
 		let data = _getNodeInputData(this.nodeId, handle);
 
-		if (data === null || data === undefined)
+		if (!ignorePlaceholder && (data === null || data === undefined))
 			data = _getNodeInputPlaceholderData(this.nodeId, handle);
 
 		const inputDef = get(this.inputs).find(input => input.id === handle);
@@ -191,6 +238,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	setInputPlaceholderData(handleId: string, value: any) {
 		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
+		this.onOutputsChanged();
 	}
 }
 

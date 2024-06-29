@@ -27,60 +27,6 @@
 	const VALID_IMAGE_QUALITIES = ['standard', 'hd'];
 	const VALID_IMAGE_MODELS = ['dall-e-2', 'dall-e-3'];
 
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [
-			{ id: 'prompt', type: 'text', label: 'Prompt' },
-			{
-				id: 'model',
-				type: 'text',
-				label: 'Model',
-				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_MODELS,
-					default: 'dall-e-3'
-				}
-			},
-			{
-				id: 'quality',
-				type: 'text',
-				label: 'Quality',
-				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_QUALITIES,
-					default: 'standard'
-				},
-				optional: true
-			},
-			{
-				id: 'size',
-				type: 'text',
-				label: 'Size',
-				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_SIZES,
-					default: '1024x1024'
-				}
-			},
-			{
-				id: 'style',
-				type: 'text',
-				label: 'Style',
-				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_STYLES,
-					default: 'vivid'
-				},
-				optional: true
-			},
-			{ id: 'user', type: 'text', label: 'User Identifier', optional: true }
-		],
-		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }]
-	});
-
-	let lastExecutedValue: null | string = null;
-	let lastOutputValue: null | string = '';
-
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKey = get(openai_key) as string;
 
@@ -148,6 +94,61 @@
 			lastOutputValue = null;
 		}
 	};
+
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
+			{ id: 'prompt', type: 'text', label: 'Prompt' },
+			{
+				id: 'model',
+				type: 'text',
+				label: 'Model',
+				input: {
+					inputOptionType: 'dropdown',
+					options: VALID_IMAGE_MODELS,
+					default: 'dall-e-3'
+				}
+			},
+			{
+				id: 'quality',
+				type: 'text',
+				label: 'Quality',
+				input: {
+					inputOptionType: 'dropdown',
+					options: VALID_IMAGE_QUALITIES,
+					default: 'standard'
+				},
+				optional: true
+			},
+			{
+				id: 'size',
+				type: 'text',
+				label: 'Size',
+				input: {
+					inputOptionType: 'dropdown',
+					options: VALID_IMAGE_SIZES,
+					default: '1024x1024'
+				}
+			},
+			{
+				id: 'style',
+				type: 'text',
+				label: 'Style',
+				input: {
+					inputOptionType: 'dropdown',
+					options: VALID_IMAGE_STYLES,
+					default: 'vivid'
+				},
+				optional: true
+			},
+			{ id: 'user', type: 'text', label: 'User Identifier', optional: true }
+		],
+		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }],
+		onExecute: onExecute
+	});
+
+	let lastExecutedValue: null | string = null;
+	let lastOutputValue: null | string = '';
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>

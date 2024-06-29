@@ -4,17 +4,6 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [
-			{ id: 'text', type: 'text' },
-			{ id: 'text2', type: 'text' }
-		],
-		outputs: [{ id: 'text', type: 'text' }]
-	});
-
-	let currentOutput: string | null = null;
-
 	function onExecute() {
 		const input = io.getInputData('text') as string;
 		const input2 = io.getInputData('text2') as string;
@@ -31,6 +20,19 @@
 			}
 		}
 	}
+
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
+			{ id: 'text', type: 'text' },
+			{ id: 'text2', type: 'text' }
+		],
+		outputs: [{ id: 'text', type: 'text' }],
+		onExecute: onExecute
+	});
+
+	let currentOutput: string | null = null;
+
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}></CustomNode>
