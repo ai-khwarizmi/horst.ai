@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, openai_key, outputData } from "$lib";
+import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";

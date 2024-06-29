@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 	import OpenAI from 'openai';
-	import { openai_key } from '@/index';
+	import { openai_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
 
 	let openai: OpenAI;

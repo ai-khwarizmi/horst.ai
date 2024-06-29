@@ -1,16 +1,12 @@
 import { type Node, type Edge, type Viewport, type XYPosition } from "@xyflow/svelte";
 import { writable } from "svelte/store";
 import { saveToLocalStorage } from "./utils/file";
-import { browser } from "$app/environment";
 import type { ConnectWith } from "./types";
 import { goto } from "$app/navigation";
 import { get } from "svelte/store";
 import { generateProjectId, parseProjectId } from "./utils/projectId";
 import { nodeIOHandlers } from "./utils";
 import { debounce } from 'lodash-es';
-
-export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
-export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
 
 export const projectId = writable<string>('');
 export const projectName = writable<string>('');
@@ -42,26 +38,6 @@ export const commandOpen = writable(false);
 export const createNodeParams = writable<{
     position: XYPosition; node?: ConnectWith
 } | null>(null);
-
-openai_key.subscribe((key) => {
-    if (browser) {
-        if (key && key.length > 0) {
-            localStorage.setItem('openai_api_key', key);
-        } else {
-            localStorage.removeItem('openai_api_key');
-        }
-    }
-});
-
-anthropic_key.subscribe((key) => {
-    if (browser) {
-        if (key && key.length > 0) {
-            localStorage.setItem('anthropic_api_key', key);
-        } else {
-            localStorage.removeItem('anthropic_api_key');
-        }
-    }
-});
 
 const setProjectUrl = () => {
     if (typeof history === 'undefined') return;
@@ -100,6 +76,7 @@ viewport.subscribe(saveToLocalStorageAndSetProjectUrl);
 projectId.subscribe(setProjectUrl)
 
 const debouncedHandleChanges = debounce(() => {
+    console.log('debounced handle changes');
     Object.values(nodeIOHandlers).forEach((ioHandler) => {
         ioHandler.onOutputsChanged();
     });

@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 	import Anthropic from '@anthropic-ai/sdk';
-	import { anthropic_key } from '@/index';
+	import { anthropic_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
 
 	let anthropic: Anthropic;

@@ -12,14 +12,10 @@
 	import {
 		nodes,
 		edges,
-		openai_key,
 		viewport,
 		commandOpen,
 		createNodeParams,
-		anthropic_key,
-
 		resetProject
-
 	} from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
@@ -44,6 +40,7 @@
 	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
 	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
 	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
+	import { anthropic_key, openai_key } from '@/apikeys';
 
 	export let projectId: string | undefined = undefined;
 
