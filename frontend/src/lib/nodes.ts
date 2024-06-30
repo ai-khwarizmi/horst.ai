@@ -13,6 +13,7 @@ import TextEncode from "./components/nodes/text/TextEncode.svelte";
 import TextDecode from "./components/nodes/text/TextDecode.svelte";
 import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
 import Claude from "./components/nodes/ai/Claude.svelte";
+import LeonardoAi from "./components/nodes/ai/LeonardoAi.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -90,6 +91,12 @@ const nodes = {
     }),
     claude: registerNode(Claude, {
         name: "Claude",
+        nodeType: NodeType.FUNCTION,
+        Icon: ImagePlus,
+        category: NodeCategory.AI,
+    }),
+    leonardoAi: registerNode(LeonardoAi, {
+        name: "Leonardo.ai",
         nodeType: NodeType.FUNCTION,
         Icon: ImagePlus,
         category: NodeCategory.AI,

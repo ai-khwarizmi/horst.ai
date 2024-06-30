@@ -220,11 +220,13 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			if (typeof data === 'string' && inputDef.type === 'json') {
 				data = JSON.parse(data);
 			}
+			if (typeof data === 'string' && inputDef.type === 'boolean') {
+				data = data === 'true';
+			}
 			if (!this.validateDataType(data, inputDef.type)) {
 				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${data}`);
 			}
 		}
-
 		return data ?? null;
 	}
 
@@ -235,7 +237,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			case 'text':
 				return typeof data === 'string';
 			case 'boolean':
-				return typeof data === 'boolean';
+				return typeof data === 'boolean' || data === 'true' || data === 'false';
 			case 'any':
 				return true;
 			default:

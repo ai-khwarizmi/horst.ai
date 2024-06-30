@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { anthropic_key, openai_key } from '$lib/apikeys';
+	import { anthropic_key, openai_key, leonardo_key } from '$lib/apikeys';
 	import Input from '../ui/input/input.svelte';
 	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';
@@ -13,6 +13,7 @@
 
 	let visible = false;
 	let visibleAnthropic = false;
+	let visibleLeonardo = false;
 </script>
 
 <Sheet.Root bind:open={$open}>
@@ -71,10 +72,26 @@
 					</p>
 				{/if}
 
+				<Label for="leonardo_key">Leonardo API Key</Label>
+				<div class="flex gap-2 items-center">
+					<Input
+						type={visibleLeonardo ? 'text' : 'password'}
+						bind:value={$leonardo_key}
+						id="leonardo_key"
+						placeholder="Leonardo API Key"
+					/>
+					<Button on:click={() => (visibleLeonardo = !visibleLeonardo)}>
+						{#if visibleLeonardo}
+							Hide
+						{:else}
+							Show
+						{/if}
+					</Button>
+				</div>
+
 				<p class="text-gray-500">
 					<small>
-						<strong>Note:</strong> We don't store your API keys. They are stored in your browser's local
-						storage.
+						<strong>Note:</strong> API keys are stored in your browser's local storage.
 					</small>
 				</p>
 			</div>

@@ -8,7 +8,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount} from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -74,7 +74,7 @@
 
 	const getCurrentInputPlaceholderData = (handleId: string) => {
 		return io.getInputPlaceholderData(handleId);
-	}
+	};
 
 	const forceExecute = () => {
 		onExecute(onExecuteCallbacks, true);
@@ -133,30 +133,28 @@
 				}
 			}
 		}
-	}
+	};
 	const setInputPlaceholderDataOnMount = () => {
 		get(io.inputs).forEach((input) => {
+			//get current default, if it exists
+			const defaultValue = io.getInputPlaceholderData(input.id);
+			if (defaultValue) return;
 
-		//get current default, if it exists
-		const defaultValue = io.getInputPlaceholderData(input.id);
-		if(defaultValue)
-			return;
-
-		switch (input.input?.inputOptionType) {
-			case 'input-field':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			case 'number':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			case 'dropdown':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			default:
-				break;
-		}
+			switch (input.input?.inputOptionType) {
+				case 'input-field':
+					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					break;
+				case 'number':
+					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					break;
+				case 'dropdown':
+					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					break;
+				default:
+					break;
+			}
 		});
-	}
+	};
 	onMount(() => {
 		if (!id) {
 			throw new Error('Node ID is required');
@@ -228,20 +226,28 @@
 	};
 </script>
 
-{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
+{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
 	<div
 		class="bg-red-100 p-4 text-red-800 w-full h-full fixed top-0 left-0 flex justify-center items-center"
+		style="z-index: 1000;"
 	>
 		<div class="text-center">
-			<p class="font-bold">OpenAI API Key Missing</p>
-			<p>Please add your OpenAI API key in the settings to use this node.</p>
+			<p class="font-bold">
+				{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
+					OpenAI API Key Missing
+				{:else if errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING}
+					Anthropic API Key Missing
+				{:else if errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
+					Leonardo.ai API Key Missing
+				{/if}
+			</p>
+			<p>Please add your API key in the settings to use this node.</p>
 			<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
-				Set OpenAI Key
+				Set API Key
 			</Button>
 		</div>
 	</div>
 {/if}
-
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
@@ -262,14 +268,16 @@
 						<HoverCard.Trigger>
 							<TriangleAlert class="w-6 h-6 text-red-500" />
 						</HoverCard.Trigger>
-						<HoverCard.Content class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words">
+						<HoverCard.Content
+							class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words"
+						>
 							<ul class="list-disc list-inside">
 								{#each errors as error}
 									{#if typeof error === 'string'}
 										<li>{error}</li>
 									{:else}
 										<li>
-											{error.message}
+											{error?.message}
 										</li>
 									{/if}
 								{/each}
@@ -334,7 +342,7 @@
 								type="input"
 								base={input}
 								{setInputPlaceholderData}
-								getCurrentInputPlaceholderData={getCurrentInputPlaceholderData}
+								{getCurrentInputPlaceholderData}
 							/>
 						{/each}
 					</div>
