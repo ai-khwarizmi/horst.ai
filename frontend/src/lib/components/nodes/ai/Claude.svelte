@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { SPECIAL_ERRORS } from '@/types';
 	import Anthropic from '@anthropic-ai/sdk';
-	import { anthropic_key } from '@/index';
+	import { anthropic_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
 
 	let anthropic: Anthropic;
@@ -24,22 +24,6 @@
 	}
 
 	export let id: string;
-
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [
-			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
-		],
-		outputs: [{ id: 'response', type: 'text', label: 'Response' }]
-	});
-
-	let lastExecutedValue: null | string = null;
-	let lastOutputValue: null | string = '';
-
-	onMount(() => {
-		lastOutputValue = io.getOutputData('response');
-	});
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKey = get(anthropic_key) as string;
@@ -102,6 +86,23 @@
 			}
 		}
 	};
+
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
+			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
+		],
+		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
+		onExecute: onExecute
+	});
+
+	let lastExecutedValue: null | string = null;
+	let lastOutputValue: null | string = '';
+
+	onMount(() => {
+		lastOutputValue = io.getOutputData('response');
+	});
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>

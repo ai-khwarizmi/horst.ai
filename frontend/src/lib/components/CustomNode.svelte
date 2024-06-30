@@ -1,18 +1,3 @@
-<script lang="ts" context="module">
-	export const HANDLE_WIDTH = 12;
-	export const ROW_HEIGHT = 30;
-	export const ROW_GAP = 10;
-	export const BORDER_WIDTH = 2;
-	export const HEADER_HEIGHT = 40;
-
-	const handlers: Record<string, () => void> = {};
-
-	// Should we change this to timeouts to avoid overlapping executions?
-	setInterval(() => {
-		Object.values(handlers).forEach((handler) => handler());
-	}, 50);
-</script>
-
 <script lang="ts">
 	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
@@ -22,8 +7,8 @@
 		type NodeError,
 		type ConnectWith
 	} from '@/types';
-	import { NodeResizer, NodeToolbar, useConnection } from '@xyflow/svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
+	import { onDestroy, onMount} from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -35,7 +20,7 @@
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
 
-	/* eslint-disable*/
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -50,13 +35,16 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable*/
+	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
 	export let type: string = '';
 	export let selected: boolean = false;
 	export let data: any = {};
+	export let status: NodeStatus = 'idle';
+	export let errors: NodeError[] = [];
+	export let io: NodeIOHandler<any, any>;
 
 	$: registered = registeredNodes[type as CustomNodeName];
 	$: label = registered?.name || type;
@@ -65,10 +53,7 @@
 
 	let isResizing = false;
 
-	export let status: NodeStatus = 'idle';
-
-	export let errors: NodeError[] = [];
-	export let io: NodeIOHandler<string, string>;
+	const updateNodeInternals = useUpdateNodeInternals();
 
 	const onExecuteCallbacks: OnExecuteCallbacks = {
 		setStatus: (newStatus: NodeStatusWithoutError) => {
@@ -83,24 +68,29 @@
 
 	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
 
+	const setInputPlaceholderData = (handleId: string, value: any) => {
+		io.setInputPlaceholderData(handleId, value);
+	};
+
+	const getCurrentInputPlaceholderData = (handleId: string) => {
+		return io.getInputPlaceholderData(handleId);
+	}
+
 	const forceExecute = () => {
-		console.log('Forcing execute');
 		onExecute(onExecuteCallbacks, true);
 	};
 
-	onMount(() => {
-		if (!id) {
-			throw new Error('Node ID is required');
-		}
+	const toggleOptionalInputs = () => {
+		showOptionalInputs = !showOptionalInputs;
+		updateNodeInternals(id);
+	};
 
-		if (Array.isArray(data.inputs)) {
-			io.addInput(...data.inputs);
-		}
-		if (Array.isArray(data.outputs)) {
-			io.addOutput(...data.outputs);
-		}
-
-		handlers[id] = () => onExecute(onExecuteCallbacks, false);
+	/*
+		This function connects the newly added node to an existing node specified in `connectWith`.
+		This occurs when you drag an edge to an empty space (without a connector) 
+		and then select a new node to add.
+	*/
+	const connectToNodeOnMount = () => {
 		if (data.connectWith) {
 			const connectWith: ConnectWith = data.connectWith;
 			const connectWithIO = nodeIOHandlers[connectWith.id];
@@ -143,31 +133,64 @@
 				}
 			}
 		}
+	}
+	const setInputPlaceholderDataOnMount = () => {
+		get(io.inputs).forEach((input) => {
+
+		//get current default, if it exists
+		const defaultValue = io.getInputPlaceholderData(input.id);
+		if(defaultValue)
+			return;
+
+		switch (input.input?.inputOptionType) {
+			case 'input-field':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			case 'number':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			case 'dropdown':
+				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+				break;
+			default:
+				break;
+		}
+		});
+	}
+	onMount(() => {
+		if (!id) {
+			throw new Error('Node ID is required');
+		}
+
+		/*
+		if (Array.isArray(data.inputs)) {
+			io.addInput(...data.inputs);
+		}
+		if (Array.isArray(data.outputs)) {
+			io.addOutput(...data.outputs);
+		}
+		*/
+		io.setOnExecuteCallbacks(onExecuteCallbacks);
+
+		connectToNodeOnMount();
+		setInputPlaceholderDataOnMount();
+
+		io.setHandler(() => onExecute(onExecuteCallbacks, false));
 	});
 
 	onDestroy(() => {
 		io.destroy();
-		delete handlers[id];
 	});
 
 	$: inputs = io.inputs;
 	$: outputs = io.outputs;
 
-	$: rows = Math.max($inputs.length, $outputs.length);
 	$: hasContent = !!$$slots['default'];
-	$: top = (index: number) =>
-		ROW_HEIGHT * index + ROW_GAP * index + HEADER_HEIGHT + ROW_HEIGHT * 0.5 + BORDER_WIDTH + 4 + 7;
-	$: minHeight =
-		HEADER_HEIGHT +
-		ROW_HEIGHT * rows +
-		ROW_GAP * rows +
-		BORDER_WIDTH * 2 +
-		4 +
-		5 +
-		(hasContent ? 20 : 0);
+
+	$: hasOptionalInputs = $inputs.some((input) => input.optional);
+	let showOptionalInputs = false;
 
 	let hovered = false;
-
 	const c = useConnection();
 
 	$: startType = $c.startHandle?.type;
@@ -184,6 +207,25 @@
 			true
 		) &&
 		$c.startHandle.nodeId !== id;
+
+	const onClick = async (e: MouseEvent) => {
+		//this hacky stuff is only needed for newly selected nodes
+		if (selected) return;
+		const clickedElement = e.target as HTMLElement;
+
+		if (!selected && clickedElement.tagName === 'TEXTAREA') {
+			const textarea = clickedElement as HTMLTextAreaElement;
+			const focusElement = () => {
+				textarea.focus();
+			};
+			for (let i = 0; i < 20; i++) {
+				//... sorry about this, i tried lots of other things like listening to blur, waiting for next tick
+				// i don't understand why the textbox still gets deselected
+				await new Promise((resolve) => setTimeout(resolve, 5));
+				focusElement();
+			}
+		}
+	};
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
@@ -199,12 +241,16 @@
 		</div>
 	</div>
 {/if}
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
+	on:click={onClick}
+	on:keydown={() => {}}
+	role="button"
+	tabindex="0"
 >
 	<NodeToolbar align={'start'} isVisible>
 		<div class="flex items-center justify-between gap-2 w-full">
@@ -216,7 +262,7 @@
 						<HoverCard.Trigger>
 							<TriangleAlert class="w-6 h-6 text-red-500" />
 						</HoverCard.Trigger>
-						<HoverCard.Content class="p-2 text-xs">
+						<HoverCard.Content class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words">
 							<ul class="list-disc list-inside">
 								{#each errors as error}
 									{#if typeof error === 'string'}
@@ -224,9 +270,6 @@
 									{:else}
 										<li>
 											{error.message}
-											<button class="text-blue-500 hover:underline" on:click={error.resolve}>
-												Resolve
-											</button>
 										</li>
 									{/if}
 								{/each}
@@ -239,6 +282,7 @@
 					<Check class="w-6 h-6 text-green-500" />
 				{/if}
 			</div>
+
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
 				<Button size="flat" on:click={forceExecute}>Re-run</Button>
 			{/if}
@@ -247,7 +291,6 @@
 
 	<NodeResizer
 		minWidth={200}
-		{minHeight}
 		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
@@ -259,7 +302,7 @@
 			colors.fullbackground,
 			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
 		)}
-		style="height: {HEADER_HEIGHT}px;"
+		style="height: 40px;"
 	>
 		{label}
 	</div>
@@ -270,7 +313,7 @@
 			colors.border,
 			errors.length && 'border-red-500'
 		)}
-		style="min-width: 200px; border-width: {BORDER_WIDTH}px"
+		style="min-width: 200px; border-width: 2px"
 	>
 		<div
 			class={cn(
@@ -281,31 +324,45 @@
 				colors.border
 			)}
 		>
-			<div
-				class="flex justify-between font-semibold leading-none gap-4 max-w-full overflow-hidden flex-shrink-0"
-			>
+			<div class="flex justify-between font-semibold leading-none max-w-full flex-shrink-0">
 				{#if $inputs.length > 0}
-					<div
-						class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
-						{#each $inputs as input, index}
-							<CustomHandle nodeId={id} type="input" base={input} top={top(index)} />
+					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
+						{#each $inputs as input}
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="input"
+								base={input}
+								{setInputPlaceholderData}
+								getCurrentInputPlaceholderData={getCurrentInputPlaceholderData}
+							/>
 						{/each}
 					</div>
 				{/if}
 				{#if $outputs.length > 0}
-					<div
-						class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}
-						style="gap: {ROW_GAP}px"
-					>
-						{#each $outputs as output, index}
-							<CustomHandle nodeId={id} type="output" base={output} top={top(index)} />
+					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
+						{#each $outputs as output}
+							<CustomHandle
+								{showOptionalInputs}
+								nodeId={id}
+								type="output"
+								base={output}
+								setInputPlaceholderData={() => {}}
+								getCurrentInputPlaceholderData={() => {}}
+							/>
 						{/each}
 					</div>
 				{/if}
 			</div>
+			{#if hasOptionalInputs}
+				<div class="flex justify-left items-center ml-5">
+					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
+						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
+					</Button>
+				</div>
+			{/if}
 		</div>
+
 		{#if hasContent}
 			<div
 				class={cn(

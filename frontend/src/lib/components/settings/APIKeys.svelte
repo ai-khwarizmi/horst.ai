@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { anthropic_key, openai_key } from '@/index';
+	import { anthropic_key, openai_key } from '$lib/apikeys';
 	import Input from '../ui/input/input.svelte';
 	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';

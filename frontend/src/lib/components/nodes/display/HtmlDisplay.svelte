@@ -7,10 +7,23 @@
 	let lastDrawData: string | null = null;
 	let data: string | null = null;
 
+	const onExecute = () => {
+		const input = io.getInputData('html') ?? null;
+		if (input !== lastDrawData) {
+			lastDrawData = input;
+			if (input) {
+				data = cleanHtmlString(input);
+			} else {
+				data = null;
+			}
+		}
+	}
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'html', type: 'text' }],
-		outputs: []
+		outputs: [],
+		onExecute: onExecute
 	});
 
 	function cleanHtmlString(input: string): string {
@@ -29,17 +42,6 @@
 		return input.slice(codeTagStart + 3, codeTagEnd);
 	}
 
-	function onExecute() {
-		const input = io.getInputData('html') ?? null;
-		if (input !== lastDrawData) {
-			lastDrawData = input;
-			if (input) {
-				data = cleanHtmlString(input);
-			} else {
-				data = null;
-			}
-		}
-	}
 
 	function openInCodePen() {
 		const htmlCode = data ?? '';

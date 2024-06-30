@@ -2,11 +2,11 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, nodes, openai_key } from "$lib";
+import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
-import { NodeType, type Input, type Output } from "./types";
+import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -60,11 +60,15 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly inputs = writable<Input<TInput>[]>([]);
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
+	onExecuteCallbacks: OnExecuteCallbacks | null = null;
+
+	onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
 
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
+		onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
 	}) {
 		this.nodeId = args.nodeId;
 
@@ -72,10 +76,26 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
+		this.onExecute = args.onExecute;
+		setTimeout(() => {
+			this.onOutputsChanged();
+		}, 1);
 	}
 
 	destroy = () => {
+		this.deleteHandler();
 		delete nodeIOHandlers[this.nodeId];
+	}
+
+	setOnExecuteCallbacks(callbacks: OnExecuteCallbacks) {
+		this.onExecuteCallbacks = callbacks;
+	}
+
+	setHandler(handler: () => void) {
+		handlers[this.nodeId] = handler;
+	}
+	deleteHandler() {
+		delete handlers[this.nodeId];
 	}
 
 	setOutputData = (id: string, data: any) => {
@@ -89,7 +109,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
-			const inputsToAdd = newInputs.filter(i => !inputs.find(i2 => i2.id === i.id));
+			const inputsToAdd = newInputs.filter(i => !inputs.find((i2: any) => i2.id === i.id));
 			node.data = { ...node.data, inputs: [...inputs, ...inputsToAdd] };
 			return n;
 		})
@@ -97,6 +117,45 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const inputsToAdd = newInputs.filter(input => !i.find(i2 => i2.id === input.id));
 			return [...i, ...inputsToAdd];
 		});
+	}
+
+	onOutputsChanged = () => {
+		//iterate over all inputs, and check if their value changed
+		try {
+			let changed = false;
+			let changedWithoutPlaceholders = false;
+			const _inputData = get(inputData);
+			const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
+			get(this.inputs).forEach((input) => {
+				const inputValue = this.getInputData(input.id);
+				if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
+					if (!_inputData[this.nodeId]) {
+						_inputData[this.nodeId] = {};
+					}
+					_inputData[this.nodeId][input.id] = inputValue;
+					changed = true;
+				}
+				const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
+				if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
+					if (!_inputDataWithoutPlaceholders[this.nodeId]) {
+						_inputDataWithoutPlaceholders[this.nodeId] = {};
+					}
+					_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
+					changedWithoutPlaceholders = true;
+				}
+			})
+			if (changedWithoutPlaceholders) {
+				inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
+			}
+			if (changed) {
+				inputData.set(_inputData);
+				this.onExecute(this.onExecuteCallbacks!, false);
+			}
+			return changed;
+		} catch (e: any) {
+			this.onExecuteCallbacks?.setErrors([e.toString()]);
+			return false;
+		}
 	}
 
 	removeInput = (...ids: string[]) => {
@@ -115,7 +174,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			node.data = { ...node.data, outputs: outputs.filter(o => !ids.includes(o.id)) };
+			node.data = { ...node.data, outputs: outputs.filter((o: any) => !ids.includes(o.id)) };
 			return n;
 		})
 		this.outputs.update(o => o.filter(output => !ids.includes(output.id)));
@@ -126,7 +185,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			const node = n.find(n => n.id === this.nodeId);
 			if (!node) return n;
 			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			const outputsToAdd = newOutputs.filter(o => !outputs.find(o2 => o2.id === o.id));
+			const outputsToAdd = newOutputs.filter(o => !outputs.find((o2: any) => o2.id === o.id));
 			node.data = { ...node.data, outputs: [...outputs, ...outputsToAdd] };
 			return n;
 		})
@@ -141,9 +200,57 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		return data;
 	}
 
-	getInputData = (handle: string) => {
-		const data = _getNodeInputData(this.nodeId, handle) ?? null;
+	getInputPlaceholderData = (handle: string) => {
+		const data = _getNodeInputPlaceholderData(this.nodeId, handle) ?? null;
 		return data;
+	}
+
+	getInputData = (handle: string, ignorePlaceholder = false) => {
+		let data = _getNodeInputData(this.nodeId, handle);
+
+		if (!ignorePlaceholder && (data === null || data === undefined))
+			data = _getNodeInputPlaceholderData(this.nodeId, handle);
+
+		const inputDef = get(this.inputs).find(input => input.id === handle);
+
+		if (inputDef && data) {
+			if (typeof data === 'string' && inputDef.type === 'number') {
+				data = parseFloat(data);
+			}
+			if (typeof data === 'string' && inputDef.type === 'json') {
+				data = JSON.parse(data);
+			}
+			if (!this.validateDataType(data, inputDef.type)) {
+				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${data}`);
+			}
+		}
+
+		return data ?? null;
+	}
+
+	private validateDataType(data: any, expectedType: NodeValueType): boolean {
+		switch (expectedType) {
+			case 'number':
+				return typeof data === 'number' && !isNaN(data);
+			case 'text':
+				return typeof data === 'string';
+			case 'boolean':
+				return typeof data === 'boolean';
+			case 'any':
+				return true;
+			default:
+				// Handle array types
+				if (expectedType.endsWith('[]')) {
+					const baseType = expectedType.slice(0, -2) as 'number' | 'text' | 'boolean';
+					return Array.isArray(data) && data.every(item => this.validateDataType(item, baseType));
+				}
+				return false;
+		}
+	}
+
+	setInputPlaceholderData(handleId: string, value: any) {
+		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
+		this.onOutputsChanged();
 	}
 }
 
@@ -234,36 +341,34 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 	return node
 };
 
-export const outputData: Record<string, Record<string, any>> = {};
-
 export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	// nodes.update(n => {
-	// 	const node = n.find(n => n.id === id);
-	// 	if (!node) return n;
-	// 	node.data = { ...node.data, ...data };
-	// 	return n;
-	// });
+	outputData.update(currentData => ({
+		...currentData,
+		[id]: {
+			...currentData[id],
+			...data
+		}
+	}));
+}
 
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// node.data = { ...node.data, ...data };
-
-
-	outputData[id] = {
-		...outputData[id],
-		...data
-	}
+export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
+	inputPlaceholderData.update(currentData => ({
+		...currentData,
+		[id]: {
+			...currentData[id],
+			...data
+		}
+	}));
 }
 
 export const _getNodeOutputData = (id: string, handle: string) => {
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === id);
-	// if (!node) return;
-	// return node.data[handle];
+	const data = get(outputData)[id];
+	if (!data) return;
+	return data[handle];
+}
 
-	const data = outputData[id];
+export const _getNodeInputPlaceholderData = (id: string, handle: string) => {
+	const data = get(inputPlaceholderData)[id];
 	if (!data) return;
 	return data[handle];
 }
@@ -272,18 +377,8 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	const e = get(edges);
 	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
-
-	// const n = get(nodes);
-	// const node = n.find(n => n.id === edge.source);
-	// if (!node) return;
-
-	// if (!edge.sourceHandle) return;
-
-	// return node.data[edge.sourceHandle]
-
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
-
 
 export type ApiKeys = {
 	openai: string | null

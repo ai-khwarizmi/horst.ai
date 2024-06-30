@@ -8,18 +8,6 @@
 			branch: 'main',
 			license: 'MIT'
 		},
-		'@langchain/core': {
-			name: 'LangChain',
-			url: 'https://github.com/langchain-ai/langchainjs',
-			branch: 'master',
-			license: 'MIT'
-		},
-		'@langchain/openai': {
-			name: 'LangChain',
-			url: 'https://github.com/langchain-ai/langchain',
-			branch: 'master',
-			license: 'MIT'
-		},
 		'@sveltejs/adapter-static': {
 			name: 'SvelteKit',
 			url: 'https://github.com/sveltejs/kit',
@@ -42,12 +30,6 @@
 			name: 'cmdk-sv',
 			url: 'https://github.com/huntabyte/cmdk-sv',
 			branch: 'main',
-			license: 'MIT'
-		},
-		langchain: {
-			name: 'LangChain',
-			url: 'https://github.com/langchain-ai/langchain',
-			branch: 'master',
 			license: 'MIT'
 		},
 		'lucide-svelte': {
@@ -135,6 +117,18 @@
 			url: 'https://github.com/openai/openai-node',
 			branch: 'master',
 			license: 'Apache License 2.0'
+		},
+		'@clerk/clerk-js': {
+			name: '@clerk/clerk-js',
+			url: 'https://github.com/clerk/javascript',
+			branch: 'main',
+			license: 'MIT'
+		},
+		'lodash-es': {
+			name: 'lodash-es',
+			url: 'https://github.com/lodash/lodash',
+			branch: 'main',
+			license: 'MIT'
 		}
 	};
 

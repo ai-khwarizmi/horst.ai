@@ -4,18 +4,7 @@
 
 	export let id: string;
 
-	const io = new NodeIOHandler({
-		nodeId: id,
-		inputs: [
-			{ id: 'text', type: 'text' },
-			{ id: 'text2', type: 'text' }
-		],
-		outputs: [{ id: 'contains', type: 'boolean' }]
-	});
-
-	let currentOutput: boolean | null = null;
-
-	function onExecute() {
+	const onExecute = () => {
 		const input = io.getInputData('text') as string;
 		const input2 = io.getInputData('text2') as string;
 		if (!input || !input2) {
@@ -31,6 +20,18 @@
 			}
 		}
 	}
+
+	const io = new NodeIOHandler({
+		nodeId: id,
+		inputs: [
+			{ id: 'text', type: 'text' },
+			{ id: 'text2', type: 'text' }
+		],
+		outputs: [{ id: 'contains', type: 'boolean' }],
+		onExecute: onExecute
+	});
+
+	let currentOutput: boolean | null = null;
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}></CustomNode>

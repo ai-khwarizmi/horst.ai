@@ -12,11 +12,10 @@
 	import {
 		nodes,
 		edges,
-		openai_key,
 		viewport,
 		commandOpen,
 		createNodeParams,
-		anthropic_key
+		resetProject
 	} from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
@@ -37,7 +36,11 @@
 	import DebugView from '@/components/DebugView.svelte';
 	import type { ConnectWith } from '@/types';
 	import ProjectSettings from '@/components/ProjectSettings.svelte';
-	import { loadFromLocalStorage, loadFromProjectId, resetGraph } from '@/utils/file';
+	import { loadFromLocalStorage, loadFromProjectId } from '@/utils/file';
+	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
+	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
+	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
+	import { anthropic_key, openai_key } from '@/apikeys';
 
 	export let projectId: string | undefined = undefined;
 
@@ -62,7 +65,7 @@
 		}
 
 		if (!loaded) {
-			resetGraph();
+			resetProject();
 		}
 	});
 
@@ -136,6 +139,9 @@
 					How to Use
 				</Button>
 			{/if}
+			<ClerkSigninButton />
+			<ClerkProfileButton />
+			<ClerkSignoutButton />
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
 			<TopMenuBar />

@@ -12,7 +12,8 @@
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [],
-		outputs: [{ id: 'text', type: 'text' }]
+		outputs: [{ id: 'text', type: 'text' }],
+		onExecute: () => {}
 	});
 
 	let value: DateValue | undefined = undefined;

@@ -7,7 +7,8 @@
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'num', type: 'number' }],
-		outputs: [{ id: 'str', type: 'text' }]
+		outputs: [{ id: 'str', type: 'text' }],
+		onExecute: () => {}
 	});
 
 	const onExecute = () => {
