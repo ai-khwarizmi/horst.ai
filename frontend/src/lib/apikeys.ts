@@ -5,17 +5,20 @@ export const openai_key = writable(browser ? localStorage.getItem('openai_api_ke
 export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
 export const leonardo_key = writable(browser ? localStorage.getItem('leonardo_api_key') : '');
 
-const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
-if (existingOpenaiApiKey) {
-	openai_key.set(existingOpenaiApiKey);
-}
-const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
-if (existingAnthropicApiKey) {
-	anthropic_key.set(existingAnthropicApiKey);
-}
-const existingLeonardoApiKey = window.localStorage.getItem('leonardo_api_key');
-if (existingLeonardoApiKey) {
-	leonardo_key.set(existingLeonardoApiKey);
+
+if (typeof window !== 'undefined') {
+	const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
+	if (existingOpenaiApiKey) {
+		openai_key.set(existingOpenaiApiKey);
+	}
+	const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
+	if (existingAnthropicApiKey) {
+		anthropic_key.set(existingAnthropicApiKey);
+	}
+	const existingLeonardoApiKey = window.localStorage.getItem('leonardo_api_key');
+	if (existingLeonardoApiKey) {
+		leonardo_key.set(existingLeonardoApiKey);
+	}
 }
 
 openai_key.subscribe((key) => {
