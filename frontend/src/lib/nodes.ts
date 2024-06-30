@@ -14,6 +14,7 @@ import TextDecode from "./components/nodes/text/TextDecode.svelte";
 import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
 import Claude from "./components/nodes/ai/Claude.svelte";
 import LeonardoAi from "./components/nodes/ai/LeonardoAi.svelte";
+import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
 
 export enum NodeCategory {
     String = "String",
@@ -29,6 +30,12 @@ const nodes = {
         name: "Text Input",
         nodeType: NodeType.INPUT,
         Icon: TextCursorInput,
+        category: NodeCategory.String,
+    }),
+    textAndFileInput: registerNode(TextAndFileInput, {
+        name: "Text and File Input",
+        nodeType: NodeType.INPUT,
+        Icon: FileText,
         category: NodeCategory.String,
     }),
     textDisplay: registerNode(TextDisplay, {
