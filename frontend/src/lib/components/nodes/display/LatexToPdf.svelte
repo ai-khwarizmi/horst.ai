@@ -6,15 +6,18 @@
 
 	export let id: string;
 
+	let cleanedLatexCode: string | null = null;
+
 	async function onExecute(callbacks: OnExecuteCallbacks) {
 		const latexCode = io.getInputData('code') as string;
 		if (lastCompiledCode === latexCode) {
 			return;
 		}
+		cleanedLatexCode = null;
 		if (latexCode) {
 			console.log('Received LaTeX code:', latexCode);
 			lastCompiledCode = latexCode;
-			const cleanedLatexCode = extractLatexCode(latexCode);
+			cleanedLatexCode = extractLatexCode(latexCode);
 			try {
 				callbacks.setStatus('loading');
 				const result = await compileLatex(cleanedLatexCode);
@@ -87,14 +90,42 @@
 			};
 		}
 	}
+
+	function openInOverleaf(latexCode: string | null) {
+		if (!latexCode) {
+			return;
+		}
+		const form = document.createElement('form');
+		form.action = 'https://www.overleaf.com/docs';
+		form.method = 'post';
+		form.target = '_blank';
+
+		const input = document.createElement('input');
+		input.type = 'text';
+		input.name = 'snip_uri';
+		input.value = `data:application/x-tex;base64,${btoa(extractLatexCode(latexCode))}`;
+		form.appendChild(input);
+
+		document.body.appendChild(form);
+		form.submit();
+		document.body.removeChild(form);
+	}
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
+	{#if cleanedLatexCode}
+		<div class="flex justify-end mt-2">
+			<button
+				on:click={() => openInOverleaf(cleanedLatexCode)}
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+			>
+				Open in Overleaf
+			</button>
+		</div>
+	{/if}
+
 	{#if $pdfUrl}
 		<iframe src={$pdfUrl} title="latex-to-pdf" width="100%" height="100%" style="border: none;"
 		></iframe>
 	{/if}
 </CustomNode>
-
-<style>
-</style>
