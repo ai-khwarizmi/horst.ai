@@ -5,6 +5,7 @@
 	import { SPECIAL_ERRORS } from '@/types';
 	import { leonardo_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
+	import { HorstFile } from '@/utils/horstfile';
 
 	export let id: string;
 
@@ -43,14 +44,14 @@
 		const prompt = io.getInputData('prompt') as string;
 		const negativePrompt = io.getInputData('negative_prompt') as string;
 		const modelId = io.getInputData('model_id') as string;
-		const size = io.getInputData('size') as string;
+		const width = io.getInputData('width') as number;
+		const height = io.getInputData('height') as number;
 		const presetStyle = io.getInputData('preset_style') as string;
 		const isPublic = io.getInputData('is_public') as boolean;
 		const numImages = io.getInputData('num_images') as number;
 		const guidanceScale = io.getInputData('guidance_scale') as number;
 		const seed = io.getInputData('seed') as number;
 
-		const [width, height] = size.split('x').map(Number);
 		const requestBody: any = {
 			height,
 			width,
@@ -73,7 +74,8 @@
 			prompt,
 			negativePrompt,
 			modelId,
-			size,
+			width,
+			height,
 			presetStyle,
 			isPublic,
 			numImages,
@@ -114,7 +116,7 @@
 
 				// Poll for the generation result
 				const imageUrls = await pollForGenerationResult(generationId, apiKey);
-				lastOutputValue = imageUrls;
+				lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
 				io.setOutputData('image_urls', lastOutputValue);
 				callbacks.setStatus('success');
 			} catch (error: any) {
@@ -178,13 +180,21 @@
 				}
 			},
 			{
-				id: 'size',
-				type: 'text',
-				label: 'Size',
+				id: 'width',
+				type: 'number',
+				label: 'Width',
 				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_SIZES,
-					default: VALID_IMAGE_SIZES[0]
+					inputOptionType: 'input-field',
+					default: 1024
+				}
+			},
+			{
+				id: 'height',
+				type: 'number',
+				label: 'Height',
+				input: {
+					inputOptionType: 'input-field',
+					default: 1024
 				}
 			},
 			{
@@ -245,21 +255,23 @@
 	});
 
 	let lastExecutedValue: null | string = null;
-	let lastOutputValue: string[] | null = null;
+	let lastOutputValue: HorstFile[] | null = null;
 
-	function openInNewTab(imageUrl: string) {
-		if (!imageUrl) {
-			return;
+	function openInNewTab(file: HorstFile) {
+		const blob = file.getBlob();
+		const url = URL.createObjectURL(blob);
+		const newTab = window.open(url);
+		if (newTab) {
+			newTab.onload = () => URL.revokeObjectURL(url);
 		}
-		window.open(imageUrl, '_blank');
 	}
 
-	function downloadImage(imageUrl: string) {
-		if (!imageUrl) {
+	function downloadImage(file: HorstFile) {
+		if (!file) {
 			return;
 		}
 		const link = document.createElement('a');
-		link.href = imageUrl;
+		link.href = file.getDataUrl();
 		link.download = 'image.webp';
 		document.body.appendChild(link);
 		link.click();
@@ -270,23 +282,23 @@
 <CustomNode {io} {onExecute} {...$$props}>
 	{#if lastOutputValue && lastOutputValue.length > 0}
 		<div class={`grid ${lastOutputValue.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-			{#each lastOutputValue as imageUrl, index}
+			{#each lastOutputValue as file, index}
 				<div class="relative">
 					<img
-						src={imageUrl}
+						src={file.getDataUrl()}
 						alt={`Leonardo.AI Result ${index + 1}`}
 						class="object-contain w-full h-full"
 					/>
 					<div class="absolute bottom-0 right-0 flex space-x-1 m-1">
 						<button
 							class="px-1 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-							on:click={() => openInNewTab(imageUrl)}
+							on:click={() => openInNewTab(file)}
 						>
 							Open
 						</button>
 						<button
-							class="px-1 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-							on:click={() => downloadImage(imageUrl)}
+							class="px-1 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-6000"
+							on:click={() => downloadImage(file)}
 						>
 							Download
 						</button>

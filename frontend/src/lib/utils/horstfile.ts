@@ -4,30 +4,43 @@ export class HorstFile {
 	public readonly fileType: string;
 
 	//private because it may not be initialized. Don't change this. Use getFileData() instead.
-	private fileData: string | null = null;
+	private fileDataBase64: string | null = null;
+	private fileArrayBuffer: ArrayBuffer | null = null;
 
-	constructor(file: File) {
+	constructor(file: File, callback: (file: HorstFile) => void) {
 		this.fileName = file.name;
 		this.fileSize = file.size;
 		this.fileType = file.type;
 		// Read the file
-		this.readFile(file)
+		this.readFile(file, callback);
 	}
 
-	async readFile(file: File) {
-		this.fileData = await this.readFileAsBase64(file);
+	async readFile(file: File, callback: (file: HorstFile) => void) {
+		this.fileArrayBuffer = await this.readFileAsArrayBuffer(file);
+		this.fileDataBase64 = await this.readFileAsBase64();
+		callback(this);
 	}
 
-	private readFileAsBase64(file: File): Promise<string> {
+	private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 		return new Promise((resolve, reject) => {
 			const reader = new FileReader();
 			reader.onloadend = () => {
 				const arrayBuffer = reader.result as ArrayBuffer;
-				const binaryString = this.arrayBufferToBinaryString(arrayBuffer);
-				resolve(btoa(binaryString));
+				resolve(arrayBuffer);
 			};
 			reader.onerror = reject;
 			reader.readAsArrayBuffer(file);
+		});
+	}
+
+	private readFileAsBase64(): Promise<string> {
+		return new Promise((resolve, reject) => {
+			if (this.fileArrayBuffer) {
+				const binaryString = this.arrayBufferToBinaryString(this.fileArrayBuffer);
+				resolve(btoa(binaryString));
+			} else {
+				reject(new Error("File data not initialized"));
+			}
 		});
 	}
 
@@ -41,23 +54,41 @@ export class HorstFile {
 		return binary;
 	}
 
-	getFileData(): string {
-		if (this.fileData === null) {
+	getDataUrl(): string {
+		return `data:${this.fileType};base64,${this.fileDataBase64}`;
+	}
+
+	getFileText(): string {
+		if (!this.fileDataBase64) {
 			throw new Error("File data not initialized");
 		}
-		return atob(this.fileData);
+		return atob(this.fileDataBase64);
+	}
+
+	getBlob(): Blob {
+		if (!this.fileDataBase64) {
+			throw new Error("File data not initialized");
+		}
+		const binaryString = atob(this.fileDataBase64);
+		const len = binaryString.length;
+		const bytes = new Uint8Array(len);
+		for (let i = 0; i < len; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+		return new Blob([bytes], { type: this.fileType });
 	}
 
 	getFileBase64(): string {
-		if (this.fileData === null) {
+		if (!this.fileDataBase64) {
 			throw new Error("File data not initialized");
 		}
-		return this.fileData;
+		return this.fileDataBase64;
 	}
 
 	static async fromFile(file: File): Promise<HorstFile> {
-		const horstFile = new HorstFile(file);
-		return horstFile;
+		return new Promise((resolve) => {
+			new HorstFile(file, (file) => resolve(file));
+		});
 	}
 
 	static async fromUrl(url: string): Promise<HorstFile> {
