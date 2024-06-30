@@ -88,12 +88,8 @@
 				class="w-full h-full min-h-0 min-w-0 nodrag text-input-drop-zone"
 				style="resize: none;"
 				data-id={id}
-				on:focus={() => {
-					focus = true;
-				}}
 				on:blur={(e) => {
 					io.setOutputData('text', e.currentTarget.value);
-					focus = false;
 				}}
 				on:dragover={handleDragOver}
 				on:drop={handleDrop}

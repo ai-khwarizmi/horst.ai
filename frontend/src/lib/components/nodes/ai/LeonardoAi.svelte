@@ -9,7 +9,6 @@
 
 	export let id: string;
 
-	const VALID_IMAGE_SIZES = ['1024x1024', '256x256', '512x512', '1792x1024', '1024x1792'];
 	const VALID_IMAGE_MODELS = [
 		'aa77f04e-3eec-4034-9c07-d0f619684628', // Leonardo Kino XL
 		'6bef9f1b-29cb-40c7-b9df-32b51c1f67d3', // Leonardo Diffusion XL
