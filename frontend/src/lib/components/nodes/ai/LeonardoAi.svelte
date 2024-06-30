@@ -92,7 +92,7 @@
 				return;
 			}
 			lastOutputValue = null;
-			io.setOutputData('image_url', null);
+			io.setOutputData('image_urls', null);
 			try {
 				callbacks.setStatus('loading');
 
@@ -113,9 +113,9 @@
 				const generationId = data.sdGenerationJob.generationId;
 
 				// Poll for the generation result
-				const imageUrl = await pollForGenerationResult(generationId, apiKey);
-				lastOutputValue = imageUrl || null;
-				io.setOutputData('image_url', lastOutputValue);
+				const imageUrls = await pollForGenerationResult(generationId, apiKey);
+				lastOutputValue = imageUrls;
+				io.setOutputData('image_urls', lastOutputValue);
 				callbacks.setStatus('success');
 			} catch (error: any) {
 				callbacks.setErrors(['Error calling Leonardo AI', error.message]);
@@ -123,15 +123,12 @@
 			}
 		} else {
 			callbacks.setStatus('idle');
-			io.setOutputData('image_url', null);
+			io.setOutputData('image_urls', null);
 			lastOutputValue = null;
 		}
 	};
 
-	async function pollForGenerationResult(
-		generationId: string,
-		apiKey: string
-	): Promise<string | null> {
+	async function pollForGenerationResult(generationId: string, apiKey: string): Promise<string[]> {
 		const maxAttempts = 30;
 		const delayMs = 2000;
 
@@ -152,7 +149,7 @@
 			const data = await response.json();
 
 			if (data.generations_by_pk.status === 'COMPLETE') {
-				return data.generations_by_pk.generated_images[0].url;
+				return data.generations_by_pk.generated_images.map((image: any) => image.url);
 			}
 
 			if (data.generations_by_pk.status === 'FAILED') {
@@ -243,30 +240,21 @@
 				}
 			}
 		],
-		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }],
+		outputs: [{ id: 'image_urls', type: 'array', label: 'Image URLs' }],
 		onExecute: onExecute
 	});
 
 	let lastExecutedValue: null | string = null;
-	let lastOutputValue: null | string = '';
+	let lastOutputValue: string[] | null = null;
 
-	function openInNewTab(imageUrl: string | null) {
+	function openInNewTab(imageUrl: string) {
 		if (!imageUrl) {
 			return;
 		}
-		const byteString = atob(imageUrl.split(',')[1]);
-		const mimeString = imageUrl.split(',')[0].split(':')[1].split(';')[0];
-		const ab = new ArrayBuffer(byteString.length);
-		const ia = new Uint8Array(ab);
-		for (let i = 0; i < byteString.length; i++) {
-			ia[i] = byteString.charCodeAt(i);
-		}
-		const blob = new Blob([ab], { type: mimeString });
-		const url = URL.createObjectURL(blob);
-		window.open(url, '_blank');
+		window.open(imageUrl, '_blank');
 	}
 
-	function downloadImage(imageUrl: string | null) {
+	function downloadImage(imageUrl: string) {
 		if (!imageUrl) {
 			return;
 		}
@@ -280,25 +268,31 @@
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
-	{#if lastOutputValue}
-		<img
-			src={lastOutputValue}
-			alt="Leonardo.AI Result"
-			class="object-contain max-w-full max-h-full"
-		/>
-		<div class="flex justify-end mt-2 space-x-2">
-			<button
-				class="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-				on:click={() => openInNewTab(lastOutputValue)}
-			>
-				Open in New Tab
-			</button>
-			<button
-				class="px-2 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-				on:click={() => downloadImage(lastOutputValue)}
-			>
-				Download
-			</button>
+	{#if lastOutputValue && lastOutputValue.length > 0}
+		<div class={`grid ${lastOutputValue.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+			{#each lastOutputValue as imageUrl, index}
+				<div class="relative">
+					<img
+						src={imageUrl}
+						alt={`Leonardo.AI Result ${index + 1}`}
+						class="object-contain w-full h-full"
+					/>
+					<div class="absolute bottom-0 right-0 flex space-x-1 m-1">
+						<button
+							class="px-1 py-0.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+							on:click={() => openInNewTab(imageUrl)}
+						>
+							Open
+						</button>
+						<button
+							class="px-1 py-0.5 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+							on:click={() => downloadImage(imageUrl)}
+						>
+							Download
+						</button>
+					</div>
+				</div>
+			{/each}
 		</div>
 	{/if}
 </CustomNode>
