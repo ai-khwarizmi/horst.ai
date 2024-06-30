@@ -64,7 +64,8 @@
 				const request: OpenAI.ImageGenerateParams = {
 					model,
 					prompt,
-					size: size as any
+					size: size as any,
+					response_format: 'b64_json'
 				};
 
 				if (quality) {
@@ -78,10 +79,8 @@
 				}
 
 				const response = await getOpenai().images.generate(request);
-
-				const imageUrl = response.data[0].url;
-				console.log('Generated image URL: ', imageUrl);
-				lastOutputValue = imageUrl || null;
+				const dataUrl = 'data:image/webp;base64,' + response.data[0].b64_json;
+				lastOutputValue = dataUrl || null;
 				io.setOutputData('image_url', lastOutputValue);
 				callbacks.setStatus('success');
 			} catch (error: any) {
@@ -110,17 +109,6 @@
 				}
 			},
 			{
-				id: 'quality',
-				type: 'text',
-				label: 'Quality',
-				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_QUALITIES,
-					default: 'standard'
-				},
-				optional: true
-			},
-			{
 				id: 'size',
 				type: 'text',
 				label: 'Size',
@@ -128,6 +116,16 @@
 					inputOptionType: 'dropdown',
 					options: VALID_IMAGE_SIZES,
 					default: '1024x1024'
+				}
+			},
+			{
+				id: 'quality',
+				type: 'text',
+				label: 'Quality',
+				input: {
+					inputOptionType: 'dropdown',
+					options: VALID_IMAGE_QUALITIES,
+					default: 'hd'
 				}
 			},
 			{
@@ -149,10 +147,52 @@
 
 	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
+
+	function openInNewTab(imageUrl: string | null) {
+		if (!imageUrl) {
+			return;
+		}
+		const byteString = atob(imageUrl.split(',')[1]);
+		const mimeString = imageUrl.split(',')[0].split(':')[1].split(';')[0];
+		const ab = new ArrayBuffer(byteString.length);
+		const ia = new Uint8Array(ab);
+		for (let i = 0; i < byteString.length; i++) {
+			ia[i] = byteString.charCodeAt(i);
+		}
+		const blob = new Blob([ab], { type: mimeString });
+		const url = URL.createObjectURL(blob);
+		window.open(url, '_blank');
+	}
+
+	function downloadImage(imageUrl: string | null) {
+		if (!imageUrl) {
+			return;
+		}
+		const link = document.createElement('a');
+		link.href = imageUrl;
+		link.download = 'image.webp';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>
 	{#if lastOutputValue}
 		<img src={lastOutputValue} alt="Dalle3 Result" class="object-contain max-w-full max-h-full" />
+		<div class="flex justify-end mt-2 space-x-2">
+			<button
+				on:click={() => openInNewTab(lastOutputValue)}
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+			>
+				Open in New Tab
+			</button>
+			<button
+				on:click={() => downloadImage(lastOutputValue)}
+				class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+			>
+				Download Image
+			</button>
+		</div>
 	{/if}
 </CustomNode>
