@@ -3,10 +3,11 @@
 	import { NodeIOHandler } from '$lib/utils';
 	import Textarea from '../../ui/textarea/textarea.svelte';
 	import { onMount } from 'svelte';
+	import { HorstFile } from '@/utils/horstfile';
 
 	export let id: string;
 	let value = '';
-	let files: File[] = [];
+	let files: HorstFile[] = [];
 
 	const io = new NodeIOHandler({
 		nodeId: id,
@@ -28,11 +29,9 @@
 	function handleDragOver(event: DragEvent) {
 		event.preventDefault();
 		event.stopPropagation();
-		console.log('Drag over event');
 	}
 
 	function handleDrop(event: DragEvent) {
-		console.log('handleDrop text input');
 		const dropZone = event.target?.closest('.text-input-drop-zone');
 		if (!dropZone || dropZone.dataset.id !== id) {
 			return;
@@ -40,18 +39,14 @@
 
 		event.preventDefault();
 		event.stopPropagation();
-		console.log('Drop event occurred');
 		if (event.dataTransfer?.files) {
-			console.log('Files detected:', event.dataTransfer.files);
 			handleFiles(event.dataTransfer.files);
 		}
 	}
 
 	const handleFiles = (newFiles: FileList) => {
-		console.log('Handling files:', files);
 		for (const file of newFiles) {
-			console.log('file', file);
-			files = [...files, file];
+			files = [...files, new HorstFile(file)];
 		}
 		io.setOutputData('files', files);
 	};
@@ -74,7 +69,7 @@
 						class="flex justify-between items-center bg-gray-100 p-0.5 rounded m-0.5 text-xs"
 						style="width: calc(50% - 1rem); box-sizing: border-box;"
 					>
-						<span class="text-xxs truncate">{file.name}</span>
+						<span class="text-xxs truncate">{file.fileName}</span>
 						<button
 							class="bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-1 rounded ml-1 text-xxs"
 							on:click={() => removeFile(index)}

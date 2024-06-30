@@ -8,6 +8,7 @@ import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
 import { generateProjectId } from "./projectId";
+import { HorstFile } from "./horstfile";
 
 
 const LOCALSTORAGE_KEY_LAST_PROJECT_ID = 'horst.ai.last_project_id';
@@ -36,7 +37,19 @@ export function getSaveData(includeData: boolean): {
         }
         const nodeType = registeredNodes[node.type].nodeType;
         if (includeData && nodeType === NodeType.INPUT) {
-            data[node.id] = get(outputData)[node.id]
+            data[node.id] = get(outputData)[node.id];
+            for (const key in data[node.id]) {
+                if (data[node.id][key] instanceof HorstFile) {
+                    delete data[node.id][key];
+                }
+                if (Array.isArray(data[node.id][key])) {
+                    for (const file of data[node.id][key]) {
+                        if (file instanceof HorstFile) {
+                            delete data[node.id][key];
+                        }
+                    }
+                }
+            }
         }
         if (includeData) {
             _inputPlaceholderData[node.id] = get(inputPlaceholderData)[node.id]
