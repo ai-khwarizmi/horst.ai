@@ -308,7 +308,7 @@
 							class="truncate block whitespace-nowrap text-gray-700 text-sm" 
 							title="{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}"
 						>
-							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}
+							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]?.substring(0, 50)}
 						</span>
 					{:else}
 						<span class="truncate block">[{base.type}]</span>
