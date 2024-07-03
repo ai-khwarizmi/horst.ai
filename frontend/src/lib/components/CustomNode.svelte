@@ -368,7 +368,12 @@
 				<div class="flex justify-left items-center ml-5">
 					<Sheet>
 						<SheetTrigger>
-							<Button size="flat" class="text-button">Other Settings</Button>
+							<Button
+								class={`${colors.fullbackground} hover:${colors.background} text-white font-bold py-2 px-4 rounded cursor-pointer`}
+								size="flat"
+							>
+								Other Settings
+							</Button>
 						</SheetTrigger>
 						<SheetContent side="right">
 							<SheetClose>

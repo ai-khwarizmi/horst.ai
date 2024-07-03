@@ -198,7 +198,25 @@
 					default: 1024
 				}
 			},
-			{ id: 'negative_prompt', type: 'text', label: 'Negative Prompt', optional: true },
+			{
+				id: 'num_images',
+				type: 'number',
+				label: 'Number of Images',
+				input: {
+					inputOptionType: 'input-field',
+					default: 1
+				}
+			},
+			{
+				id: 'negative_prompt',
+				type: 'text',
+				label: 'Negative Prompt',
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				},
+				optional: true
+			},
 			{
 				id: 'preset_style',
 				type: 'text',
@@ -209,16 +227,6 @@
 					default: VALID_PRESET_STYLES[0]
 				},
 				optional: true
-			},
-			{
-				id: 'num_images',
-				type: 'number',
-				label: 'Number of Images',
-				optional: true,
-				input: {
-					inputOptionType: 'input-field',
-					default: 1
-				}
 			},
 			{
 				id: 'guidance_scale',

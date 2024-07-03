@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, outputData } from "$lib";
+import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, optionalInputsEnabled, nodes, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
@@ -200,6 +200,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	getInputPlaceholderData = (handle: string) => {
+		if (get(this.inputs).find((input: any) => input.id === handle)?.optional && !get(optionalInputsEnabled)[this.nodeId]?.[handle]) {
+			return undefined;
+		}
 		const data = _getNodeInputPlaceholderData(this.nodeId, handle) ?? null;
 		return data;
 	}
@@ -208,7 +211,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		let data = _getNodeInputData(this.nodeId, handle);
 
 		if (!ignorePlaceholder && (data === null || data === undefined))
-			data = _getNodeInputPlaceholderData(this.nodeId, handle);
+			data = this.getInputPlaceholderData(handle);
 
 		const inputDef = get(this.inputs).find(input => input.id === handle);
 
@@ -226,7 +229,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${data}`);
 			}
 		}
-		return data ?? null;
+		return data ?? undefined;
 	}
 
 	private validateDataType(data: any, expectedType: NodeValueType): boolean {
