@@ -19,6 +19,8 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
+	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
+	import { optionalInputsEnabled } from '../index';
 
 	/* eslint-disable */
 	export let selectable: boolean = false;
@@ -80,16 +82,6 @@
 		onExecute(onExecuteCallbacks, true);
 	};
 
-	const toggleOptionalInputs = () => {
-		showOptionalInputs = !showOptionalInputs;
-		updateNodeInternals(id);
-	};
-
-	/*
-		This function connects the newly added node to an existing node specified in `connectWith`.
-		This occurs when you drag an edge to an empty space (without a connector) 
-		and then select a new node to add.
-	*/
 	const connectToNodeOnMount = () => {
 		if (data.connectWith) {
 			const connectWith: ConnectWith = data.connectWith;
@@ -186,7 +178,6 @@
 	$: hasContent = !!$$slots['default'];
 
 	$: hasOptionalInputs = $inputs.some((input) => input.optional);
-	let showOptionalInputs = false;
 
 	let hovered = false;
 	const c = useConnection();
@@ -224,6 +215,21 @@
 			}
 		}
 	};
+
+	let checked = get(optionalInputsEnabled)[id] || ({} as any);
+
+	// Function to handle checkbox change
+	function handleCheckboxChange(inputId: string, isChecked: boolean) {
+		optionalInputsEnabled.update((current) => {
+			console.log('current', current, 'id', id);
+			if (!current[id]) {
+				current[id] = {};
+			}
+			current[id][inputId] = isChecked;
+			updateNodeInternals(id);
+			return current;
+		});
+	}
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
@@ -337,7 +343,6 @@
 					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $inputs as input}
 							<CustomHandle
-								{showOptionalInputs}
 								nodeId={id}
 								type="input"
 								base={input}
@@ -351,7 +356,6 @@
 					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $outputs as output}
 							<CustomHandle
-								{showOptionalInputs}
 								nodeId={id}
 								type="output"
 								base={output}
@@ -364,9 +368,46 @@
 			</div>
 			{#if hasOptionalInputs}
 				<div class="flex justify-left items-center ml-5">
-					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
-						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
-					</Button>
+					<Sheet>
+						<SheetTrigger>
+							<Button
+								class={`${colors.fullbackground} hover:${colors.background} text-white font-bold py-2 px-4 rounded cursor-pointer`}
+								size="flat"
+							>
+								Other Settings
+							</Button>
+						</SheetTrigger>
+						<SheetContent side="right">
+							<SheetClose>
+								<Button variant="outline" size="sm">Close</Button>
+							</SheetClose>
+							<h2 class="text-lg font-semibold">Node Settings</h2>
+							<!-- Add your settings content here -->
+							<div class="mt-4">
+								<!-- Example content -->
+								{#each $inputs as input}
+									{#if input.optional}
+										<div class="mb-2">
+											<label>
+												<input
+													type="checkbox"
+													bind:checked={checked[input.id]}
+													on:change={(e) => handleCheckboxChange(input.id, e.target.checked)}
+												/>
+												{input.label}
+											</label>
+										</div>
+									{:else}
+										<div class="mb-2">
+											<p>
+												✔ {input.label}
+											</p>
+										</div>
+									{/if}
+								{/each}
+							</div>
+						</SheetContent>
+					</Sheet>
 				</div>
 			{/if}
 		</div>

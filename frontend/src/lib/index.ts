@@ -17,6 +17,7 @@ export const outputData = writable<Record<string, Record<string, any>>>({});
 export const inputPlaceholderData = writable<Record<string, Record<string, any>>>({});
 export const inputData = writable<Record<string, Record<string, any>>>({});
 export const inputDataWithoutPlaceholder = writable<Record<string, Record<string, any>>>({});
+export const optionalInputsEnabled = writable<Record<string, Record<string, boolean>>>({});
 export let handlers: Record<string, () => void> = {};
 
 export function resetProject() {
@@ -28,6 +29,7 @@ export function resetProject() {
     inputPlaceholderData.set({});
     inputData.set({});
     inputDataWithoutPlaceholder.set({});
+    optionalInputsEnabled.set({});
     nodes.set([]);
     edges.set([]);
     handlers = {};

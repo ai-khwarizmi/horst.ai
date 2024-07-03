@@ -14,6 +14,7 @@
 	import { ChevronDown } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { onMount } from 'svelte';
+	import { optionalInputsEnabled } from '@/index';
 
 	const HANDLE_WIDTH = 12;
 	const c = useConnection();
@@ -21,7 +22,6 @@
 	export let nodeId: string;
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
-	export let showOptionalInputs: boolean = true;
 	export let setInputPlaceholderData: (handleId: string, value: any) => void;
 	export let getCurrentInputPlaceholderData: (handleId: string) => any;
 
@@ -70,7 +70,8 @@
 			targetHandle: $c.startHandle.type === 'source' ? base.id : $c.startHandle.handleId
 		});
 
-	$: canHideOptionalInput = base.optional && !showOptionalInputs && connected.length === 0;
+	$: canHideOptionalInput =
+		base.optional && !($optionalInputsEnabled as any)[nodeId]?.[base.id] && connected.length === 0;
 
 	$: getStyle = `
 		${
@@ -226,7 +227,7 @@
 		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
 			<div class="flex flex-col w-full justify-center">
 				<label class="text-xs text-muted-foreground" for="input-element"
-					>{base.label} <span class="text-gray-500 bg-white">[{base.type}]</span></label
+					>{base.label} <!--<span class="text-gray-500 bg-white">[{base.type}]</span>--></label
 				>
 				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>

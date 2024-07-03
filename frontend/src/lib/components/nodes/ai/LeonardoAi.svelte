@@ -9,11 +9,7 @@
 
 	export let id: string;
 
-	const VALID_IMAGE_MODELS = [
-		'aa77f04e-3eec-4034-9c07-d0f619684628', // Leonardo Kino XL
-		'6bef9f1b-29cb-40c7-b9df-32b51c1f67d3', // Leonardo Diffusion XL
-		'cd2b2a15-9760-4174-a5ff-4d2925057376' // Leonardo Vision XL
-	];
+	const DEFAULT_IMAGE_MODEL = 'aa77f04e-3eec-4034-9c07-d0f619684628'; // Leonardo Kino XL
 	const VALID_PRESET_STYLES = [
 		'BOKEH',
 		'CINEMATIC',
@@ -50,15 +46,15 @@
 		const numImages = io.getInputData('num_images') as number;
 		const guidanceScale = io.getInputData('guidance_scale') as number;
 		const seed = io.getInputData('seed') as number;
+		const alchemy = io.getInputData('alchemy') as boolean;
+		const photoReal = io.getInputData('photo_real') as boolean;
+		const photoRealVersion = io.getInputData('photo_real_version') as string;
 
 		const requestBody: any = {
 			height,
 			width,
 			prompt,
-			modelId,
-			alchemy: true,
-			photoReal: true,
-			photoRealVersion: 'v2'
+			modelId
 		};
 
 		// Add optional parameters only if they're set
@@ -68,6 +64,9 @@
 		if (guidanceScale) requestBody.guidance_scale = guidanceScale;
 		if (seed) requestBody.seed = seed;
 		if (isPublic !== undefined) requestBody.public = isPublic;
+		if (alchemy !== undefined) requestBody.alchemy = alchemy;
+		if (photoReal !== undefined) requestBody.photoReal = photoReal;
+		if (photoRealVersion) requestBody.photoRealVersion = photoRealVersion;
 
 		const newValue = JSON.stringify({
 			prompt,
@@ -167,15 +166,13 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt', type: 'text', label: 'Prompt' },
-			{ id: 'negative_prompt', type: 'text', label: 'Negative Prompt', optional: true },
 			{
 				id: 'model_id',
 				type: 'text',
 				label: 'Model ID',
 				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_MODELS,
-					default: VALID_IMAGE_MODELS[0]
+					inputOptionType: 'input-field',
+					default: DEFAULT_IMAGE_MODEL
 				}
 			},
 			{
@@ -197,6 +194,25 @@
 				}
 			},
 			{
+				id: 'num_images',
+				type: 'number',
+				label: 'Number of Images',
+				input: {
+					inputOptionType: 'input-field',
+					default: 1
+				}
+			},
+			{
+				id: 'negative_prompt',
+				type: 'text',
+				label: 'Negative Prompt',
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				},
+				optional: true
+			},
+			{
 				id: 'preset_style',
 				type: 'text',
 				label: 'Preset Style',
@@ -206,16 +222,6 @@
 					default: VALID_PRESET_STYLES[0]
 				},
 				optional: true
-			},
-			{
-				id: 'num_images',
-				type: 'number',
-				label: 'Number of Images',
-				optional: true,
-				input: {
-					inputOptionType: 'input-field',
-					default: 1
-				}
 			},
 			{
 				id: 'guidance_scale',
@@ -246,6 +252,38 @@
 					inputOptionType: 'dropdown',
 					options: ['true', 'false'],
 					default: 'false'
+				}
+			},
+			{
+				id: 'alchemy',
+				type: 'boolean',
+				label: 'Alchemy',
+				optional: true,
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['true', 'false'],
+					default: 'true'
+				}
+			},
+			{
+				id: 'photo_real',
+				type: 'boolean',
+				label: 'Photo Real',
+				optional: true,
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['true', 'false'],
+					default: 'true'
+				}
+			},
+			{
+				id: 'photo_real_version',
+				type: 'text',
+				label: 'Photo Real Version',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: 'v2'
 				}
 			}
 		],

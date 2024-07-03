@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData, resetProject } from "$lib";
+import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData, resetProject, optionalInputsEnabled } from "$lib";
 import { FILE_VERSION } from "./version";
 import { registeredNodes } from "@/nodes";
 import { NodeType } from "@/types";
@@ -25,6 +25,7 @@ export function getSaveData(includeData: boolean): {
     const v = get(viewport);
     const data: any = {};
     const _inputPlaceholderData: any = {};
+    const _optionalInputsEnabled = get(optionalInputsEnabled);
 
     for (const node of n) {
         if (!node?.type) {
@@ -37,19 +38,27 @@ export function getSaveData(includeData: boolean): {
         }
         const nodeType = registeredNodes[node.type].nodeType;
         if (includeData && nodeType === NodeType.INPUT) {
-            data[node.id] = get(outputData)[node.id];
-            for (const key in data[node.id]) {
-                if (data[node.id][key] instanceof HorstFile) {
-                    delete data[node.id][key];
-                }
-                if (Array.isArray(data[node.id][key])) {
-                    for (const file of data[node.id][key]) {
-                        if (file instanceof HorstFile) {
-                            delete data[node.id][key];
+            const originalData = get(outputData)[node.id];
+            data[node.id] = structuredClone(originalData);
+            //recursively go through all files and delete them
+            const checkObject = (obj: any, originalObj: any) => {
+                for (const key in obj) {
+                    if (originalObj[key] instanceof HorstFile) {
+                        delete obj[key];
+                    }
+                    if (Array.isArray(obj[key])) {
+                        for (const file of obj[key]) {
+                            if (file instanceof HorstFile) {
+                                delete obj[key];
+                            }
                         }
+                    }
+                    if (typeof obj[key] === 'object' && obj[key] !== null) {
+                        checkObject(obj[key], originalObj[key]);
                     }
                 }
             }
+            checkObject(data[node.id], originalData);
         }
         if (includeData) {
             _inputPlaceholderData[node.id] = get(inputPlaceholderData)[node.id]
@@ -64,6 +73,7 @@ export function getSaveData(includeData: boolean): {
         viewport: v,
         data,
         inputPlaceholderData: _inputPlaceholderData,
+        optionalInputsEnabled: _optionalInputsEnabled,
         version: FILE_VERSION
     }));
 
@@ -239,6 +249,10 @@ export const loadFromGraph = (graph: any) => {
                 [id]: data as Record<string, any>
             }));
         }
+    }
+
+    if (graph.optionalInputsEnabled) {
+        optionalInputsEnabled.set(graph.optionalInputsEnabled);
     }
 
     valid_edges = valid_edges.filter((edge, index, self) =>
