@@ -22,7 +22,6 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
-	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -37,7 +36,6 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
@@ -216,15 +214,17 @@
 		}
 	};
 
+	let checked = get(optionalInputsEnabled)[id] || ({} as any);
+
 	// Function to handle checkbox change
-	function handleCheckboxChange(inputId: string, checked: boolean) {
-		console.log('handleCheckboxChange', inputId, checked);
+	function handleCheckboxChange(inputId: string, isChecked: boolean) {
 		optionalInputsEnabled.update((current) => {
 			console.log('current', current, 'id', id);
 			if (!current[id]) {
 				current[id] = {};
 			}
-			current[id][inputId] = checked;
+			current[id][inputId] = isChecked;
+			updateNodeInternals(id);
 			return current;
 		});
 	}
@@ -384,7 +384,7 @@
 											<label>
 												<input
 													type="checkbox"
-													bind:checked={$optionalInputsEnabled[input.id]}
+													bind:checked={checked[input.id]}
 													on:change={(e) => handleCheckboxChange(input.id, e.target.checked)}
 												/>
 												{input.label}
@@ -392,9 +392,9 @@
 										</div>
 									{:else}
 										<div class="mb-2">
-											<label>
-												{input.label}
-											</label>
+											<p>
+												✔ {input.label}
+											</p>
 										</div>
 									{/if}
 								{/each}

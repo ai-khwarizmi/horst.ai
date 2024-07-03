@@ -251,6 +251,10 @@ export const loadFromGraph = (graph: any) => {
         }
     }
 
+    if (graph.optionalInputsEnabled) {
+        optionalInputsEnabled.set(graph.optionalInputsEnabled);
+    }
+
     valid_edges = valid_edges.filter((edge, index, self) =>
         index === self.findIndex((t) => t.id === edge.id)
     );

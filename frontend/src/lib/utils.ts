@@ -52,7 +52,6 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 	}
 }
 
-
 export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
 
 export class NodeIOHandler<TInput extends string, TOutput extends string> {

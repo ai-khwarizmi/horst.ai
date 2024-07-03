@@ -1,4 +1,4 @@
-import { type Node, type Edge, type Viewport, type XYPosition } from "@xyflow/svelte";
+import { type Node, type Edge, type Viewport, type XYPosition, useUpdateNodeInternals } from "@xyflow/svelte";
 import { writable } from "svelte/store";
 import { saveToLocalStorage } from "./utils/file";
 import type { ConnectWith } from "./types";
