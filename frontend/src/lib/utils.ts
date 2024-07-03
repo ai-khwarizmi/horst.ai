@@ -60,7 +60,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
 	onExecuteCallbacks: OnExecuteCallbacks | null = null;
-
+	isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
+		unsupported: boolean,
+		message?: string
+	}>;
 	onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
 
 	constructor(args: {
@@ -68,17 +71,34 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
 		onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
+		isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
+			unsupported: boolean,
+			message?: string
+		}>;
 	}) {
-		this.nodeId = args.nodeId;
+		this.isInputUnsupported = args.isInputUnsupported;
+		this.onExecute = args.onExecute;
 
+		this.nodeId = args.nodeId;
 		this.inputs.set(args.inputs);
 		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
-		this.onExecute = args.onExecute;
 		setTimeout(() => {
 			this.onOutputsChanged();
 		}, 1);
+	}
+
+	async updateUnsupportedInputs() {
+		const data = get(inputData);
+		for (const input of get(this.inputs)) {
+			const isUnsupported = await this.isInputUnsupported(input.id, data[this.nodeId]);
+			if (isUnsupported.unsupported) {
+				input.unsupported = isUnsupported;
+			} else {
+				delete input.unsupported;
+			}
+		}
 	}
 
 	destroy = () => {
@@ -149,6 +169,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			if (changed) {
 				inputData.set(_inputData);
 				this.onExecute(this.onExecuteCallbacks!, false);
+				this.updateUnsupportedInputs().catch(console.error);
 			}
 			return changed;
 		} catch (e: any) {

@@ -120,6 +120,10 @@ type BaseIO<TNodeID extends string> = {
     type: NodeValueType;
     label?: string;
     optional?: boolean;
+    unsupported?: {
+        unsupported: boolean;
+        message?: string;
+    }
 }
 
 type InputOptionInputField = {

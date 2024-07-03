@@ -6,6 +6,9 @@
 	import { leonardo_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
 	import { HorstFile } from '@/utils/horstfile';
+	import { validate } from 'uuid';
+	import { generateImage, pollForGenerationResult, tryGetModelById } from '$lib/utils/leonardoai';
+	import { mode } from 'mode-watcher';
 
 	export let id: string;
 
@@ -33,22 +36,75 @@
 		'DYNAMIC'
 	];
 
+	const INPUT_IDS = {
+		PROMPT: 'prompt',
+		MODEL_ID: 'model_id',
+		WIDTH: 'width',
+		HEIGHT: 'height',
+		NUM_IMAGES: 'num_images',
+		NEGATIVE_PROMPT: 'negative_prompt',
+		PRESET_STYLE: 'preset_style',
+		GUIDANCE_SCALE: 'guidance_scale',
+		SEED: 'seed',
+		IS_PUBLIC: 'is_public',
+		ALCHEMY: 'alchemy',
+		PHOTO_REAL: 'photo_real',
+		PHOTO_REAL_VERSION: 'photo_real_version',
+
+		CONTROLNET_STYLE_REFERENCE: 'controlnet_style_reference',
+		CONTROLNET_CHARACTER_REFERENCE: 'controlnet_character_reference',
+		CONTROLNET_CONTENT_REFERENCE: 'controlnet_content_reference',
+		CONTROLNET_EDGE_TO_IMAGE: 'controlnet_edge_to_image',
+		CONTROLNET_DEPTH_TO_IMAGE: 'controlnet_depth_to_image',
+		CONTROLNET_POSE_TO_IMAGE: 'controlnet_pose_to_image',
+		CONTROLNET_TEXT_IMAGE_INPUT: 'controlnet_text_image_input',
+		CONTROLNET_SKETCH_TO_IMAGE: 'controlnet_sketch_to_image',
+		CONTROLNET_NORMAL_MAP: 'controlnet_normal_map',
+		CONTROLNET_LINE_ART: 'controlnet_line_art',
+		CONTROLNET_PATTERN_TO_IMAGE: 'controlnet_pattern_to_image',
+		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image'
+	};
+
+	const CONTROLNET_MATRIX = {
+		[INPUT_IDS.CONTROLNET_STYLE_REFERENCE]: { SD1_5: null, SD2_1: null, SDXL: 67 },
+		[INPUT_IDS.CONTROLNET_CHARACTER_REFERENCE]: { SD1_5: null, SD2_1: null, SDXL: 133 },
+		[INPUT_IDS.CONTROLNET_CONTENT_REFERENCE]: { SD1_5: null, SD2_1: null, SDXL: 100 },
+		[INPUT_IDS.CONTROLNET_EDGE_TO_IMAGE]: { SD1_5: 1, SD2_1: 12, SDXL: 19 },
+		[INPUT_IDS.CONTROLNET_DEPTH_TO_IMAGE]: { SD1_5: 3, SD2_1: 13, SDXL: 20 },
+		[INPUT_IDS.CONTROLNET_POSE_TO_IMAGE]: { SD1_5: 7, SD2_1: 16, SDXL: 21 },
+		[INPUT_IDS.CONTROLNET_TEXT_IMAGE_INPUT]: { SD1_5: 11, SD2_1: 18, SDXL: 22 },
+		[INPUT_IDS.CONTROLNET_SKETCH_TO_IMAGE]: { SD1_5: 10, SD2_1: 17, SDXL: null },
+		[INPUT_IDS.CONTROLNET_NORMAL_MAP]: { SD1_5: 6, SD2_1: 15, SDXL: null },
+		[INPUT_IDS.CONTROLNET_LINE_ART]: { SD1_5: 5, SD2_1: null, SDXL: null },
+		[INPUT_IDS.CONTROLNET_PATTERN_TO_IMAGE]: { SD1_5: 8, SD2_1: null, SDXL: null },
+		[INPUT_IDS.CONTROLNET_QR_CODE_TO_IMAGE]: { SD1_5: 9, SD2_1: null, SDXL: null }
+	};
+
+	const MODEL_VERSION_MAP: any = {
+		SD1_5: 'SD1_5',
+		SD2_1: 'SD2_1',
+		SDXL: 'SDXL',
+		v1_5: 'SD1_5',
+		v2: 'SD2_1',
+		v2_1: 'SD2_1'
+	};
+
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKey = get(leonardo_key) as string;
 
-		const prompt = io.getInputData('prompt') as string;
-		const negativePrompt = io.getInputData('negative_prompt') as string;
-		const modelId = io.getInputData('model_id') as string;
-		const width = io.getInputData('width') as number;
-		const height = io.getInputData('height') as number;
-		const presetStyle = io.getInputData('preset_style') as string;
-		const isPublic = io.getInputData('is_public') as boolean;
-		const numImages = io.getInputData('num_images') as number;
-		const guidanceScale = io.getInputData('guidance_scale') as number;
-		const seed = io.getInputData('seed') as number;
-		const alchemy = io.getInputData('alchemy') as boolean;
-		const photoReal = io.getInputData('photo_real') as boolean;
-		const photoRealVersion = io.getInputData('photo_real_version') as string;
+		const prompt = io.getInputData(INPUT_IDS.PROMPT) as string;
+		const negativePrompt = io.getInputData(INPUT_IDS.NEGATIVE_PROMPT) as string;
+		const modelId = io.getInputData(INPUT_IDS.MODEL_ID) as string;
+		const width = io.getInputData(INPUT_IDS.WIDTH) as number;
+		const height = io.getInputData(INPUT_IDS.HEIGHT) as number;
+		const presetStyle = io.getInputData(INPUT_IDS.PRESET_STYLE) as string;
+		const isPublic = io.getInputData(INPUT_IDS.IS_PUBLIC) as boolean;
+		const numImages = io.getInputData(INPUT_IDS.NUM_IMAGES) as number;
+		const guidanceScale = io.getInputData(INPUT_IDS.GUIDANCE_SCALE) as number;
+		const seed = io.getInputData(INPUT_IDS.SEED) as number;
+		const alchemy = io.getInputData(INPUT_IDS.ALCHEMY) as boolean;
+		const photoReal = io.getInputData(INPUT_IDS.PHOTO_REAL) as boolean;
+		const photoRealVersion = io.getInputData(INPUT_IDS.PHOTO_REAL_VERSION) as string;
 
 		const requestBody: any = {
 			height,
@@ -95,25 +151,12 @@
 			io.setOutputData('image_urls', null);
 			try {
 				callbacks.setStatus('loading');
+				const response = await generateImage(requestBody);
 
-				const response = await fetch('https://cloud.leonardo.ai/api/rest/v1/generations', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${apiKey}`
-					},
-					body: JSON.stringify(requestBody)
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-
-				const data = await response.json();
-				const generationId = data.sdGenerationJob.generationId;
+				const generationId = response.sdGenerationJob.generationId;
 
 				// Poll for the generation result
-				const imageUrls = await pollForGenerationResult(generationId, apiKey);
+				const imageUrls = await pollForGenerationResult(generationId);
 				lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
 				io.setOutputData('image_urls', lastOutputValue);
 				callbacks.setStatus('success');
@@ -128,46 +171,65 @@
 		}
 	};
 
-	async function pollForGenerationResult(generationId: string, apiKey: string): Promise<string[]> {
-		const maxAttempts = 30;
-		const delayMs = 2000;
-
-		for (let attempt = 0; attempt < maxAttempts; attempt++) {
-			const response = await fetch(
-				`https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`,
-				{
-					headers: {
-						Authorization: `Bearer ${apiKey}`
-					}
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
-
-			if (data.generations_by_pk.status === 'COMPLETE') {
-				return data.generations_by_pk.generated_images.map((image: any) => image.url);
-			}
-
-			if (data.generations_by_pk.status === 'FAILED') {
-				throw new Error('Generation failed');
-			}
-
-			await new Promise((resolve) => setTimeout(resolve, delayMs));
+	const isInputUnsupported = async (
+		inputId: string,
+		currentInputData: Record<string, any>
+	): Promise<{
+		unsupported: boolean;
+		message?: string;
+	}> => {
+		/*
+		leonardo supports different controlnets
+		the matrix of what is supported: can be found here: https://docs.leonardo.ai/docs/generate-images-using-image-to-image-guidance
+		*/
+		let modelId = currentInputData[INPUT_IDS.MODEL_ID];
+		if (!modelId || !validate(modelId)) {
+			return {
+				unsupported: false
+			};
 		}
 
-		throw new Error('Generation timed out');
-	}
+		let model = await tryGetModelById(currentInputData[INPUT_IDS.MODEL_ID]);
+		if (!model || !model.custom_models_by_pk) {
+			return {
+				unsupported: false
+			};
+		}
+
+		if (CONTROLNET_MATRIX[inputId]) {
+			let modelType = model.custom_models_by_pk.sdVersion;
+			if (!modelType) {
+				return {
+					unsupported: false
+				};
+			}
+			if (modelType.startsWith('SDXL_')) {
+				modelType = 'SDXL';
+			}
+			const modelTypeMapped = MODEL_VERSION_MAP[modelType];
+			const preprocessorId = (CONTROLNET_MATRIX as any)[inputId][modelTypeMapped];
+			if (!preprocessorId) {
+				console.log('unsupported model type', inputId, modelType, modelTypeMapped, preprocessorId);
+				return {
+					unsupported: true,
+					message: 'Not supported by this model: ' + model.custom_models_by_pk.name
+				};
+			} else {
+				console.log('supported model type', inputId, modelType, modelTypeMapped, preprocessorId);
+			}
+		}
+
+		return {
+			unsupported: false
+		};
+	};
 
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
-			{ id: 'prompt', type: 'text', label: 'Prompt' },
+			{ id: INPUT_IDS.PROMPT, type: 'text', label: 'Prompt' },
 			{
-				id: 'model_id',
+				id: INPUT_IDS.MODEL_ID,
 				type: 'text',
 				label: 'Model ID',
 				input: {
@@ -176,7 +238,7 @@
 				}
 			},
 			{
-				id: 'width',
+				id: INPUT_IDS.WIDTH,
 				type: 'number',
 				label: 'Width',
 				input: {
@@ -185,7 +247,7 @@
 				}
 			},
 			{
-				id: 'height',
+				id: INPUT_IDS.HEIGHT,
 				type: 'number',
 				label: 'Height',
 				input: {
@@ -194,7 +256,7 @@
 				}
 			},
 			{
-				id: 'num_images',
+				id: INPUT_IDS.NUM_IMAGES,
 				type: 'number',
 				label: 'Number of Images',
 				input: {
@@ -203,7 +265,7 @@
 				}
 			},
 			{
-				id: 'negative_prompt',
+				id: INPUT_IDS.NEGATIVE_PROMPT,
 				type: 'text',
 				label: 'Negative Prompt',
 				input: {
@@ -213,7 +275,7 @@
 				optional: true
 			},
 			{
-				id: 'preset_style',
+				id: INPUT_IDS.PRESET_STYLE,
 				type: 'text',
 				label: 'Preset Style',
 				input: {
@@ -224,7 +286,7 @@
 				optional: true
 			},
 			{
-				id: 'guidance_scale',
+				id: INPUT_IDS.GUIDANCE_SCALE,
 				type: 'number',
 				label: 'Guidance Scale',
 				optional: true,
@@ -234,7 +296,7 @@
 				}
 			},
 			{
-				id: 'seed',
+				id: INPUT_IDS.SEED,
 				type: 'number',
 				label: 'Seed',
 				optional: true,
@@ -244,7 +306,7 @@
 				}
 			},
 			{
-				id: 'is_public',
+				id: INPUT_IDS.IS_PUBLIC,
 				type: 'boolean',
 				label: 'Public',
 				optional: true,
@@ -255,7 +317,7 @@
 				}
 			},
 			{
-				id: 'alchemy',
+				id: INPUT_IDS.ALCHEMY,
 				type: 'boolean',
 				label: 'Alchemy',
 				optional: true,
@@ -266,7 +328,7 @@
 				}
 			},
 			{
-				id: 'photo_real',
+				id: INPUT_IDS.PHOTO_REAL,
 				type: 'boolean',
 				label: 'Photo Real',
 				optional: true,
@@ -277,7 +339,7 @@
 				}
 			},
 			{
-				id: 'photo_real_version',
+				id: INPUT_IDS.PHOTO_REAL_VERSION,
 				type: 'text',
 				label: 'Photo Real Version',
 				optional: true,
@@ -285,10 +347,83 @@
 					inputOptionType: 'input-field',
 					default: 'v2'
 				}
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_STYLE_REFERENCE,
+				type: 'file',
+				label: 'Style Reference (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_CHARACTER_REFERENCE,
+				type: 'file',
+				label: 'Character Reference (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_CONTENT_REFERENCE,
+				type: 'file',
+				label: 'Content Reference (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_EDGE_TO_IMAGE,
+				type: 'file',
+				label: 'Edge to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_DEPTH_TO_IMAGE,
+				type: 'file',
+				label: 'Depth to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_POSE_TO_IMAGE,
+				type: 'file',
+				label: 'Pose to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_TEXT_IMAGE_INPUT,
+				type: 'file',
+				label: 'Text to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_SKETCH_TO_IMAGE,
+				type: 'file',
+				label: 'Sketch to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_NORMAL_MAP,
+				type: 'file',
+				label: 'Normal Map (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_LINE_ART,
+				type: 'file',
+				label: 'Line Art (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_PATTERN_TO_IMAGE,
+				type: 'file',
+				label: 'Pattern to Image (Image)',
+				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTROLNET_QR_CODE_TO_IMAGE,
+				type: 'file',
+				label: 'QR Code to Image (Image)',
+				optional: true
 			}
 		],
 		outputs: [{ id: 'image_urls', type: 'array', label: 'Image URLs' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: isInputUnsupported
 	});
 
 	let lastExecutedValue: null | string = null;

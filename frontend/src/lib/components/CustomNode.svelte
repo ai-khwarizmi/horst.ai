@@ -377,33 +377,36 @@
 								Other Settings
 							</Button>
 						</SheetTrigger>
-						<SheetContent side="right">
+						<SheetContent side="right" class="overflow-y-auto scrollbar-visible">
 							<SheetClose>
 								<Button variant="outline" size="sm">Close</Button>
 							</SheetClose>
 							<h2 class="text-lg font-semibold">Node Settings</h2>
 							<!-- Add your settings content here -->
 							<div class="mt-4">
-								<!-- Example content -->
 								{#each $inputs as input}
-									{#if input.optional}
-										<div class="mb-2">
-											<label>
+									<div class="mb-4">
+										{#if input.optional}
+											<label class="flex items-center">
 												<input
 													type="checkbox"
 													bind:checked={checked[input.id]}
 													on:change={(e) => handleCheckboxChange(input.id, e.target.checked)}
+													disabled={input.unsupported?.unsupported}
+													class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
+														disabled:opacity-50 disabled:cursor-not-allowed"
 												/>
-												{input.label}
+												<span class="ml-2">{input.label}</span>
 											</label>
-										</div>
-									{:else}
-										<div class="mb-2">
-											<p>
-												✔ {input.label}
+										{:else}
+											<p>✔ {input.label}</p>
+										{/if}
+										{#if input.unsupported}
+											<p class="text-red-500 text-xs mt-1 ml-5">
+												{input.unsupported.message}
 											</p>
-										</div>
-									{/if}
+										{/if}
+									</div>
 								{/each}
 							</div>
 						</SheetContent>
