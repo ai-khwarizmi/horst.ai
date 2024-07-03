@@ -22,6 +22,7 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -36,6 +37,7 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
+	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
