@@ -181,7 +181,7 @@
 				label: 'Width',
 				input: {
 					inputOptionType: 'input-field',
-					default: 1024
+					default: 512
 				}
 			},
 			{
@@ -190,7 +190,7 @@
 				label: 'Height',
 				input: {
 					inputOptionType: 'input-field',
-					default: 1024
+					default: 512
 				}
 			},
 			{
