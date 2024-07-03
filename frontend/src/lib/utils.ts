@@ -7,6 +7,7 @@ import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
 import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
+import { HorstFile } from "./utils/horstfile";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -238,6 +239,8 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				return typeof data === 'string';
 			case 'boolean':
 				return typeof data === 'boolean' || data === 'true' || data === 'false';
+			case 'file[]':
+				return Array.isArray(data);
 			case 'any':
 				return true;
 			default:

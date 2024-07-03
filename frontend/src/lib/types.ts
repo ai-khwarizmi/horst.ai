@@ -6,7 +6,7 @@ export enum NodeType {
     UNKNOWN = 'unknown'
 }
 
-type RawNodeValueType = 'text' | 'number' | 'boolean' | 'any' | 'json' | 'array' | 'file' | 'file[]' | 'prompt';
+type RawNodeValueType = 'text' | 'number' | 'boolean' | 'any' | 'json' | 'array' | 'file' | 'file[]';
 type ArrayNodeValueType = `${RawNodeValueType}[]`;
 export type NodeValueType = RawNodeValueType | ArrayNodeValueType;
 

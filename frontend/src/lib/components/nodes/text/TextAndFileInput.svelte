@@ -44,10 +44,9 @@
 		}
 	}
 
-	const handleFiles = (newFiles: FileList) => {
-		for (const file of newFiles) {
-			files = [...files, new HorstFile(file)];
-		}
+	const handleFiles = async (newFiles: FileList) => {
+		const _files = await Promise.all(Array.from(newFiles).map((file) => HorstFile.fromFile(file)));
+		files = [...files, ..._files];
 		io.setOutputData('files', files);
 	};
 

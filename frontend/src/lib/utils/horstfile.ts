@@ -8,6 +8,9 @@ export class HorstFile {
 	private fileArrayBuffer: ArrayBuffer | null = null;
 
 	constructor(file: File, callback: (file: HorstFile) => void) {
+		if (!file || !callback) {
+			throw new Error("File and callback are required");
+		}
 		this.fileName = file.name;
 		this.fileSize = file.size;
 		this.fileType = file.type;
