@@ -7,7 +7,6 @@ import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
 import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
-import { HorstFile } from "./utils/horstfile";
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -383,14 +382,4 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	const edge = e.find(e => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
-}
-
-export type ApiKeys = {
-	openai: string | null
-}
-
-export function getApiKeys(): ApiKeys {
-	return {
-		openai: get(openai_key)
-	}
 }

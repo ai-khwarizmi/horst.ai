@@ -1,5 +1,5 @@
 import { get } from "svelte/store";
-import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData, resetProject } from "$lib";
+import { edges, nodes, projectName, projectId, viewport, outputData, inputPlaceholderData, resetProject, optionalInputsEnabled } from "$lib";
 import { FILE_VERSION } from "./version";
 import { registeredNodes } from "@/nodes";
 import { NodeType } from "@/types";
@@ -25,6 +25,7 @@ export function getSaveData(includeData: boolean): {
     const v = get(viewport);
     const data: any = {};
     const _inputPlaceholderData: any = {};
+    const _optionalInputsEnabled = get(optionalInputsEnabled);
 
     for (const node of n) {
         if (!node?.type) {
@@ -72,6 +73,7 @@ export function getSaveData(includeData: boolean): {
         viewport: v,
         data,
         inputPlaceholderData: _inputPlaceholderData,
+        optionalInputsEnabled: _optionalInputsEnabled,
         version: FILE_VERSION
     }));
 

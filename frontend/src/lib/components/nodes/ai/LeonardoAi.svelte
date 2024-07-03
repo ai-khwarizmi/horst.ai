@@ -170,7 +170,6 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt', type: 'text', label: 'Prompt' },
-			{ id: 'negative_prompt', type: 'text', label: 'Negative Prompt', optional: true },
 			{
 				id: 'model_id',
 				type: 'text',
@@ -199,6 +198,7 @@
 					default: 1024
 				}
 			},
+			{ id: 'negative_prompt', type: 'text', label: 'Negative Prompt', optional: true },
 			{
 				id: 'preset_style',
 				type: 'text',
