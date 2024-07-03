@@ -227,7 +227,7 @@
 		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
 			<div class="flex flex-col w-full justify-center">
 				<label class="text-xs text-muted-foreground" for="input-element"
-					>{base.label} <span class="text-gray-500 bg-white">[{base.type}]</span></label
+					>{base.label} <!--<span class="text-gray-500 bg-white">[{base.type}]</span>--></label
 				>
 				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>

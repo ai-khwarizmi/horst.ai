@@ -9,11 +9,7 @@
 
 	export let id: string;
 
-	const VALID_IMAGE_MODELS = [
-		'aa77f04e-3eec-4034-9c07-d0f619684628', // Leonardo Kino XL
-		'6bef9f1b-29cb-40c7-b9df-32b51c1f67d3', // Leonardo Diffusion XL
-		'cd2b2a15-9760-4174-a5ff-4d2925057376' // Leonardo Vision XL
-	];
+	const DEFAULT_IMAGE_MODEL = 'aa77f04e-3eec-4034-9c07-d0f619684628'; // Leonardo Kino XL
 	const VALID_PRESET_STYLES = [
 		'BOKEH',
 		'CINEMATIC',
@@ -175,9 +171,8 @@
 				type: 'text',
 				label: 'Model ID',
 				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_IMAGE_MODELS,
-					default: VALID_IMAGE_MODELS[0]
+					inputOptionType: 'input-field',
+					default: DEFAULT_IMAGE_MODEL
 				}
 			},
 			{
