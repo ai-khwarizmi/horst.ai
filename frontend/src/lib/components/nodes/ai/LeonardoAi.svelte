@@ -50,15 +50,15 @@
 		const numImages = io.getInputData('num_images') as number;
 		const guidanceScale = io.getInputData('guidance_scale') as number;
 		const seed = io.getInputData('seed') as number;
+		const alchemy = io.getInputData('alchemy') as boolean;
+		const photoReal = io.getInputData('photo_real') as boolean;
+		const photoRealVersion = io.getInputData('photo_real_version') as string;
 
 		const requestBody: any = {
 			height,
 			width,
 			prompt,
-			modelId,
-			alchemy: true,
-			photoReal: true,
-			photoRealVersion: 'v2'
+			modelId
 		};
 
 		// Add optional parameters only if they're set
@@ -68,6 +68,9 @@
 		if (guidanceScale) requestBody.guidance_scale = guidanceScale;
 		if (seed) requestBody.seed = seed;
 		if (isPublic !== undefined) requestBody.public = isPublic;
+		if (alchemy !== undefined) requestBody.alchemy = alchemy;
+		if (photoReal !== undefined) requestBody.photoReal = photoReal;
+		if (photoRealVersion) requestBody.photoRealVersion = photoRealVersion;
 
 		const newValue = JSON.stringify({
 			prompt,
@@ -246,6 +249,38 @@
 					inputOptionType: 'dropdown',
 					options: ['true', 'false'],
 					default: 'false'
+				}
+			},
+			{
+				id: 'alchemy',
+				type: 'boolean',
+				label: 'Alchemy',
+				optional: true,
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['true', 'false'],
+					default: 'true'
+				}
+			},
+			{
+				id: 'photo_real',
+				type: 'boolean',
+				label: 'Photo Real',
+				optional: true,
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['true', 'false'],
+					default: 'true'
+				}
+			},
+			{
+				id: 'photo_real_version',
+				type: 'text',
+				label: 'Photo Real Version',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: 'v2'
 				}
 			}
 		],
