@@ -121,7 +121,7 @@
 		return MODEL_VERSION_MAP[modelVersion];
 	};
 
-	const prepareControlnets = async (modelId: string) => {
+	const prepareControlnets = async (modelId: string): Promise<Controlnet[] | false> => {
 		const currentInputs = get(inputData)[id];
 		const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
 		const expectedControlnets = Object.keys(CONTROLNET_MATRIX).reduce((count, inputId) => {
@@ -167,9 +167,7 @@
 		}
 
 		if (controlnets.length !== expectedControlnets) {
-			console.log('Some input images are missing. Check all image references');
-			console.log(controlnets, expectedControlnets, currentInputs);
-			throw new Error('Some input images are missing. Check all image references');
+			return false;
 		}
 
 		return controlnets;
@@ -211,6 +209,12 @@
 
 		try {
 			const controlnets = await wrap(prepareControlnets(requestBody[INPUT_IDS.MODEL_ID]));
+			if (!controlnets) {
+				callbacks.setStatus('idle');
+				io.setOutputData('image_urls', null);
+				lastOutputValue = null;
+				return;
+			}
 			const hash = sha256(JSON.stringify(controlnets));
 			console.log('controlnets', controlnets, hash);
 			const newValue = JSON.stringify({
