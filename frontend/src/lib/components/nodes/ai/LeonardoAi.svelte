@@ -7,7 +7,14 @@
 	import { get } from 'svelte/store';
 	import { HorstFile } from '@/utils/horstfile';
 	import { validate } from 'uuid';
-	import { generateImage, pollForGenerationResult, tryGetModelById } from '$lib/utils/leonardoai';
+	import {
+		generateImage,
+		pollForGenerationResult,
+		tryGetModelById,
+		uploadInitImage,
+		type Controlnet
+	} from '$lib/utils/leonardoai';
+	import { optionalInputsEnabled } from '@/index';
 
 	export let id: string;
 
@@ -62,6 +69,7 @@
 		CONTROLNET_LINE_ART: 'controlnet_line_art',
 		CONTROLNET_PATTERN_TO_IMAGE: 'controlnet_pattern_to_image',
 		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image',
+
 		CONTRAST_RATIO: 'contrast_ratio',
 		EXPANDED_DOMAIN: 'expanded_domain',
 		FANTASY_AVATAR: 'fantasy_avatar',
@@ -107,6 +115,21 @@
 		v1_5: 'SD1_5',
 		v2: 'SD2_1',
 		v2_1: 'SD2_1'
+	};
+
+	const getModelVersionFromModelId = async (modelId: string) => {
+		const model = await tryGetModelById(modelId);
+		if (!model || !model.custom_models_by_pk) {
+			throw new Error('Model not found');
+		}
+		let modelVersion = model.custom_models_by_pk.sdVersion;
+		if (!modelVersion) {
+			throw new Error(`Model version not found for ${modelId}`);
+		}
+		if (modelVersion.startsWith('SDXL_')) {
+			modelVersion = 'SDXL';
+		}
+		return MODEL_VERSION_MAP[modelVersion];
 	};
 
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
@@ -188,50 +211,102 @@
 		if (enhancePrompt !== undefined) requestBody.enhancePrompt = enhancePrompt;
 		if (enhancePromptInstruction) requestBody.enhancePromptInstruction = enhancePromptInstruction;
 
-		const newValue = JSON.stringify({
-			prompt,
-			negativePrompt,
-			modelId,
-			width,
-			height,
-			presetStyle,
-			isPublic,
-			numImages,
-			guidanceScale,
-			seed,
-			apiKey
-		});
+		try {
+			const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
+			const expectedControlnets = Object.keys(CONTROLNET_MATRIX).reduce((count, inputId) => {
+				return _optionalInputsEnabled[inputId] ? count + 1 : count;
+			}, 0);
+			console.log('Expected controlnets:', expectedControlnets);
 
-		if (prompt) {
-			if (!forceExecute && newValue === lastExecutedValue) {
-				return;
-			}
-			lastExecutedValue = newValue;
-			if (!apiKey) {
-				callbacks.setErrors([SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING]);
-				return;
-			}
-			lastOutputValue = null;
-			io.setOutputData('image_urls', null);
-			try {
-				callbacks.setStatus('loading');
-				const response = await generateImage(requestBody);
+			let availableControlnets = Object.entries(CONTROLNET_MATRIX)
+				.filter(([inputId, value]) => value !== null && io.getInputData(inputId))
+				.map(([inputId]) => ({
+					inputId,
+					value: io.getInputData(inputId)
+				}));
 
-				const generationId = response.sdGenerationJob.generationId;
-
-				// Poll for the generation result
-				const imageUrls = await pollForGenerationResult(generationId);
-				lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
-				io.setOutputData('image_urls', lastOutputValue);
-				callbacks.setStatus('success');
-			} catch (error: any) {
-				callbacks.setErrors(['Error calling Leonardo AI', error.message]);
-				console.error('Error calling Leonardo AI: ', error);
+			//for now we only support 1 file per controlnet
+			for (const controlnet of availableControlnets) {
+				if (Array.isArray(controlnet.value) && controlnet.value.length > 1) {
+					throw new Error(
+						'Only 1 file per controlnet is supported for: [' +
+							controlnet.inputId +
+							'] Received: ' +
+							controlnet.value.length
+					);
+				}
+				if (Array.isArray(controlnet.value)) {
+					controlnet.value = controlnet.value[0];
+				}
 			}
-		} else {
-			callbacks.setStatus('idle');
-			io.setOutputData('image_urls', null);
-			lastOutputValue = null;
+			availableControlnets = availableControlnets.filter((controlnet) => !!controlnet.value);
+			console.log('availableControlnets', availableControlnets);
+
+			let controlnets: Controlnet[] = [];
+			for (const controlnet of availableControlnets) {
+				const modelTypeMapped = await getModelVersionFromModelId(modelId);
+				controlnets.push({
+					initImageId: await uploadInitImage(controlnet.value),
+					initImageType: 'UPLOADED',
+					preprocessorId: (CONTROLNET_MATRIX as any)[controlnet.inputId]?.[modelTypeMapped],
+					weight: 1,
+					strengthType: null
+				});
+			}
+
+			for (const controlnet of controlnets) {
+				if (!controlnet.preprocessorId) {
+					throw new Error(`Invalid controlnet: ${controlnet.initImageId}`);
+				}
+			}
+
+			if (controlnets.length !== expectedControlnets) {
+				throw new Error('Some input images are missing. Check all image references');
+			}
+
+			if (controlnets.length > 0) {
+				requestBody.controlnets = controlnets;
+			}
+
+			const newValue = JSON.stringify({
+				...requestBody,
+				apiKey
+			});
+
+			if (prompt) {
+				if (!forceExecute && newValue === lastExecutedValue) {
+					return;
+				}
+				lastExecutedValue = newValue;
+				if (!apiKey) {
+					callbacks.setErrors([SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING]);
+					return;
+				}
+				lastOutputValue = null;
+				io.setOutputData('image_urls', null);
+				try {
+					callbacks.setStatus('loading');
+					const response = await generateImage(requestBody);
+
+					const generationId = response.sdGenerationJob.generationId;
+
+					// Poll for the generation result
+					const imageUrls = await pollForGenerationResult(generationId);
+					lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
+					io.setOutputData('image_urls', lastOutputValue);
+					callbacks.setStatus('success');
+				} catch (error: any) {
+					callbacks.setErrors(['Error calling Leonardo AI', error.message]);
+					console.error('Error calling Leonardo AI: ', error);
+				}
+			} else {
+				callbacks.setStatus('idle');
+				io.setOutputData('image_urls', null);
+				lastOutputValue = null;
+			}
+		} catch (error: any) {
+			callbacks.setErrors(['Error calling Leonardo AI', error.message || 'Unknown error']);
+			console.error('Error calling Leonardo AI: ', error);
 		}
 	};
 

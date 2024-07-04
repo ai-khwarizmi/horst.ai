@@ -1,7 +1,17 @@
 import { get } from 'svelte/store';
 import { leonardo_key } from '$lib/apikeys';
+import { HorstFile } from './horstfile';
+import { corsProxyFetch } from './corsproxy';
 
 const BASE_URL = 'https://cloud.leonardo.ai/api/rest/v1';
+
+export interface Controlnet {
+	initImageId: string;
+	initImageType: 'UPLOADED' | 'GENERATED';
+	preprocessorId: string;
+	weight: number;
+	strengthType: string | null;
+}
 
 export interface GenerateImageRequestBody {
 	height: number;
@@ -38,6 +48,7 @@ export interface GenerateImageRequestBody {
 	upscaleRatio?: number;
 	enhancePrompt?: boolean;
 	enhancePromptInstruction?: string;
+	controlnets?: Controlnet[];
 }
 
 export interface GenerateImageResponse {
@@ -78,12 +89,16 @@ async function apiCall(endpoint: string, method: string, body?: any): Promise<an
 		body: body ? JSON.stringify(body) : undefined
 	});
 
+	const responseData = await response.json();
+
 	if (!response.ok) {
-		const errorData = await response.json();
-		throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message}`);
+		const errorMessage = responseData.error ||
+			(responseData.code === 'unexpected' ? responseData.error : null) ||
+			`HTTP error! status: ${response.status}`;
+		throw new Error(errorMessage);
 	}
 
-	return await response.json();
+	return responseData;
 }
 
 export async function generateImage(requestBody: GenerateImageRequestBody): Promise<GenerateImageResponse> {
@@ -145,4 +160,49 @@ export async function pollForGenerationResult(
 	}
 
 	throw new Error('Generation timed out');
+}
+
+const initImageCache: { [hash: string]: string } = {};
+
+export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
+	const fileHash = horstFile.getHash();
+
+	if (initImageCache[fileHash]) {
+		console.log('Cached init image found');
+		return initImageCache[fileHash];
+	}
+
+	const extension = horstFile.fileName.split('.').pop()?.toLowerCase();
+	if (!['png', 'jpg', 'jpeg', 'webp'].includes(extension || '')) {
+		throw new Error('Invalid file extension. Must be png, jpg, jpeg, or webp.');
+	}
+
+	const presignedData = await apiCall('/init-image', 'POST', { extension });
+
+	const blob = horstFile.getBlob();
+	console.log('presignedData', presignedData);
+
+	const formData = new FormData();
+	const fields = JSON.parse(presignedData.uploadInitImage.fields);
+
+	Object.entries(fields).forEach(([key, value]) => {
+		formData.append(key, value as string);
+	});
+
+	formData.append('file', blob, horstFile.fileName);
+
+	const uploadResponse = await corsProxyFetch(presignedData.uploadInitImage.url, {
+		method: 'POST',
+		body: formData,
+	});
+
+	if (!uploadResponse.ok) {
+		const errorText = await uploadResponse.text();
+		console.error('Upload error:', errorText);
+		throw new Error(`Failed to upload image to S3: ${uploadResponse.status} ${uploadResponse.statusText}`);
+	}
+
+	initImageCache[fileHash] = presignedData.uploadInitImage.id;
+
+	return initImageCache[fileHash];
 }

@@ -129,6 +129,13 @@
 			url: 'https://github.com/lodash/lodash',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'js-sha256': {
+			name: 'js-sha256',
+			url: 'https://github.com/emn178/js-sha256',
+			branch: 'master',
+			licenseFile: 'LICENSE.txt',
+			license: 'MIT'
 		}
 	};
 

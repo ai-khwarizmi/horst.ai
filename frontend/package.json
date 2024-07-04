@@ -61,6 +61,7 @@
 		"@xyflow/svelte": "^0.1.7",
 		"bits-ui": "^0.21.11",
 		"cmdk-sv": "^0.0.17",
+		"js-sha256": "^0.11.0",
 		"lodash-es": "^4.17.21",
 		"lucide-svelte": "^0.394.0",
 		"lz-string": "^1.5.0",
