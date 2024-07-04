@@ -155,6 +155,12 @@
 			url: 'https://github.com/localForage/localForage',
 			branch: 'master',
 			license: 'Apache License 2.0'
+		},
+		'groq-sdk': {
+			name: 'groq-sdk',
+			url: 'https://github.com/groq-ai/groq-sdk',
+			branch: 'main',
+			license: 'Apache License 2.0'
 		}
 	};
 
