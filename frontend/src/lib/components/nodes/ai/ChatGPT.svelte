@@ -24,7 +24,11 @@
 
 	export let id: string;
 
-	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	const onExecute = async (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => {
 		try {
 			const apiKey = get(openai_key) as string;
 			const systemPrompt = io.getInputData('prompt_system') as string;
@@ -94,7 +98,7 @@
 					if (logitBias) request.logit_bias = JSON.parse(logitBias);
 					if (user) request.user = user;
 
-					const stream = await getOpenai().chat.completions.create(request);
+					const stream = await wrap(getOpenai().chat.completions.create(request));
 
 					let output = '';
 					for await (const chunk of stream) {
@@ -254,7 +258,8 @@
 			}
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastExecutedValue: null | string = null;

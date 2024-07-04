@@ -8,6 +8,8 @@ import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
 import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
 import { HorstFile } from "./utils/horstfile";
+import { Subject, switchMap, catchError, EMPTY, takeUntil, from, Observable, race, firstValueFrom } from 'rxjs';
+
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -60,25 +62,56 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly inputs = writable<Input<TInput>[]>([]);
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
+	private executeSubject = new Subject<{ callbacks: OnExecuteCallbacks, forceExecute: boolean }>();
+	private cancelExecutionSubject = new Subject<void>();
+
 	onExecuteCallbacks: OnExecuteCallbacks | null = null;
 	isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
 		unsupported: boolean,
 		message?: string
 	}>;
-	onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
+	_onExecute: (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => Promise<void>;
+
+	private currentContext: ReturnType<typeof createCancellableContext> | null = null;
 
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
-		onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
+		onExecute: (
+			callbacks: OnExecuteCallbacks,
+			forceExecute: boolean,
+			wrap: <T>(promise: Promise<T>) => Promise<T>
+		) => Promise<void>;
 		isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
 			unsupported: boolean,
 			message?: string
 		}>;
 	}) {
 		this.isInputUnsupported = args.isInputUnsupported;
-		this.onExecute = args.onExecute;
+		this._onExecute = args.onExecute;
+
+		this.executeSubject.pipe(
+			switchMap(({ callbacks, forceExecute }) => {
+				if (this.currentContext) {
+					this.currentContext.cancel();
+				}
+				this.currentContext = createCancellableContext();
+
+				return from(args.onExecute(callbacks, forceExecute, this.currentContext.wrap)).pipe(
+					takeUntil(this.cancelExecutionSubject)
+				);
+			}),
+			catchError((error: Error) => {
+				console.error('Error in execute stream:', error);
+				this.onExecuteCallbacks?.setErrors([error.toString()]);
+				return EMPTY;
+			})
+		).subscribe();
 
 		this.nodeId = args.nodeId;
 		this.inputs.set(args.inputs);
@@ -89,6 +122,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			this.onOutputsChanged();
 		}, 1);
 	}
+
+	onExecute = (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		this.executeSubject.next({ callbacks, forceExecute });
+	};
 
 	async updateUnsupportedInputs() {
 		const data = get(inputData);
@@ -282,6 +319,15 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
 		this.onOutputsChanged();
 	}
+
+	cancelExecution = () => {
+		if (this.currentContext) {
+			console.log('Cancelling execution');
+			this.currentContext.cancel();
+			this.currentContext = null;
+		}
+		this.cancelExecutionSubject.next();
+	};
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
@@ -409,3 +455,31 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	if (!edge) return;
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
+
+export function createCancellableContext() {
+	const abortController = new AbortController();
+	const signal = abortController.signal;
+
+	const cancel$ = new Observable<void>(observer => {
+		const onAbort = () => {
+			console.log('Abort signal received');
+			observer.next();
+			observer.complete(); // Complete the observable to clean up
+		};
+		signal.addEventListener('abort', onAbort, { once: true });
+		return () => {
+			console.log('Removing abort event listener');
+			signal.removeEventListener('abort', onAbort);
+		};
+	});
+
+	return {
+		signal,
+		cancel: () => abortController.abort(),
+		wrap: <T>(promise: Promise<T>): Promise<T> => {
+			return firstValueFrom(from(promise).pipe(takeUntil(cancel$)));
+		}
+	};
+}
+
+export type WrappedPromise = <T>(promise: Promise<T>) => Promise<T>

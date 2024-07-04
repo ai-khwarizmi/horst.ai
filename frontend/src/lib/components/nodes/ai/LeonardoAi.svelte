@@ -15,6 +15,7 @@
 		type Controlnet
 	} from '$lib/utils/leonardoai';
 	import { inputData, optionalInputsEnabled } from '@/index';
+	import { sha256 } from 'js-sha256';
 
 	export let id: string;
 
@@ -166,6 +167,8 @@
 		}
 
 		if (controlnets.length !== expectedControlnets) {
+			console.log('Some input images are missing. Check all image references');
+			console.log(controlnets, expectedControlnets, currentInputs);
 			throw new Error('Some input images are missing. Check all image references');
 		}
 
@@ -183,7 +186,11 @@
 		);
 	};
 
-	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	const onExecute = async (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => {
 		const apiKey = get(leonardo_key) as string;
 		const currentInputs = get(inputData)[id];
 
@@ -203,7 +210,9 @@
 		});
 
 		try {
-			const controlnets = await prepareControlnets(requestBody[INPUT_IDS.MODEL_ID]);
+			const controlnets = await wrap(prepareControlnets(requestBody[INPUT_IDS.MODEL_ID]));
+			const hash = sha256(JSON.stringify(controlnets));
+			console.log('controlnets', controlnets, hash);
 			const newValue = JSON.stringify({
 				...requestBody,
 				apiKey,
@@ -223,18 +232,27 @@
 				io.setOutputData('image_urls', null);
 				try {
 					callbacks.setStatus('loading');
-					const uploadedControlnets = await uploadControlnetImages(controlnets);
+
+					const uploadedControlnets = await wrap(uploadControlnetImages(controlnets));
 					if (uploadedControlnets.length > 0) {
 						requestBody.controlnets = uploadedControlnets;
 					}
 
-					const response = await generateImage(requestBody);
+					const response = await wrap(generateImage(requestBody));
 					const generationId = response.sdGenerationJob.generationId;
-					const imageUrls = await pollForGenerationResult(generationId);
-					lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
+
+					const imageUrls = await wrap(pollForGenerationResult(generationId));
+
+					const values = await wrap(Promise.all(imageUrls.map(HorstFile.fromUrl)));
+					lastOutputValue = values;
 					io.setOutputData('image_urls', lastOutputValue);
 					callbacks.setStatus('success');
 				} catch (error: any) {
+					if (error.name === 'AbortError') {
+						console.log('Execution was cancelled');
+						callbacks.setStatus('idle');
+						return;
+					}
 					callbacks.setErrors(['Error calling Leonardo AI', error.message]);
 					console.error('Error calling Leonardo AI: ', error);
 				}
@@ -287,13 +305,10 @@
 			const modelTypeMapped = MODEL_VERSION_MAP[modelType];
 			const preprocessorId = (CONTROLNET_MATRIX as any)[inputId][modelTypeMapped];
 			if (!preprocessorId) {
-				console.log('unsupported model type', inputId, modelType, modelTypeMapped, preprocessorId);
 				return {
 					unsupported: true,
 					message: 'Not supported by this model: ' + model.custom_models_by_pk.name
 				};
-			} else {
-				console.log('supported model type', inputId, modelType, modelTypeMapped, preprocessorId);
 			}
 		}
 

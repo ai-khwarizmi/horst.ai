@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
+	import {
+		cn,
+		getNodeColors,
+		NodeIOHandler,
+		nodeIOHandlers,
+		type WrappedPromise
+	} from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -68,7 +74,11 @@
 		}
 	};
 
-	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
+	export let onExecute: (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: WrappedPromise
+	) => void = () => {};
 
 	const setInputPlaceholderData = (handleId: string, value: any) => {
 		io.setInputPlaceholderData(handleId, value);
@@ -79,7 +89,7 @@
 	};
 
 	const forceExecute = () => {
-		onExecute(onExecuteCallbacks, true);
+		io.onExecute(onExecuteCallbacks, true);
 	};
 
 	const connectToNodeOnMount = () => {

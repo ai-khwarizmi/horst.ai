@@ -4,6 +4,7 @@ export class HorstFile {
 	public readonly fileName: string;
 	public readonly fileSize: number;
 	public readonly fileType: string;
+	public readonly timeUploaded: number = Date.now();
 
 	//private because it may not be initialized. Don't change this. Use getFileData() instead.
 	private fileDataBase64: string | null = null;
