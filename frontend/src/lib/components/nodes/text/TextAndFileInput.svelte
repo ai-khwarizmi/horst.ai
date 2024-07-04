@@ -16,16 +16,25 @@
 			{ id: 'text', type: 'text' },
 			{ id: 'files', type: 'file[]' }
 		],
-		onExecute: () => {}
-	});
-
-	onMount(() => {
-		const data = io.getOutputData('text');
-		if (data) {
-			value = String(data);
+		onExecute: async (_callbacks, _forceExecute, _wrap) => {},
+		isInputUnsupported: async (_inputId, _data) => {
+			return { unsupported: false };
 		}
 	});
 
+	onMount(() => {
+		const text = io.getOutputData('text');
+		if (text) {
+			value = String(text);
+		}
+		loadFiles();
+	});
+
+	const loadFiles = async () => {
+		let _files = io.getOutputData('files');
+		_files = await Promise.all(_files.map((file: HorstFile) => file.waitForLoad()));
+		files = _files;
+	};
 	function handleDragOver(event: DragEvent) {
 		event.preventDefault();
 		event.stopPropagation();
@@ -60,7 +69,6 @@
 
 <CustomNode {io} {...$$props}>
 	<div class="flex flex-col w-full h-full">
-		<!-- Move the file list above the input -->
 		{#if files.length > 0}
 			<ul class="mt-2 mb-2 flex flex-wrap w-full">
 				{#each files as file, index}

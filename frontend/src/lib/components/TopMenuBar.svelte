@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import { loadGraph, saveGraph } from '@/utils/file';
+	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/utils/file';
 	import {
 		Download,
 		Upload,
@@ -70,11 +70,16 @@
 			<FilePlus class="mr-2 size-3.5" />
 			New
 		</Button>
-		<Button variant="secondary" size="sm" on:click={loadGraph} class="pointer-events-auto">
+		<Button
+			variant="secondary"
+			size="sm"
+			on:click={loadGraphFromUploadedFile}
+			class="pointer-events-auto"
+		>
 			<Upload class="mr-2 size-3.5" />
 			Load
 		</Button>
-		<Button variant="secondary" size="sm" on:click={saveGraph} class="pointer-events-auto">
+		<Button variant="secondary" size="sm" on:click={saveGraphToJson} class="pointer-events-auto">
 			<Download class="mr-2 size-3.5" />
 			Save
 		</Button>

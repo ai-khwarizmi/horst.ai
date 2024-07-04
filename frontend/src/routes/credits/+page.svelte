@@ -143,6 +143,18 @@
 			branch: 'master',
 			licenseFile: 'LICENSE.txt',
 			license: 'Apache-2.0'
+		},
+		superjson: {
+			name: 'superjson',
+			url: 'https://github.com/blitz-js/superjson',
+			branch: 'main',
+			license: 'MIT'
+		},
+		localForage: {
+			name: 'localForage',
+			url: 'https://github.com/localForage/localForage',
+			branch: 'master',
+			license: 'Apache License 2.0'
 		}
 	};
 

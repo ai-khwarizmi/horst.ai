@@ -8,15 +8,27 @@ import { toast } from "svelte-sonner";
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from "./validate";
 import type { Edge, Node } from "@xyflow/svelte";
 import { generateProjectId } from "./projectId";
-import { HorstFile } from "./horstfile";
-
+import { fullSuperJSON, minimalSuperJSON } from "./horstfile";
 
 const LOCALSTORAGE_KEY_LAST_PROJECT_ID = 'horst.ai.last_project_id';
 const LOCALSTORAGE_KEY_SAVEFILES = 'horst.ai.savefiles';
 const LOCALSTORAGE_KEY_SAVEFILES_IDS = 'horst.ai.savefiles.ids';
 
-export function getSaveData(includeData: boolean): {
-    id: string, projectName: string, nodes: any; edges: any, version: number, viewport: any
+interface SavedGraph {
+    id: string;
+    name: string;
+    nodes: Node[];
+    edges: Edge[];
+    viewport: any;
+    data: Record<string, any>;
+    inputPlaceholderData: Record<string, any>;
+    optionalInputsEnabled: Record<string, Record<string, boolean>>;
+    version: string;
+}
+
+export function getSaveData(includeData: boolean, includeFileData: boolean = false): {
+    graph: SavedGraph;
+    stringifiedGraph: string;
 } {
     const id = get(projectId);
     const name = get(projectName);
@@ -39,33 +51,14 @@ export function getSaveData(includeData: boolean): {
         const nodeType = registeredNodes[node.type].nodeType;
         if (includeData && nodeType === NodeType.INPUT) {
             const originalData = get(outputData)[node.id];
-            data[node.id] = structuredClone(originalData);
-            //recursively go through all files and delete them
-            const checkObject = (obj: any, originalObj: any) => {
-                for (const key in obj) {
-                    if (originalObj[key] instanceof HorstFile) {
-                        delete obj[key];
-                    }
-                    if (Array.isArray(obj[key])) {
-                        for (const file of obj[key]) {
-                            if (file instanceof HorstFile) {
-                                delete obj[key];
-                            }
-                        }
-                    }
-                    if (typeof obj[key] === 'object' && obj[key] !== null) {
-                        checkObject(obj[key], originalObj[key]);
-                    }
-                }
-            }
-            checkObject(data[node.id], originalData);
+            data[node.id] = originalData;
         }
         if (includeData) {
             _inputPlaceholderData[node.id] = get(inputPlaceholderData)[node.id]
         }
     }
 
-    const json = JSON.parse(JSON.stringify({
+    const object: SavedGraph = {
         id,
         name,
         nodes: n,
@@ -75,22 +68,28 @@ export function getSaveData(includeData: boolean): {
         inputPlaceholderData: _inputPlaceholderData,
         optionalInputsEnabled: _optionalInputsEnabled,
         version: FILE_VERSION
-    }));
+    };
 
-    return json;
+    const stringifiedGraph = includeFileData ?
+        fullSuperJSON.stringify(object) :
+        minimalSuperJSON.stringify(object);
+
+    return {
+        graph: object,
+        stringifiedGraph
+    };
 }
 
-export const saveGraph = () => {
-    const graph = getSaveData(true);
+export const saveGraphToJson = () => {
+    const graph = getSaveData(true, true);
 
     const name = get(projectName) || 'graph';
     const filename = name.replace(/[^a-z0-9]/gi, '_').toLowerCase().replaceAll('__', '_');
 
-    const str = JSON.stringify(graph, null, 4);
-    const blob = new Blob([str], { type: 'application/json' });
+    const blob = new Blob([graph.stringifiedGraph], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.download = filename + '.json';
+    a.download = filename + '.horst.json';
     a.href = url;
     a.click();
 }
@@ -107,33 +106,35 @@ export const saveToLocalStorage = () => {
     const graph = getSaveData(true);
 
     //ensure that graph.id exists  
-    if (!graph.id) {
+    if (!graph.graph.id) {
         return;
     }
     const allProjectIds = getAllLocalProjectIds();
-    if (graph.nodes?.length === 0 && graph.edges?.length === 0) {
+    if (graph.graph.nodes?.length === 0 && graph.graph.edges?.length === 0) {
         return;
     }
-    const str = JSON.stringify(graph);
     if (allProjectIds.length > 0) {
-        if (!allProjectIds.includes(graph.id)) {
-            allProjectIds.push(graph.id);
+        if (!allProjectIds.includes(graph.graph.id)) {
+            allProjectIds.push(graph.graph.id);
             window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify(allProjectIds));
         }
     } else {
-        window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify([graph.id]));
+        window.localStorage.setItem(LOCALSTORAGE_KEY_SAVEFILES_IDS, JSON.stringify([graph.graph.id]));
     }
-    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.id;
-    window.localStorage.setItem(localStorageKey, str);
-    window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.id);
+    const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.graph.id;
+    window.localStorage.setItem(localStorageKey, graph.stringifiedGraph);
+    window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.graph.id);
 }
 
 export const loadFromProjectId = async (projectId: string): Promise<boolean> => {
+    console.log("loadFromProjectId", projectId);
     if (typeof window === 'undefined') return false;
     const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + projectId;
     const str = window.localStorage.getItem(localStorageKey);
     if (!str) return false;
-    const graph = JSON.parse(str);
+    const graph = minimalSuperJSON.parse<SavedGraph>(str);
+    console.log("loadFromProjectId", graph);
+    if (!graph) return false;
     return loadFromGraph(graph);
 }
 
@@ -143,7 +144,7 @@ export const loadFromHash = (): boolean => {
     if (!hash) return false;
     const str = LZString.decompressFromBase64(hash.slice(1));
     if (!str) return false;
-    const graph = JSON.parse(str);
+    const graph = minimalSuperJSON.parse<SavedGraph>(str);
     window.location.hash = '';
     return loadFromGraph(graph);
 }
@@ -158,11 +159,12 @@ export const loadFromLocalStorage = () => {
     const str = window.localStorage.getItem(localStorageKey);
 
     if (!str) return false;
-    const graph = JSON.parse(str);
+    console.log("loadFromLocalStorage", str);
+    const graph = minimalSuperJSON.parse<SavedGraph>(str);
     return loadFromGraph(graph);
 }
 
-export const loadGraph = async () => {
+export const loadGraphFromUploadedFile = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -178,12 +180,14 @@ export const loadGraph = async () => {
 
 export const loadFromFile = async (file: File) => {
     const text = await file.text();
-    const graph = JSON.parse(text);
+    const graph = fullSuperJSON.parse<SavedGraph>(text);
     return loadFromGraph(graph);
 }
 
-export const loadFromGraph = (graph: any) => {
+export const loadFromGraph = (graph: SavedGraph) => {
     resetProject();
+
+    console.log("loadFromGraph", graph);
 
     if (graph.version !== FILE_VERSION) {
         toast.error('URL: Version mismatch');
