@@ -103,7 +103,7 @@
 		<div class="w-4 h-[1px] bg-gray-500"></div>
 		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">
 			<Key class="mr-2 size-3.5" />
-			Set OpenAI Key
+			Set API Keys
 		</Button>
 	{/if}
 </div>
