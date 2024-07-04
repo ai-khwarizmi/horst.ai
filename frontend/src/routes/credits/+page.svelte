@@ -129,6 +129,32 @@
 			url: 'https://github.com/lodash/lodash',
 			branch: 'main',
 			license: 'MIT'
+		},
+		'js-sha256': {
+			name: 'js-sha256',
+			url: 'https://github.com/emn178/js-sha256',
+			branch: 'master',
+			licenseFile: 'LICENSE.txt',
+			license: 'MIT'
+		},
+		rxjs: {
+			name: 'rxjs',
+			url: 'https://github.com/ReactiveX/rxjs',
+			branch: 'master',
+			licenseFile: 'LICENSE.txt',
+			license: 'Apache-2.0'
+		},
+		superjson: {
+			name: 'superjson',
+			url: 'https://github.com/blitz-js/superjson',
+			branch: 'main',
+			license: 'MIT'
+		},
+		localforage: {
+			name: 'localForage',
+			url: 'https://github.com/localForage/localForage',
+			branch: 'master',
+			license: 'Apache License 2.0'
 		}
 	};
 

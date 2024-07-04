@@ -18,7 +18,7 @@
 	import Button from './ui/button/button.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { openShareGraphModal } from './file/ShareGraph.svelte';
-	import { loadGraph, saveGraph } from '@/utils/file';
+	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/utils/file';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import PackageJson from '../../../package.json';
 	import { openProjectSettings } from './ProjectSettings.svelte';
@@ -37,11 +37,11 @@
 			New
 		</DropdownMenu.Item>
 		<DropdownMenu.Separator />
-		<DropdownMenu.Item on:click={loadGraph}>
+		<DropdownMenu.Item on:click={loadGraphFromUploadedFile}>
 			<Upload class="mr-2 size-3.5" />
 			Load
 		</DropdownMenu.Item>
-		<DropdownMenu.Item on:click={saveGraph}>
+		<DropdownMenu.Item on:click={saveGraphToJson}>
 			<Download class="mr-2 size-3.5" />
 			Save
 		</DropdownMenu.Item>

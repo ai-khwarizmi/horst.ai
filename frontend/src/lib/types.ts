@@ -6,7 +6,7 @@ export enum NodeType {
     UNKNOWN = 'unknown'
 }
 
-type RawNodeValueType = 'text' | 'number' | 'boolean' | 'any' | 'json' | 'array';
+type RawNodeValueType = 'text' | 'number' | 'boolean' | 'any' | 'json' | 'array' | 'file' | 'file[]';
 type ArrayNodeValueType = `${RawNodeValueType}[]`;
 export type NodeValueType = RawNodeValueType | ArrayNodeValueType;
 
@@ -94,7 +94,8 @@ export type ConnectWith = {
 
 export const SPECIAL_ERRORS = {
     'OPENAI_API_KEY_MISSING': 'OPENAI_API_KEY_MISSING',
-    'ANTHROPIC_API_KEY_MISSING': 'ANTHROPIC_API_KEY_MISSING'
+    'ANTHROPIC_API_KEY_MISSING': 'ANTHROPIC_API_KEY_MISSING',
+    'LEONARDO_API_KEY_MISSING': 'LEONARDO_API_KEY_MISSING'
 }
 
 export type NodeError = string | {
@@ -119,6 +120,10 @@ type BaseIO<TNodeID extends string> = {
     type: NodeValueType;
     label?: string;
     optional?: boolean;
+    unsupported?: {
+        unsupported: boolean;
+        message?: string;
+    }
 }
 
 type InputOptionInputField = {

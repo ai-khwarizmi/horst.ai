@@ -2,11 +2,14 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
-import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, nodes, outputData } from "$lib";
+import { edges, handlers, inputData, inputDataWithoutPlaceholder, inputPlaceholderData, optionalInputsEnabled, nodes, outputData } from "$lib";
 import { type XYPosition } from "@xyflow/svelte";
 import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
 import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
+import { HorstFile } from "./utils/horstfile";
+import { Subject, switchMap, catchError, EMPTY, takeUntil, from, Observable, firstValueFrom } from 'rxjs';
+
 
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
@@ -52,7 +55,6 @@ export const getNodeColors = (type: NodeType): { fullbackground: string, backgro
 	}
 }
 
-
 export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
 
 export class NodeIOHandler<TInput extends string, TOutput extends string> {
@@ -60,26 +62,80 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly inputs = writable<Input<TInput>[]>([]);
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
-	onExecuteCallbacks: OnExecuteCallbacks | null = null;
+	private executeSubject = new Subject<{ callbacks: OnExecuteCallbacks, forceExecute: boolean }>();
+	private cancelExecutionSubject = new Subject<void>();
 
-	onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
+	onExecuteCallbacks: OnExecuteCallbacks | null = null;
+	isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
+		unsupported: boolean,
+		message?: string
+	}>;
+	_onExecute: (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => Promise<void>;
+
+	private currentContext: ReturnType<typeof createCancellableContext> | null = null;
 
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
-		onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void;
+		onExecute: (
+			callbacks: OnExecuteCallbacks,
+			forceExecute: boolean,
+			wrap: <T>(promise: Promise<T>) => Promise<T>
+		) => Promise<void>;
+		isInputUnsupported: (inputId: string, data: Record<string, any>) => Promise<{
+			unsupported: boolean,
+			message?: string
+		}>;
 	}) {
-		this.nodeId = args.nodeId;
+		this.isInputUnsupported = args.isInputUnsupported;
+		this._onExecute = args.onExecute;
 
+		this.executeSubject.pipe(
+			switchMap(({ callbacks, forceExecute }) => {
+				if (this.currentContext) {
+					this.currentContext.cancel();
+				}
+				this.currentContext = createCancellableContext();
+
+				return from(args.onExecute(callbacks, forceExecute, this.currentContext.wrap)).pipe(
+					takeUntil(this.cancelExecutionSubject)
+				);
+			}),
+			catchError((error: Error) => {
+				this.onExecuteCallbacks?.setErrors([error.toString()]);
+				return EMPTY;
+			})
+		).subscribe();
+
+		this.nodeId = args.nodeId;
 		this.inputs.set(args.inputs);
 		this.outputs.set(args.outputs);
 
 		nodeIOHandlers[this.nodeId] = this;
-		this.onExecute = args.onExecute;
 		setTimeout(() => {
 			this.onOutputsChanged();
 		}, 1);
+	}
+
+	onExecute = (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		this.executeSubject.next({ callbacks, forceExecute });
+	};
+
+	async updateUnsupportedInputs() {
+		const data = get(inputData);
+		for (const input of get(this.inputs)) {
+			const isUnsupported = await this.isInputUnsupported(input.id, data[this.nodeId]);
+			if (isUnsupported.unsupported) {
+				input.unsupported = isUnsupported;
+			} else {
+				delete input.unsupported;
+			}
+		}
 	}
 
 	destroy = () => {
@@ -150,6 +206,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			if (changed) {
 				inputData.set(_inputData);
 				this.onExecute(this.onExecuteCallbacks!, false);
+				this.updateUnsupportedInputs().catch(console.error);
 			}
 			return changed;
 		} catch (e: any) {
@@ -201,6 +258,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	getInputPlaceholderData = (handle: string) => {
+		if (get(this.inputs).find((input: any) => input.id === handle)?.optional && !get(optionalInputsEnabled)[this.nodeId]?.[handle]) {
+			return undefined;
+		}
 		const data = _getNodeInputPlaceholderData(this.nodeId, handle) ?? null;
 		return data;
 	}
@@ -209,7 +269,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		let data = _getNodeInputData(this.nodeId, handle);
 
 		if (!ignorePlaceholder && (data === null || data === undefined))
-			data = _getNodeInputPlaceholderData(this.nodeId, handle);
+			data = this.getInputPlaceholderData(handle);
 
 		const inputDef = get(this.inputs).find(input => input.id === handle);
 
@@ -220,12 +280,14 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			if (typeof data === 'string' && inputDef.type === 'json') {
 				data = JSON.parse(data);
 			}
+			if (typeof data === 'string' && inputDef.type === 'boolean') {
+				data = data === 'true';
+			}
 			if (!this.validateDataType(data, inputDef.type)) {
 				throw new Error(`Invalid data type for input '${handle}'. Expected ${inputDef.type}, got ${data}`);
 			}
 		}
-
-		return data ?? null;
+		return data ?? undefined;
 	}
 
 	private validateDataType(data: any, expectedType: NodeValueType): boolean {
@@ -235,7 +297,11 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			case 'text':
 				return typeof data === 'string';
 			case 'boolean':
-				return typeof data === 'boolean';
+				return typeof data === 'boolean' || data === 'true' || data === 'false';
+			case 'file[]':
+				return Array.isArray(data);
+			case 'file':
+				return data instanceof HorstFile || Array.isArray(data);
 			case 'any':
 				return true;
 			default:
@@ -252,6 +318,14 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
 		this.onOutputsChanged();
 	}
+
+	cancelExecution = () => {
+		if (this.currentContext) {
+			this.currentContext.cancel();
+			this.currentContext = null;
+		}
+		this.cancelExecutionSubject.next();
+	};
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
@@ -380,12 +454,28 @@ export const _getNodeInputData = (id: string, handle: string) => {
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
 }
 
-export type ApiKeys = {
-	openai: string | null
+export function createCancellableContext() {
+	const abortController = new AbortController();
+	const signal = abortController.signal;
+
+	const cancel$ = new Observable<void>(observer => {
+		const onAbort = () => {
+			observer.next();
+			observer.complete(); // Complete the observable to clean up
+		};
+		signal.addEventListener('abort', onAbort, { once: true });
+		return () => {
+			signal.removeEventListener('abort', onAbort);
+		};
+	});
+
+	return {
+		signal,
+		cancel: () => abortController.abort(),
+		wrap: <T>(promise: Promise<T>): Promise<T> => {
+			return firstValueFrom(from(promise).pipe(takeUntil(cancel$)));
+		}
+	};
 }
 
-export function getApiKeys(): ApiKeys {
-	return {
-		openai: get(openai_key)
-	}
-}
+export type WrappedPromise = <T>(promise: Promise<T>) => Promise<T>

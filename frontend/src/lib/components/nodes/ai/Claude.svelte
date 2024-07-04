@@ -25,7 +25,11 @@
 
 	export let id: string;
 
-	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	const onExecute = async (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => {
 		const apiKey = get(anthropic_key) as string;
 
 		const systemPrompt = io.getInputData('prompt_system') as string;
@@ -53,12 +57,14 @@
 			try {
 				callbacks.setStatus('loading');
 
-				const stream = await getAnthropic().messages.create({
-					max_tokens: 1024,
-					messages: messages,
-					model: 'claude-3-5-sonnet-20240620',
-					stream: true
-				});
+				const stream = await wrap(
+					getAnthropic().messages.create({
+						max_tokens: 1024,
+						messages: messages,
+						model: 'claude-3-5-sonnet-20240620',
+						stream: true
+					})
+				);
 
 				let output = '';
 				for await (const chunk of stream) {
@@ -94,7 +100,8 @@
 			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastExecutedValue: null | string = null;

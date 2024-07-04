@@ -27,7 +27,11 @@
 	const VALID_IMAGE_QUALITIES = ['standard', 'hd'];
 	const VALID_IMAGE_MODELS = ['dall-e-2', 'dall-e-3'];
 
-	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	const onExecute = async (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => {
 		const apiKey = get(openai_key) as string;
 
 		const prompt = io.getInputData('prompt') as string;
@@ -78,7 +82,7 @@
 					request.user = user;
 				}
 
-				const response = await getOpenai().images.generate(request);
+				const response = await wrap(getOpenai().images.generate(request));
 				const dataUrl = 'data:image/webp;base64,' + response.data[0].b64_json;
 				lastOutputValue = dataUrl || null;
 				io.setOutputData('image_url', lastOutputValue);
@@ -142,7 +146,8 @@
 			{ id: 'user', type: 'text', label: 'User Identifier', optional: true }
 		],
 		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastExecutedValue: null | string = null;

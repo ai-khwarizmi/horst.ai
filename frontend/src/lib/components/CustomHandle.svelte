@@ -14,6 +14,7 @@
 	import { ChevronDown } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { onMount } from 'svelte';
+	import { optionalInputsEnabled } from '@/index';
 
 	const HANDLE_WIDTH = 12;
 	const c = useConnection();
@@ -21,9 +22,8 @@
 	export let nodeId: string;
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
-	export let showOptionalInputs: boolean = true;
-	export let setInputPlaceholderData: ((handleId: string, value: any) => void);
-	export let getCurrentInputPlaceholderData: ((handleId: string) => any);
+	export let setInputPlaceholderData: (handleId: string, value: any) => void;
+	export let getCurrentInputPlaceholderData: (handleId: string) => any;
 
 	let selectedOption = 'Select option';
 	let searchTerm = '';
@@ -60,7 +60,6 @@
 		removeEdgeByIds(...edgesToRemove);
 	};
 
-
 	$: shouldDimHandle =
 		$c.startHandle?.handleId &&
 		$c.startHandle.nodeId !== nodeId &&
@@ -71,7 +70,8 @@
 			targetHandle: $c.startHandle.type === 'source' ? base.id : $c.startHandle.handleId
 		});
 
-	$: canHideOptionalInput = base.optional && !showOptionalInputs && connected.length === 0;
+	$: canHideOptionalInput =
+		base.optional && !($optionalInputsEnabled as any)[nodeId]?.[base.id] && connected.length === 0;
 
 	$: getStyle = `
 		${
@@ -194,7 +194,7 @@
 		if ('input' in base && base.input?.inputOptionType === 'input-field' && currentValue) {
 			tempInputValue = currentValue;
 		}
-	})
+	});
 </script>
 
 <div
@@ -224,11 +224,10 @@
 			canHideOptionalInput && 'hidden'
 		)}
 	>
-
 		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
 			<div class="flex flex-col w-full justify-center">
 				<label class="text-xs text-muted-foreground" for="input-element"
-					>{base.label} <span class="text-gray-500 bg-white">[{base.type}]</span></label
+					>{base.label} <!--<span class="text-gray-500 bg-white">[{base.type}]</span>--></label
 				>
 				{#if base.input?.inputOptionType === 'dropdown'}
 					<DropdownMenu bind:open={isOpen}>
@@ -304,11 +303,11 @@
 					{#if connected.length === 0 && isInput}
 						<span class="truncate block">...connect [{base.type}]</span>
 					{:else if isInput}
-						<span 
-							class="truncate block whitespace-nowrap text-gray-700 text-sm" 
-							title="{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}"
+						<span
+							class="truncate block whitespace-nowrap text-gray-700 text-sm"
+							title={$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}
 						>
-							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]?.substring(0, 50)}
+							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]?.toString().substring(0, 50)}
 						</span>
 					{:else}
 						<span class="truncate block">[{base.type}]</span>

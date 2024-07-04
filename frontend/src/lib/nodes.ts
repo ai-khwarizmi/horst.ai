@@ -3,7 +3,7 @@ import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import LatexToPdf from "./components/nodes/display/LatexToPdf.svelte";
-import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
+import { AlignLeft, CalendarCog, FileDigit, FileText, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
@@ -13,6 +13,34 @@ import TextEncode from "./components/nodes/text/TextEncode.svelte";
 import TextDecode from "./components/nodes/text/TextDecode.svelte";
 import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
 import Claude from "./components/nodes/ai/Claude.svelte";
+import LeonardoAi from "./components/nodes/ai/LeonardoAi.svelte";
+import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
+import { SvelteComponent, type ComponentType } from 'svelte';
+import IconComponent from './components/ui/icon/IconComponent.svelte';
+
+
+interface IconProps {
+    url: string;
+    size?: number;
+    className?: string;
+}
+
+function createIconComponent(defaultUrl: string): ComponentType<SvelteComponent<IconProps>> {
+    return function (options: any) {
+        const { props = {}, ...rest } = options;
+        return new IconComponent({
+            ...rest,
+            props: {
+                url: defaultUrl,
+                ...props
+            }
+        });
+    } as unknown as ComponentType<SvelteComponent<IconProps>>;
+}
+const LeonardoIcon = createIconComponent("https://static.horst.ai/leonardoai-icon.webp");
+const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.png");
+const Dalle3Icon = createIconComponent("https://static.horst.ai/openai-logomark.png");
+const ClaudeIcon = createIconComponent("https://static.horst.ai/claude-icon.png");
 
 export enum NodeCategory {
     String = "String",
@@ -22,12 +50,26 @@ export enum NodeCategory {
     Misc = "Misc",
 }
 
+export type NodeDetails = {
+    name?: string
+    nodeType?: NodeType
+    Icon?: ComponentType<SvelteComponent>
+    description?: string
+    category?: NodeCategory
+}
+
 const nodes = {
     // String Tools
     textInput: registerNode(TextInput, {
         name: "Text Input",
         nodeType: NodeType.INPUT,
         Icon: TextCursorInput,
+        category: NodeCategory.String,
+    }),
+    textAndFileInput: registerNode(TextAndFileInput, {
+        name: "Text and File Input",
+        nodeType: NodeType.INPUT,
+        Icon: FileText,
         category: NodeCategory.String,
     }),
     textDisplay: registerNode(TextDisplay, {
@@ -79,19 +121,25 @@ const nodes = {
     chatGpt: registerNode(ChatGpt, {
         name: "ChatGPT",
         nodeType: NodeType.FUNCTION,
-        Icon: Bot,
+        Icon: OpenAiIcon,
         category: NodeCategory.AI,
     }),
     dalle3: registerNode(Dalle3, {
         name: "DALL-E 3",
         nodeType: NodeType.FUNCTION,
-        Icon: ImagePlus,
+        Icon: Dalle3Icon,
         category: NodeCategory.AI,
     }),
     claude: registerNode(Claude, {
         name: "Claude",
         nodeType: NodeType.FUNCTION,
-        Icon: ImagePlus,
+        Icon: ClaudeIcon,
+        category: NodeCategory.AI,
+    }),
+    leonardoAi: registerNode(LeonardoAi, {
+        name: "Leonardo.ai",
+        nodeType: NodeType.FUNCTION,
+        Icon: LeonardoIcon,
         category: NodeCategory.AI,
     }),
 
@@ -129,14 +177,6 @@ export const nodeTypes = (Object.keys(nodes) as (keyof typeof nodes)[]).reduce<R
     acc[key] = nodes[key].component;
     return acc;
 }, {});
-
-export type NodeDetails = {
-    name?: string
-    nodeType?: NodeType
-    Icon?: any
-    description?: string
-    category?: NodeCategory
-}
 
 export type RegisteredNode = NodeDetails & {
     component: any

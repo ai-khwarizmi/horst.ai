@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
+	import {
+		cn,
+		getNodeColors,
+		NodeIOHandler,
+		nodeIOHandlers,
+		type WrappedPromise
+	} from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -8,7 +14,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount} from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -19,6 +25,8 @@
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
 	import { edges, nodes } from '..';
 	import { get } from 'svelte/store';
+	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
+	import { optionalInputsEnabled } from '../index';
 
 	/* eslint-disable */
 	export let selectable: boolean = false;
@@ -66,7 +74,11 @@
 		}
 	};
 
-	export let onExecute: (callbacks: OnExecuteCallbacks, forceExecute: boolean) => void = () => {};
+	export let onExecute: (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: WrappedPromise
+	) => void = () => {};
 
 	const setInputPlaceholderData = (handleId: string, value: any) => {
 		io.setInputPlaceholderData(handleId, value);
@@ -74,22 +86,12 @@
 
 	const getCurrentInputPlaceholderData = (handleId: string) => {
 		return io.getInputPlaceholderData(handleId);
-	}
+	};
 
 	const forceExecute = () => {
-		onExecute(onExecuteCallbacks, true);
+		io.onExecute(onExecuteCallbacks, true);
 	};
 
-	const toggleOptionalInputs = () => {
-		showOptionalInputs = !showOptionalInputs;
-		updateNodeInternals(id);
-	};
-
-	/*
-		This function connects the newly added node to an existing node specified in `connectWith`.
-		This occurs when you drag an edge to an empty space (without a connector) 
-		and then select a new node to add.
-	*/
 	const connectToNodeOnMount = () => {
 		if (data.connectWith) {
 			const connectWith: ConnectWith = data.connectWith;
@@ -133,30 +135,25 @@
 				}
 			}
 		}
-	}
+	};
 	const setInputPlaceholderDataOnMount = () => {
 		get(io.inputs).forEach((input) => {
+			//get current default, if it exists
+			const defaultValue = io.getInputPlaceholderData(input.id);
+			if (defaultValue) return;
 
-		//get current default, if it exists
-		const defaultValue = io.getInputPlaceholderData(input.id);
-		if(defaultValue)
-			return;
-
-		switch (input.input?.inputOptionType) {
-			case 'input-field':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			case 'number':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			case 'dropdown':
-				io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-				break;
-			default:
-				break;
-		}
+			switch (input.input?.inputOptionType) {
+				case 'input-field':
+					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					break;
+				case 'dropdown':
+					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					break;
+				default:
+					break;
+			}
 		});
-	}
+	};
 	onMount(() => {
 		if (!id) {
 			throw new Error('Node ID is required');
@@ -188,7 +185,6 @@
 	$: hasContent = !!$$slots['default'];
 
 	$: hasOptionalInputs = $inputs.some((input) => input.optional);
-	let showOptionalInputs = false;
 
 	let hovered = false;
 	const c = useConnection();
@@ -226,22 +222,45 @@
 			}
 		}
 	};
+
+	let checked = get(optionalInputsEnabled)[id] || ({} as any);
+
+	// Function to handle checkbox change
+	function handleCheckboxChange(inputId: string, isChecked: boolean) {
+		optionalInputsEnabled.update((current) => {
+			console.log('current', current, 'id', id);
+			if (!current[id]) {
+				current[id] = {};
+			}
+			current[id][inputId] = isChecked;
+			updateNodeInternals(id);
+			return current;
+		});
+	}
 </script>
 
-{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
+{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
 	<div
 		class="bg-red-100 p-4 text-red-800 w-full h-full fixed top-0 left-0 flex justify-center items-center"
+		style="z-index: 1000;"
 	>
 		<div class="text-center">
-			<p class="font-bold">OpenAI API Key Missing</p>
-			<p>Please add your OpenAI API key in the settings to use this node.</p>
+			<p class="font-bold">
+				{#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING}
+					OpenAI API Key Missing
+				{:else if errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING}
+					Anthropic API Key Missing
+				{:else if errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
+					Leonardo.ai API Key Missing
+				{/if}
+			</p>
+			<p>Please add your API key in the settings to use this node.</p>
 			<Button variant="outline" size="sm" on:click={openApiKeySettings} class="mt-2">
-				Set OpenAI Key
+				Set API Key
 			</Button>
 		</div>
 	</div>
 {/if}
-
 <div
 	class={cn('flex flex-col h-full gap-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
@@ -262,14 +281,16 @@
 						<HoverCard.Trigger>
 							<TriangleAlert class="w-6 h-6 text-red-500" />
 						</HoverCard.Trigger>
-						<HoverCard.Content class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words">
+						<HoverCard.Content
+							class="p-2 text-xs max-w-xs max-h-60 overflow-y-auto overflow-x-hidden break-words"
+						>
 							<ul class="list-disc list-inside">
 								{#each errors as error}
 									{#if typeof error === 'string'}
 										<li>{error}</li>
 									{:else}
 										<li>
-											{error.message}
+											{error?.message}
 										</li>
 									{/if}
 								{/each}
@@ -300,11 +321,18 @@
 	<div
 		class={cn(
 			colors.fullbackground,
-			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
+			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0'
 		)}
 		style="height: 40px;"
 	>
-		{label}
+		<div class="ml-2">
+			{#if registered?.Icon}
+				<svelte:component this={registered.Icon} size="24" />
+			{/if}
+		</div>
+		<div class="flex-grow text-center">{label}</div>
+		<div class="w-[20px]"></div>
+		<!-- Spacer to balance the icon -->
 	</div>
 
 	<div
@@ -329,12 +357,11 @@
 					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $inputs as input}
 							<CustomHandle
-								{showOptionalInputs}
 								nodeId={id}
 								type="input"
 								base={input}
 								{setInputPlaceholderData}
-								getCurrentInputPlaceholderData={getCurrentInputPlaceholderData}
+								{getCurrentInputPlaceholderData}
 							/>
 						{/each}
 					</div>
@@ -343,7 +370,6 @@
 					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 						{#each $outputs as output}
 							<CustomHandle
-								{showOptionalInputs}
 								nodeId={id}
 								type="output"
 								base={output}
@@ -356,9 +382,49 @@
 			</div>
 			{#if hasOptionalInputs}
 				<div class="flex justify-left items-center ml-5">
-					<Button size="flat" class="text-button" on:click={toggleOptionalInputs}>
-						{showOptionalInputs ? '▲ Hide Optional' : '▼ Show Optional'}
-					</Button>
+					<Sheet>
+						<SheetTrigger>
+							<Button
+								class={`${colors.fullbackground} hover:${colors.background} text-white font-bold py-2 px-4 rounded cursor-pointer`}
+								size="flat"
+							>
+								Other Settings
+							</Button>
+						</SheetTrigger>
+						<SheetContent side="right" class="overflow-y-auto scrollbar-visible">
+							<SheetClose>
+								<Button variant="outline" size="sm">Close</Button>
+							</SheetClose>
+							<h2 class="text-lg font-semibold">Node Settings</h2>
+							<!-- Add your settings content here -->
+							<div class="mt-4">
+								{#each $inputs as input}
+									<div class="mb-4">
+										{#if input.optional}
+											<label class="flex items-center">
+												<input
+													type="checkbox"
+													bind:checked={checked[input.id]}
+													on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
+													disabled={input.unsupported?.unsupported}
+													class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
+														disabled:opacity-50 disabled:cursor-not-allowed"
+												/>
+												<span class="ml-2">{input.label}</span>
+											</label>
+										{:else}
+											<p>✔ {input.label}</p>
+										{/if}
+										{#if input.unsupported}
+											<p class="text-red-500 text-xs mt-1 ml-5">
+												{input.unsupported.message}
+											</p>
+										{/if}
+									</div>
+								{/each}
+							</div>
+						</SheetContent>
+					</Sheet>
 				</div>
 			{/if}
 		</div>

@@ -24,7 +24,11 @@
 
 	export let id: string;
 
-	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	const onExecute = async (
+		callbacks: OnExecuteCallbacks,
+		forceExecute: boolean,
+		wrap: <T>(promise: Promise<T>) => Promise<T>
+	) => {
 		try {
 			const apiKey = get(openai_key) as string;
 			const systemPrompt = io.getInputData('prompt_system') as string;
@@ -94,7 +98,7 @@
 					if (logitBias) request.logit_bias = JSON.parse(logitBias);
 					if (user) request.user = user;
 
-					const stream = await getOpenai().chat.completions.create(request);
+					const stream = await wrap(getOpenai().chat.completions.create(request));
 
 					let output = '';
 					for await (const chunk of stream) {
@@ -114,7 +118,7 @@
 				}
 			} else {
 				if (lastOutputValue !== null) {
-				temporaryOutput = '';
+					temporaryOutput = '';
 					lastOutputValue = null;
 					io.setOutputData('response', null);
 				}
@@ -182,19 +186,80 @@
 					default: 'gpt-4o'
 				}
 			},
-			{ id: 'max_tokens', type: 'number', label: 'Max Tokens', optional: true, input: basicInputOptionInput() },
-			{ id: 'temperature', type: 'number', label: 'Temperature', optional: true, input: basicInputOptionInput() },
-			{ id: 'top_p', type: 'number', label: 'Top P', optional: true, input: basicInputOptionInput() },
-			{ id: 'n', type: 'number', label: 'N (Number of completions)', optional: true, input: basicInputOptionInput() },
-			{ id: 'stream', type: 'boolean', label: 'Stream', optional: true, input: basicInputOptionInput() },
-			{ id: 'stop', type: 'text', label: 'Stop Sequences', optional: true, input: basicInputOptionInput() },
-			{ id: 'presence_penalty', type: 'number', label: 'Presence Penalty', optional: true, input: basicInputOptionInput() },
-			{ id: 'frequency_penalty', type: 'number', label: 'Frequency Penalty', optional: true, input: basicInputOptionInput() },
+			{
+				id: 'files',
+				type: 'file[]',
+				label: 'Files',
+				optional: true
+			},
+			{
+				id: 'max_tokens',
+				type: 'number',
+				label: 'Max Tokens',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'temperature',
+				type: 'number',
+				label: 'Temperature',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'top_p',
+				type: 'number',
+				label: 'Top P',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'n',
+				type: 'number',
+				label: 'N (Number of completions)',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'stream',
+				type: 'boolean',
+				label: 'Stream',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'stop',
+				type: 'text',
+				label: 'Stop Sequences',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'presence_penalty',
+				type: 'number',
+				label: 'Presence Penalty',
+				optional: true,
+				input: basicInputOptionInput()
+			},
+			{
+				id: 'frequency_penalty',
+				type: 'number',
+				label: 'Frequency Penalty',
+				optional: true,
+				input: basicInputOptionInput()
+			},
 			{ id: 'logit_bias', type: 'text', label: 'Logit Bias (JSON)', optional: true },
-			{ id: 'user', type: 'text', label: 'User Identifier', optional: true, input: basicInputOptionInput() }
+			{
+				id: 'user',
+				type: 'text',
+				label: 'User Identifier',
+				optional: true,
+				input: basicInputOptionInput()
+			}
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastExecutedValue: null | string = null;
@@ -203,7 +268,6 @@
 	onMount(() => {
 		lastOutputValue = io.getOutputData('response');
 	});
-
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}>

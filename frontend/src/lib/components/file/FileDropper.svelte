@@ -8,6 +8,12 @@
 		e.preventDefault();
 	}}
 	on:drop={(e) => {
+		// Check if the drop target or any of its parents have the text-input-drop-zone class
+		console.log('drop event fileDropper');
+		if (e.target?.closest('.text-input-drop-zone')) {
+			return; // Exit early if dropped on a text input
+		}
+
 		e.preventDefault();
 		if (e.dataTransfer?.files.length) {
 			const file = e.dataTransfer?.files[0];
