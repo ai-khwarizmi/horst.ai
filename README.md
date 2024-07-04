@@ -1,40 +1,48 @@
 # Horst.ai
+
 ![Project Logo](./frontend/static/logo64.png)
 
-Horst.ai is a visual workflow editor that lets you build AI-driven workflows with ease. Connect services like ChatGPT and DALL-E to generate content, images, and PDFs without the need to write code.
+> **Disclaimer**: This project is in its early stages and is evolving rapidly. Expect frequent updates, including breaking changes.
+
+Horst.ai is a visual playground for testing and building AI workflows. It lets you quickly connect AI tools like ChatGPT and DALL-E to create, test, and share your ideas without writing code.
 
 ![example-workflow.webp](https://static.horst.ai/example-workflow.webp)
 
 ## Live Demo
+
 Try the live demo at [horst.ai](http://horst.ai)
 
 ## Key Features
 
-- **Drag-and-Drop Interface**: Easily create workflows by dragging and dropping nodes.
-- **API Integration**: Seamlessly connect to AI services like ChatGPT and DALL-E using your API keys.
-- **No Coding Required**: Build complex workflows without writing a single line of code.
-- **Data Privacy**: Your data and API keys are only sent to the respective service providers, not to our servers.
-- **Save and Share**: Save your workflows and share them via URLs with embedded data.
+- **Visual Editor**: Create workflows by connecting blocks on a canvas.
+- **Quick Testing**: Easily try out different AI services using your own API keys.
+- **No Coding Needed**: Build and test ideas without programming knowledge.
+- **Save and Share**: Keep your workflows and share them with others using simple URLs.
+- **Local First**: Your data and API keys are processed locally wherever possible. Some services like Anthropic don't set CORS headers so we're using a proxy. If you self-host you can find the code to it in the functions folder to deploy your own!
 
 ## How to Build and Run Locally
 
 ### Prerequisites
+
 - Node.js (LTS version recommended)
-- npm (comes with Node.js)
+- npm / pnpm / yarn
 - Git
 
 ### Clone the Repository
+
 ```bash
 git clone https://github.com/ai-khwarizmi/horst.ai.git
 cd horst.ai/frontend
 ```
 
 ### Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### Start the Development Server
+
 ```bash
 npm run dev
 
@@ -43,11 +51,15 @@ npm run dev -- --open
 ```
 
 ### Building for Production
+
 To create a production build of the app:
+
 ```bash
 npm run build
 ```
+
 You can preview the production build with:
+
 ```bash
 npm run preview
 ```
