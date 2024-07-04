@@ -150,7 +150,7 @@
 			branch: 'main',
 			license: 'MIT'
 		},
-		localForage: {
+		localforage: {
 			name: 'localForage',
 			url: 'https://github.com/localForage/localForage',
 			branch: 'master',
