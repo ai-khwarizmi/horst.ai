@@ -3,7 +3,7 @@ import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import LatexToPdf from "./components/nodes/display/LatexToPdf.svelte";
-import { AlignLeft, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
+import { AlignLeft, CalendarCog, FileDigit, FileText, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
@@ -18,15 +18,25 @@ import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
 import { SvelteComponent, type ComponentType } from 'svelte';
 import IconComponent from './components/ui/icon/IconComponent.svelte';
 
-function createIconComponent(url: string) {
-    return class extends IconComponent {
-        constructor(options: any) {
-            super(options);
-            this.$set({ url });
-        }
-    };
+
+interface IconProps {
+    url: string;
+    size?: number;
+    className?: string;
 }
 
+function createIconComponent(defaultUrl: string): ComponentType<SvelteComponent<IconProps>> {
+    return function (options: any) {
+        const { props = {}, ...rest } = options;
+        return new IconComponent({
+            ...rest,
+            props: {
+                url: defaultUrl,
+                ...props
+            }
+        });
+    } as unknown as ComponentType<SvelteComponent<IconProps>>;
+}
 const LeonardoIcon = createIconComponent("https://static.horst.ai/leonardoai-icon.webp");
 const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.png");
 const Dalle3Icon = createIconComponent("https://static.horst.ai/openai-logomark.png");
