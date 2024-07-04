@@ -3,7 +3,7 @@ import TextInput from "./components/nodes/text/TextInput.svelte";
 import ChatGpt from "./components/nodes/ai/ChatGPT.svelte";
 import Dalle3 from "./components/nodes/ai/Dalle3.svelte";
 import LatexToPdf from "./components/nodes/display/LatexToPdf.svelte";
-import { AlignLeft, Bot, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
+import { AlignLeft, CalendarCog, FileDigit, FileText, ImagePlus, TextCursorInput } from "lucide-svelte";
 import { NodeType } from "./types";
 import DatePicker from "./components/nodes/date/DatePicker.svelte";
 import TextConcatenate from "./components/nodes/text/TextConcatenate.svelte";
@@ -15,6 +15,20 @@ import HtmlDisplay from "./components/nodes/display/HtmlDisplay.svelte";
 import Claude from "./components/nodes/ai/Claude.svelte";
 import LeonardoAi from "./components/nodes/ai/LeonardoAi.svelte";
 import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
+import { SvelteComponent, type ComponentType } from 'svelte';
+import IconComponent from './components/ui/icon/IconComponent.svelte';
+
+function createIconComponent(url: string) {
+    return class extends IconComponent {
+        constructor(options: any) {
+            super(options);
+            this.$set({ url });
+        }
+    };
+}
+
+const LeonardoIcon = createIconComponent("https://static.horst.ai/leonardoai-icon.webp");
+const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.png");
 
 export enum NodeCategory {
     String = "String",
@@ -22,6 +36,14 @@ export enum NodeCategory {
     AI = "AI",
     Documents = "Documents",
     Misc = "Misc",
+}
+
+export type NodeDetails = {
+    name?: string
+    nodeType?: NodeType
+    Icon?: ComponentType<SvelteComponent>
+    description?: string
+    category?: NodeCategory
 }
 
 const nodes = {
@@ -87,7 +109,7 @@ const nodes = {
     chatGpt: registerNode(ChatGpt, {
         name: "ChatGPT",
         nodeType: NodeType.FUNCTION,
-        Icon: Bot,
+        Icon: OpenAiIcon,
         category: NodeCategory.AI,
     }),
     dalle3: registerNode(Dalle3, {
@@ -105,7 +127,7 @@ const nodes = {
     leonardoAi: registerNode(LeonardoAi, {
         name: "Leonardo.ai",
         nodeType: NodeType.FUNCTION,
-        Icon: ImagePlus,
+        Icon: LeonardoIcon,
         category: NodeCategory.AI,
     }),
 
@@ -143,14 +165,6 @@ export const nodeTypes = (Object.keys(nodes) as (keyof typeof nodes)[]).reduce<R
     acc[key] = nodes[key].component;
     return acc;
 }, {});
-
-export type NodeDetails = {
-    name?: string
-    nodeType?: NodeType
-    Icon?: any
-    description?: string
-    category?: NodeCategory
-}
 
 export type RegisteredNode = NodeDetails & {
     component: any
