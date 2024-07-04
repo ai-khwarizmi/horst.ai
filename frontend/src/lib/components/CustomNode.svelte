@@ -14,7 +14,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount, afterUpdate } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -28,6 +28,7 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
+	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -42,8 +43,8 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
+	/* eslint-enable */
 
-	// these are passed in
 	export let id: string = '';
 	export let type: string = '';
 	export let selected: boolean = false;
@@ -202,25 +203,6 @@
 		) &&
 		$c.startHandle.nodeId !== id;
 
-	const onClick = async (e: MouseEvent) => {
-		//this hacky stuff is only needed for newly selected nodes
-		if (selected) return;
-		const clickedElement = e.target as HTMLElement;
-
-		if (!selected && clickedElement.tagName === 'TEXTAREA') {
-			const textarea = clickedElement as HTMLTextAreaElement;
-			const focusElement = () => {
-				textarea.focus();
-			};
-			for (let i = 0; i < 20; i++) {
-				//... sorry about this, i tried lots of other things like listening to blur, waiting for next tick
-				// i don't understand why the textbox still gets deselected
-				await new Promise((resolve) => setTimeout(resolve, 5));
-				focusElement();
-			}
-		}
-	};
-
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
 	function handleCheckboxChange(inputId: string, isChecked: boolean) {
@@ -234,8 +216,6 @@
 			return current;
 		});
 	}
-
-	let nodeHeight: any;
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
@@ -265,7 +245,6 @@
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1}; max-height: 100%;"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
-	on:click={onClick}
 	on:keydown={() => {}}
 	role="button"
 	tabindex="0"
@@ -322,7 +301,6 @@
 		onResizeEnd={() => {
 			isResizing = false;
 		}}
-		bind:this={nodeHeight}
 	/>
 	<div class="relative w-full flex flex-col flex-1 max-h-full">
 		<div
