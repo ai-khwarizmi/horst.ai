@@ -7,7 +7,6 @@ import { get } from "svelte/store";
 export const canConnectTypes = (obj: {
     output: NodeValueType, input: NodeValueType
 }) => {
-    console.log('canConnectTypes', obj);
     if (obj.input === 'any') return true;
     if (obj.input === 'number' && obj.output === 'text') return true;
     if (obj.input === 'file' && obj.output === 'file[]') return true;

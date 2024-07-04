@@ -107,7 +107,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				);
 			}),
 			catchError((error: Error) => {
-				console.error('Error in execute stream:', error);
 				this.onExecuteCallbacks?.setErrors([error.toString()]);
 				return EMPTY;
 			})
@@ -322,7 +321,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	cancelExecution = () => {
 		if (this.currentContext) {
-			console.log('Cancelling execution');
 			this.currentContext.cancel();
 			this.currentContext = null;
 		}
@@ -462,13 +460,11 @@ export function createCancellableContext() {
 
 	const cancel$ = new Observable<void>(observer => {
 		const onAbort = () => {
-			console.log('Abort signal received');
 			observer.next();
 			observer.complete(); // Complete the observable to clean up
 		};
 		signal.addEventListener('abort', onAbort, { once: true });
 		return () => {
-			console.log('Removing abort event listener');
 			signal.removeEventListener('abort', onAbort);
 		};
 	});
