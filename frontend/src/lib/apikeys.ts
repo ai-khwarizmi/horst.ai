@@ -1,52 +1,37 @@
 import { writable } from "svelte/store";
 import { browser } from "$app/environment";
 
-export const openai_key = writable(browser ? localStorage.getItem('openai_api_key') : '');
-export const anthropic_key = writable(browser ? localStorage.getItem('anthropic_api_key') : '');
-export const leonardo_key = writable(browser ? localStorage.getItem('leonardo_api_key') : '');
+export const openai_key = writable('');
+export const anthropic_key = writable('');
+export const leonardo_key = writable('');
+export const groq_key = writable('');
 
+export const apiKeys = [
+	{ name: 'openai', key: openai_key },
+	{ name: 'anthropic', key: anthropic_key },
+	{ name: 'leonardo', key: leonardo_key },
+	{ name: 'groq', key: groq_key },
+];
 
-if (typeof window !== 'undefined') {
-	const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
-	if (existingOpenaiApiKey) {
-		openai_key.set(existingOpenaiApiKey);
-	}
-	const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
-	if (existingAnthropicApiKey) {
-		anthropic_key.set(existingAnthropicApiKey);
-	}
-	const existingLeonardoApiKey = window.localStorage.getItem('leonardo_api_key');
-	if (existingLeonardoApiKey) {
-		leonardo_key.set(existingLeonardoApiKey);
-	}
+if (browser) {
+	apiKeys.forEach(({ name, key }) => {
+		const storageKey = `${name}_api_key`;
+		const existingKey = localStorage.getItem(storageKey);
+		if (existingKey) {
+			key.set(existingKey);
+		}
+	});
 }
 
-openai_key.subscribe((key) => {
-	if (browser) {
-		if (key && key.length > 0) {
-			localStorage.setItem('openai_api_key', key);
-		} else {
-			localStorage.removeItem('openai_api_key');
+apiKeys.forEach(({ name, key }) => {
+	const storageKey = `${name}_api_key`;
+	key.subscribe((value) => {
+		if (browser) {
+			if (value && value.length > 0) {
+				localStorage.setItem(storageKey, value);
+			} else {
+				localStorage.removeItem(storageKey);
+			}
 		}
-	}
-});
-
-anthropic_key.subscribe((key) => {
-	if (browser) {
-		if (key && key.length > 0) {
-			localStorage.setItem('anthropic_api_key', key);
-		} else {
-			localStorage.removeItem('anthropic_api_key');
-		}
-	}
-});
-
-leonardo_key.subscribe((key) => {
-	if (browser) {
-		if (key && key.length > 0) {
-			localStorage.setItem('leonardo_api_key', key);
-		} else {
-			localStorage.removeItem('leonardo_api_key');
-		}
-	}
+	});
 });

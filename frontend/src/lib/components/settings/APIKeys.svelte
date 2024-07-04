@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
-	import { anthropic_key, openai_key, leonardo_key } from '$lib/apikeys';
+	import { anthropic_key, openai_key, leonardo_key, groq_key } from '$lib/apikeys';
 	import Input from '../ui/input/input.svelte';
 	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';
@@ -14,6 +14,7 @@
 	let visible = false;
 	let visibleAnthropic = false;
 	let visibleLeonardo = false;
+	let visibleGroq = false;
 </script>
 
 <Sheet.Root bind:open={$open}>
@@ -82,6 +83,28 @@
 					/>
 					<Button on:click={() => (visibleLeonardo = !visibleLeonardo)}>
 						{#if visibleLeonardo}
+							Hide
+						{:else}
+							Show
+						{/if}
+					</Button>
+				</div>
+
+				{#if $groq_key && !$groq_key.startsWith('gsk_')}
+					<p class="text-red-500 text-xs mt-2">
+						<strong>Error:</strong> Groq API key start with "sk-groq-".
+					</p>
+				{/if}
+				<Label for="groq_key">Groq API Key</Label>
+				<div class="flex gap-2 items-center">
+					<Input
+						type={visibleGroq ? 'text' : 'password'}
+						bind:value={$groq_key}
+						id="groq_key"
+						placeholder="Groq API Key"
+					/>
+					<Button on:click={() => (visibleGroq = !visibleGroq)}>
+						{#if visibleGroq}
 							Hide
 						{:else}
 							Show

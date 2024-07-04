@@ -17,7 +17,7 @@ import LeonardoAi from "./components/nodes/ai/LeonardoAi.svelte";
 import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
 import { SvelteComponent, type ComponentType } from 'svelte';
 import IconComponent from './components/ui/icon/IconComponent.svelte';
-
+import Groq from './components/nodes/ai/Groq.svelte';
 
 interface IconProps {
     url: string;
@@ -41,6 +41,7 @@ const LeonardoIcon = createIconComponent("https://static.horst.ai/leonardoai-ico
 const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.png");
 const Dalle3Icon = createIconComponent("https://static.horst.ai/openai-logomark.png");
 const ClaudeIcon = createIconComponent("https://static.horst.ai/claude-icon.png");
+const GroqIcon = createIconComponent("https://static.horst.ai/groq-logo.png");
 
 export enum NodeCategory {
     String = "String",
@@ -140,6 +141,12 @@ const nodes = {
         name: "Leonardo.ai",
         nodeType: NodeType.FUNCTION,
         Icon: LeonardoIcon,
+        category: NodeCategory.AI,
+    }),
+    groq: registerNode(Groq, {
+        name: "Groq",
+        nodeType: NodeType.FUNCTION,
+        Icon: GroqIcon,
         category: NodeCategory.AI,
     }),
 
