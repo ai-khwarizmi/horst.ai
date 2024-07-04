@@ -136,6 +136,13 @@
 			branch: 'master',
 			licenseFile: 'LICENSE.txt',
 			license: 'MIT'
+		},
+		rxjs: {
+			name: 'rxjs',
+			url: 'https://github.com/ReactiveX/rxjs',
+			branch: 'master',
+			licenseFile: 'LICENSE.txt',
+			license: 'Apache-2.0'
 		}
 	};
 

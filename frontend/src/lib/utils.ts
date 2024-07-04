@@ -8,7 +8,7 @@ import { get, writable } from "svelte/store";
 import { type CustomNodeName } from "./nodes";
 import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCallbacks } from "./types";
 import { HorstFile } from "./utils/horstfile";
-import { Subject, switchMap, catchError, EMPTY, takeUntil, from, Observable, race, firstValueFrom } from 'rxjs';
+import { Subject, switchMap, catchError, EMPTY, takeUntil, from, Observable, firstValueFrom } from 'rxjs';
 
 
 export const clearData = () => {
