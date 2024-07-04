@@ -8,7 +8,6 @@
 	import { HorstFile } from '@/utils/horstfile';
 	import { validate } from 'uuid';
 	import { generateImage, pollForGenerationResult, tryGetModelById } from '$lib/utils/leonardoai';
-	import { mode } from 'mode-watcher';
 
 	export let id: string;
 
@@ -62,7 +61,28 @@
 		CONTROLNET_NORMAL_MAP: 'controlnet_normal_map',
 		CONTROLNET_LINE_ART: 'controlnet_line_art',
 		CONTROLNET_PATTERN_TO_IMAGE: 'controlnet_pattern_to_image',
-		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image'
+		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image',
+		CONTRAST_RATIO: 'contrast_ratio',
+		EXPANDED_DOMAIN: 'expanded_domain',
+		FANTASY_AVATAR: 'fantasy_avatar',
+		HIGH_CONTRAST: 'high_contrast',
+		HIGH_RESOLUTION: 'high_resolution',
+		IMAGE_PROMPT_WEIGHT: 'image_prompt_weight',
+		INIT_STRENGTH: 'init_strength',
+		NUM_INFERENCE_STEPS: 'num_inference_steps',
+		PHOTO_REAL_STRENGTH: 'photo_real_strength',
+		PROMPT_MAGIC: 'prompt_magic',
+		PROMPT_MAGIC_STRENGTH: 'prompt_magic_strength',
+		PROMPT_MAGIC_VERSION: 'prompt_magic_version',
+		SCHEDULER: 'scheduler',
+		SD_VERSION: 'sd_version',
+		TILING: 'tiling',
+		TRANSPARENCY: 'transparency',
+		UNZOOM: 'unzoom',
+		UNZOOM_AMOUNT: 'unzoom_amount',
+		UPSCALE_RATIO: 'upscale_ratio',
+		ENHANCE_PROMPT: 'enhance_prompt',
+		ENHANCE_PROMPT_INSTRUCTION: 'enhance_prompt_instruction'
 	};
 
 	const CONTROLNET_MATRIX = {
@@ -105,6 +125,29 @@
 		const alchemy = io.getInputData(INPUT_IDS.ALCHEMY) as boolean;
 		const photoReal = io.getInputData(INPUT_IDS.PHOTO_REAL) as boolean;
 		const photoRealVersion = io.getInputData(INPUT_IDS.PHOTO_REAL_VERSION) as string;
+		const contrastRatio = io.getInputData(INPUT_IDS.CONTRAST_RATIO) as number;
+		const expandedDomain = io.getInputData(INPUT_IDS.EXPANDED_DOMAIN) as boolean;
+		const fantasyAvatar = io.getInputData(INPUT_IDS.FANTASY_AVATAR) as boolean;
+		const highContrast = io.getInputData(INPUT_IDS.HIGH_CONTRAST) as boolean;
+		const highResolution = io.getInputData(INPUT_IDS.HIGH_RESOLUTION) as boolean;
+		const imagePromptWeight = io.getInputData(INPUT_IDS.IMAGE_PROMPT_WEIGHT) as number;
+		const initStrength = io.getInputData(INPUT_IDS.INIT_STRENGTH) as number;
+		const numInferenceSteps = io.getInputData(INPUT_IDS.NUM_INFERENCE_STEPS) as number;
+		const photoRealStrength = io.getInputData(INPUT_IDS.PHOTO_REAL_STRENGTH) as number;
+		const promptMagic = io.getInputData(INPUT_IDS.PROMPT_MAGIC) as boolean;
+		const promptMagicStrength = io.getInputData(INPUT_IDS.PROMPT_MAGIC_STRENGTH) as number;
+		const promptMagicVersion = io.getInputData(INPUT_IDS.PROMPT_MAGIC_VERSION) as string;
+		const scheduler = io.getInputData(INPUT_IDS.SCHEDULER) as string;
+		const sdVersion = io.getInputData(INPUT_IDS.SD_VERSION) as string;
+		const tiling = io.getInputData(INPUT_IDS.TILING) as boolean;
+		const transparency = io.getInputData(INPUT_IDS.TRANSPARENCY) as string;
+		const unzoom = io.getInputData(INPUT_IDS.UNZOOM) as boolean;
+		const unzoomAmount = io.getInputData(INPUT_IDS.UNZOOM_AMOUNT) as number;
+		const upscaleRatio = io.getInputData(INPUT_IDS.UPSCALE_RATIO) as number;
+		const enhancePrompt = io.getInputData(INPUT_IDS.ENHANCE_PROMPT) as boolean;
+		const enhancePromptInstruction = io.getInputData(
+			INPUT_IDS.ENHANCE_PROMPT_INSTRUCTION
+		) as string;
 
 		const requestBody: any = {
 			height,
@@ -123,6 +166,27 @@
 		if (alchemy !== undefined) requestBody.alchemy = alchemy;
 		if (photoReal !== undefined) requestBody.photoReal = photoReal;
 		if (photoRealVersion) requestBody.photoRealVersion = photoRealVersion;
+		if (contrastRatio) requestBody.contrastRatio = contrastRatio;
+		if (expandedDomain !== undefined) requestBody.expandedDomain = expandedDomain;
+		if (fantasyAvatar !== undefined) requestBody.fantasyAvatar = fantasyAvatar;
+		if (highContrast !== undefined) requestBody.highContrast = highContrast;
+		if (highResolution !== undefined) requestBody.highResolution = highResolution;
+		if (imagePromptWeight) requestBody.imagePromptWeight = imagePromptWeight;
+		if (initStrength) requestBody.initStrength = initStrength;
+		if (numInferenceSteps) requestBody.numInferenceSteps = numInferenceSteps;
+		if (photoRealStrength) requestBody.photoRealStrength = photoRealStrength;
+		if (promptMagic !== undefined) requestBody.promptMagic = promptMagic;
+		if (promptMagicStrength) requestBody.promptMagicStrength = promptMagicStrength;
+		if (promptMagicVersion) requestBody.promptMagicVersion = promptMagicVersion;
+		if (scheduler) requestBody.scheduler = scheduler;
+		if (sdVersion) requestBody.sdVersion = sdVersion;
+		if (tiling !== undefined) requestBody.tiling = tiling;
+		if (transparency) requestBody.transparency = transparency;
+		if (unzoom !== undefined) requestBody.unzoom = unzoom;
+		if (unzoomAmount) requestBody.unzoomAmount = unzoomAmount;
+		if (upscaleRatio) requestBody.upscaleRatio = upscaleRatio;
+		if (enhancePrompt !== undefined) requestBody.enhancePrompt = enhancePrompt;
+		if (enhancePromptInstruction) requestBody.enhancePromptInstruction = enhancePromptInstruction;
 
 		const newValue = JSON.stringify({
 			prompt,
@@ -419,6 +483,216 @@
 				type: 'file',
 				label: 'QR Code to Image (Image)',
 				optional: true
+			},
+			{
+				id: INPUT_IDS.CONTRAST_RATIO,
+				type: 'number',
+				label: 'Contrast Ratio',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.EXPANDED_DOMAIN,
+				type: 'boolean',
+				label: 'Expanded Domain',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.FANTASY_AVATAR,
+				type: 'boolean',
+				label: 'Fantasy Avatar',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.HIGH_CONTRAST,
+				type: 'boolean',
+				label: 'High Contrast',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.HIGH_RESOLUTION,
+				type: 'boolean',
+				label: 'High Resolution',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.IMAGE_PROMPT_WEIGHT,
+				type: 'number',
+				label: 'Image Prompt Weight',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.INIT_STRENGTH,
+				type: 'number',
+				label: 'Init Strength',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.NUM_INFERENCE_STEPS,
+				type: 'number',
+				label: 'Number of Inference Steps',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.PHOTO_REAL_STRENGTH,
+				type: 'number',
+				label: 'PhotoReal Strength',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.PROMPT_MAGIC,
+				type: 'boolean',
+				label: 'Prompt Magic',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.PROMPT_MAGIC_STRENGTH,
+				type: 'number',
+				label: 'Prompt Magic Strength',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.PROMPT_MAGIC_VERSION,
+				type: 'text',
+				label: 'Prompt Magic Version',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.SCHEDULER,
+				type: 'text',
+				label: 'Scheduler',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.SD_VERSION,
+				type: 'text',
+				label: 'SD Version',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.TILING,
+				type: 'boolean',
+				label: 'Tiling',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.TRANSPARENCY,
+				type: 'text',
+				label: 'Transparency',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.UNZOOM,
+				type: 'boolean',
+				label: 'Unzoom',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.UNZOOM_AMOUNT,
+				type: 'number',
+				label: 'Unzoom Amount',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.UPSCALE_RATIO,
+				type: 'number',
+				label: 'Upscale Ratio',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.ENHANCE_PROMPT,
+				type: 'boolean',
+				label: 'Enhance Prompt',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
+			},
+			{
+				id: INPUT_IDS.ENHANCE_PROMPT_INSTRUCTION,
+				type: 'text',
+				label: 'Enhance Prompt Instruction',
+				optional: true,
+				input: {
+					inputOptionType: 'input-field',
+					default: ''
+				}
 			}
 		],
 		outputs: [{ id: 'image_urls', type: 'array', label: 'Image URLs' }],

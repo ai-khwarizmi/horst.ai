@@ -17,6 +17,27 @@ export interface GenerateImageRequestBody {
 	alchemy?: boolean;
 	photoReal?: boolean;
 	photoRealVersion?: string;
+	contrastRatio?: number;
+	expandedDomain?: boolean;
+	fantasyAvatar?: boolean;
+	highContrast?: boolean;
+	highResolution?: boolean;
+	imagePromptWeight?: number;
+	initStrength?: number;
+	numInferenceSteps?: number;
+	photoRealStrength?: number;
+	promptMagic?: boolean;
+	promptMagicStrength?: number;
+	promptMagicVersion?: string;
+	scheduler?: string;
+	sdVersion?: string;
+	tiling?: boolean;
+	transparency?: string;
+	unzoom?: boolean;
+	unzoomAmount?: number;
+	upscaleRatio?: number;
+	enhancePrompt?: boolean;
+	enhancePromptInstruction?: string;
 }
 
 export interface GenerateImageResponse {
@@ -66,7 +87,9 @@ async function apiCall(endpoint: string, method: string, body?: any): Promise<an
 }
 
 export async function generateImage(requestBody: GenerateImageRequestBody): Promise<GenerateImageResponse> {
-	const response = await apiCall('/generations', 'POST', requestBody);
+	const response = await apiCall('/generations', 'POST', {
+		...requestBody,
+	});
 	return response as GenerateImageResponse;
 }
 

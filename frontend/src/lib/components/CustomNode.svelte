@@ -136,9 +136,6 @@
 				case 'input-field':
 					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
 					break;
-				case 'number':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
-					break;
 				case 'dropdown':
 					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
 					break;
@@ -391,7 +388,7 @@
 												<input
 													type="checkbox"
 													bind:checked={checked[input.id]}
-													on:change={(e) => handleCheckboxChange(input.id, e.target.checked)}
+													on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
 													disabled={input.unsupported?.unsupported}
 													class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
 														disabled:opacity-50 disabled:cursor-not-allowed"
