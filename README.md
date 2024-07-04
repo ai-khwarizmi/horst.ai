@@ -2,7 +2,7 @@
 
 ![Project Logo](./frontend/static/logo64.png)
 
-> **Disclaimer**: This project is in its early stages and is evolving rapidly. Expect frequent updates, including breaking changes.
+> This project is in its early stages and is evolving fast. Expect frequent breaking changes.
 
 Horst.ai is a visual playground for testing and building AI workflows. It lets you quickly connect AI tools like ChatGPT and DALL-E to create, test, and share your ideas without writing code.
 
