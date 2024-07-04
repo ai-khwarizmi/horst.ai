@@ -29,6 +29,8 @@ function createIconComponent(url: string) {
 
 const LeonardoIcon = createIconComponent("https://static.horst.ai/leonardoai-icon.webp");
 const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.png");
+const Dalle3Icon = createIconComponent("https://static.horst.ai/openai-logomark.png");
+const ClaudeIcon = createIconComponent("https://static.horst.ai/claude-icon.png");
 
 export enum NodeCategory {
     String = "String",
@@ -115,13 +117,13 @@ const nodes = {
     dalle3: registerNode(Dalle3, {
         name: "DALL-E 3",
         nodeType: NodeType.FUNCTION,
-        Icon: ImagePlus,
+        Icon: Dalle3Icon,
         category: NodeCategory.AI,
     }),
     claude: registerNode(Claude, {
         name: "Claude",
         nodeType: NodeType.FUNCTION,
-        Icon: ImagePlus,
+        Icon: ClaudeIcon,
         category: NodeCategory.AI,
     }),
     leonardoAi: registerNode(LeonardoAi, {

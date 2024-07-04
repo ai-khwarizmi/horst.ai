@@ -321,11 +321,18 @@
 	<div
 		class={cn(
 			colors.fullbackground,
-			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-center flex-shrink-0'
+			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0'
 		)}
 		style="height: 40px;"
 	>
-		{label}
+		<div class="ml-2">
+			{#if registered?.Icon}
+				<svelte:component this={registered.Icon} size="24" />
+			{/if}
+		</div>
+		<div class="flex-grow text-center">{label}</div>
+		<div class="w-[20px]"></div>
+		<!-- Spacer to balance the icon -->
 	</div>
 
 	<div
