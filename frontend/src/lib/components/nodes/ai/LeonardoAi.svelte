@@ -14,49 +14,53 @@
 		uploadInitImage,
 		type Controlnet
 	} from '$lib/utils/leonardoai';
-	import { optionalInputsEnabled } from '@/index';
+	import { inputData, optionalInputsEnabled } from '@/index';
 
 	export let id: string;
 
 	const DEFAULT_IMAGE_MODEL = 'aa77f04e-3eec-4034-9c07-d0f619684628'; // Leonardo Kino XL
-	const VALID_PRESET_STYLES = [
-		'BOKEH',
-		'CINEMATIC',
-		'CINEMATIC_CLOSEUP',
-		'CREATIVE',
-		'FASHION',
-		'FILM',
-		'FOOD',
-		'HDR',
-		'LONG_EXPOSURE',
-		'MACRO',
-		'MINIMALISTIC',
-		'MONOCHROME',
-		'MOODY',
-		'NEUTRAL',
-		'PORTRAIT',
-		'RETRO',
-		'STOCK_PHOTO',
-		'VIBRANT',
-		'UNPROCESSED',
-		'DYNAMIC'
-	];
 
-	const INPUT_IDS = {
+	const INPUT_IDS_REQUIRED = {
 		PROMPT: 'prompt',
-		MODEL_ID: 'model_id',
+		MODEL_ID: 'modelId',
 		WIDTH: 'width',
 		HEIGHT: 'height',
-		NUM_IMAGES: 'num_images',
+		NUM_IMAGES: 'num_images'
+	};
+
+	const INPUT_IDS_OPTIONAL = {
 		NEGATIVE_PROMPT: 'negative_prompt',
-		PRESET_STYLE: 'preset_style',
+		PRESET_STYLE: 'presetStyle',
 		GUIDANCE_SCALE: 'guidance_scale',
 		SEED: 'seed',
-		IS_PUBLIC: 'is_public',
+		IS_PUBLIC: 'public',
 		ALCHEMY: 'alchemy',
-		PHOTO_REAL: 'photo_real',
-		PHOTO_REAL_VERSION: 'photo_real_version',
+		PHOTO_REAL: 'photoReal',
+		PHOTO_REAL_VERSION: 'photoRealVersion',
+		CONTRAST_RATIO: 'contrastRatio',
+		EXPANDED_DOMAIN: 'expandedDomain',
+		FANTASY_AVATAR: 'fantasyAvatar',
+		HIGH_CONTRAST: 'highContrast',
+		HIGH_RESOLUTION: 'highResolution',
+		IMAGE_PROMPT_WEIGHT: 'imagePromptWeight',
+		INIT_STRENGTH: 'init_strength',
+		NUM_INFERENCE_STEPS: 'num_inference_steps',
+		PHOTO_REAL_STRENGTH: 'photoRealStrength',
+		PROMPT_MAGIC: 'promptMagic',
+		PROMPT_MAGIC_STRENGTH: 'promptMagicStrength',
+		PROMPT_MAGIC_VERSION: 'promptMagicVersion',
+		SCHEDULER: 'scheduler',
+		SD_VERSION: 'sd_version',
+		TILING: 'tiling',
+		TRANSPARENCY: 'transparency',
+		UNZOOM: 'unzoom',
+		UNZOOM_AMOUNT: 'unzoomAmount',
+		UPSCALE_RATIO: 'upscaleRatio',
+		ENHANCE_PROMPT: 'enhancePrompt',
+		ENHANCE_PROMPT_INSTRUCTION: 'enhancePromptInstruction'
+	};
 
+	const INPUT_IDS_CONTROLNET = {
 		CONTROLNET_STYLE_REFERENCE: 'controlnet_style_reference',
 		CONTROLNET_CHARACTER_REFERENCE: 'controlnet_character_reference',
 		CONTROLNET_CONTENT_REFERENCE: 'controlnet_content_reference',
@@ -68,29 +72,13 @@
 		CONTROLNET_NORMAL_MAP: 'controlnet_normal_map',
 		CONTROLNET_LINE_ART: 'controlnet_line_art',
 		CONTROLNET_PATTERN_TO_IMAGE: 'controlnet_pattern_to_image',
-		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image',
+		CONTROLNET_QR_CODE_TO_IMAGE: 'controlnet_qr_code_to_image'
+	};
 
-		CONTRAST_RATIO: 'contrast_ratio',
-		EXPANDED_DOMAIN: 'expanded_domain',
-		FANTASY_AVATAR: 'fantasy_avatar',
-		HIGH_CONTRAST: 'high_contrast',
-		HIGH_RESOLUTION: 'high_resolution',
-		IMAGE_PROMPT_WEIGHT: 'image_prompt_weight',
-		INIT_STRENGTH: 'init_strength',
-		NUM_INFERENCE_STEPS: 'num_inference_steps',
-		PHOTO_REAL_STRENGTH: 'photo_real_strength',
-		PROMPT_MAGIC: 'prompt_magic',
-		PROMPT_MAGIC_STRENGTH: 'prompt_magic_strength',
-		PROMPT_MAGIC_VERSION: 'prompt_magic_version',
-		SCHEDULER: 'scheduler',
-		SD_VERSION: 'sd_version',
-		TILING: 'tiling',
-		TRANSPARENCY: 'transparency',
-		UNZOOM: 'unzoom',
-		UNZOOM_AMOUNT: 'unzoom_amount',
-		UPSCALE_RATIO: 'upscale_ratio',
-		ENHANCE_PROMPT: 'enhance_prompt',
-		ENHANCE_PROMPT_INSTRUCTION: 'enhance_prompt_instruction'
+	const INPUT_IDS = {
+		...INPUT_IDS_REQUIRED,
+		...INPUT_IDS_OPTIONAL,
+		...INPUT_IDS_CONTROLNET
 	};
 
 	const CONTROLNET_MATRIX = {
@@ -132,148 +120,97 @@
 		return MODEL_VERSION_MAP[modelVersion];
 	};
 
+	const prepareControlnets = async (modelId: string) => {
+		const currentInputs = get(inputData)[id];
+		const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
+		const expectedControlnets = Object.keys(CONTROLNET_MATRIX).reduce((count, inputId) => {
+			return _optionalInputsEnabled[inputId] ? count + 1 : count;
+		}, 0);
+
+		let availableControlnets = Object.entries(CONTROLNET_MATRIX)
+			.filter(([inputId, value]) => value !== null && currentInputs[inputId])
+			.map(([inputId]) => ({
+				inputId,
+				value: currentInputs[inputId]
+			}));
+
+		//for now we only support 1 file per controlnet
+		for (const controlnet of availableControlnets) {
+			if (Array.isArray(controlnet.value) && controlnet.value.length > 1) {
+				throw new Error(
+					'Only 1 file per controlnet is supported for: [' +
+						controlnet.inputId +
+						'] Received: ' +
+						controlnet.value.length
+				);
+			}
+			if (Array.isArray(controlnet.value)) {
+				controlnet.value = controlnet.value[0];
+			}
+		}
+		availableControlnets = availableControlnets.filter((controlnet) => !!controlnet.value);
+
+		const modelTypeMapped = await getModelVersionFromModelId(modelId);
+		const controlnets = availableControlnets.map((controlnet) => ({
+			initImageId: controlnet.value,
+			initImageType: 'UPLOADED' as const,
+			preprocessorId: (CONTROLNET_MATRIX as any)[controlnet.inputId]?.[modelTypeMapped],
+			weight: 1,
+			strengthType: null
+		}));
+
+		for (const controlnet of controlnets) {
+			if (!controlnet.preprocessorId) {
+				throw new Error(`Invalid controlnet: ${controlnet.initImageId}`);
+			}
+		}
+
+		if (controlnets.length !== expectedControlnets) {
+			throw new Error('Some input images are missing. Check all image references');
+		}
+
+		return controlnets;
+	};
+
+	const uploadControlnetImages = async (
+		controlnets: (Controlnet & { initImageId: HorstFile })[]
+	): Promise<Controlnet[]> => {
+		return Promise.all(
+			controlnets.map(async (controlnet) => ({
+				...controlnet,
+				initImageId: await uploadInitImage(controlnet.initImageId)
+			}))
+		);
+	};
+
 	const onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		const apiKey = get(leonardo_key) as string;
-
-		const prompt = io.getInputData(INPUT_IDS.PROMPT) as string;
-		const negativePrompt = io.getInputData(INPUT_IDS.NEGATIVE_PROMPT) as string;
-		const modelId = io.getInputData(INPUT_IDS.MODEL_ID) as string;
-		const width = io.getInputData(INPUT_IDS.WIDTH) as number;
-		const height = io.getInputData(INPUT_IDS.HEIGHT) as number;
-		const presetStyle = io.getInputData(INPUT_IDS.PRESET_STYLE) as string;
-		const isPublic = io.getInputData(INPUT_IDS.IS_PUBLIC) as boolean;
-		const numImages = io.getInputData(INPUT_IDS.NUM_IMAGES) as number;
-		const guidanceScale = io.getInputData(INPUT_IDS.GUIDANCE_SCALE) as number;
-		const seed = io.getInputData(INPUT_IDS.SEED) as number;
-		const alchemy = io.getInputData(INPUT_IDS.ALCHEMY) as boolean;
-		const photoReal = io.getInputData(INPUT_IDS.PHOTO_REAL) as boolean;
-		const photoRealVersion = io.getInputData(INPUT_IDS.PHOTO_REAL_VERSION) as string;
-		const contrastRatio = io.getInputData(INPUT_IDS.CONTRAST_RATIO) as number;
-		const expandedDomain = io.getInputData(INPUT_IDS.EXPANDED_DOMAIN) as boolean;
-		const fantasyAvatar = io.getInputData(INPUT_IDS.FANTASY_AVATAR) as boolean;
-		const highContrast = io.getInputData(INPUT_IDS.HIGH_CONTRAST) as boolean;
-		const highResolution = io.getInputData(INPUT_IDS.HIGH_RESOLUTION) as boolean;
-		const imagePromptWeight = io.getInputData(INPUT_IDS.IMAGE_PROMPT_WEIGHT) as number;
-		const initStrength = io.getInputData(INPUT_IDS.INIT_STRENGTH) as number;
-		const numInferenceSteps = io.getInputData(INPUT_IDS.NUM_INFERENCE_STEPS) as number;
-		const photoRealStrength = io.getInputData(INPUT_IDS.PHOTO_REAL_STRENGTH) as number;
-		const promptMagic = io.getInputData(INPUT_IDS.PROMPT_MAGIC) as boolean;
-		const promptMagicStrength = io.getInputData(INPUT_IDS.PROMPT_MAGIC_STRENGTH) as number;
-		const promptMagicVersion = io.getInputData(INPUT_IDS.PROMPT_MAGIC_VERSION) as string;
-		const scheduler = io.getInputData(INPUT_IDS.SCHEDULER) as string;
-		const sdVersion = io.getInputData(INPUT_IDS.SD_VERSION) as string;
-		const tiling = io.getInputData(INPUT_IDS.TILING) as boolean;
-		const transparency = io.getInputData(INPUT_IDS.TRANSPARENCY) as string;
-		const unzoom = io.getInputData(INPUT_IDS.UNZOOM) as boolean;
-		const unzoomAmount = io.getInputData(INPUT_IDS.UNZOOM_AMOUNT) as number;
-		const upscaleRatio = io.getInputData(INPUT_IDS.UPSCALE_RATIO) as number;
-		const enhancePrompt = io.getInputData(INPUT_IDS.ENHANCE_PROMPT) as boolean;
-		const enhancePromptInstruction = io.getInputData(
-			INPUT_IDS.ENHANCE_PROMPT_INSTRUCTION
-		) as string;
+		const currentInputs = get(inputData)[id];
 
 		const requestBody: any = {
-			height,
-			width,
-			prompt,
-			modelId
+			[INPUT_IDS.PROMPT]: currentInputs[INPUT_IDS.PROMPT],
+			[INPUT_IDS.MODEL_ID]: currentInputs[INPUT_IDS.MODEL_ID],
+			[INPUT_IDS.WIDTH]: currentInputs[INPUT_IDS.WIDTH],
+			[INPUT_IDS.HEIGHT]: currentInputs[INPUT_IDS.HEIGHT],
+			[INPUT_IDS.NUM_IMAGES]: currentInputs[INPUT_IDS.NUM_IMAGES]
 		};
 
-		// Add optional parameters only if they're set
-		if (negativePrompt) requestBody.negative_prompt = negativePrompt;
-		if (presetStyle) requestBody.presetStyle = presetStyle;
-		if (numImages) requestBody.num_images = numImages;
-		if (guidanceScale) requestBody.guidance_scale = guidanceScale;
-		if (seed) requestBody.seed = seed;
-		if (isPublic !== undefined) requestBody.public = isPublic;
-		if (alchemy !== undefined) requestBody.alchemy = alchemy;
-		if (photoReal !== undefined) requestBody.photoReal = photoReal;
-		if (photoRealVersion) requestBody.photoRealVersion = photoRealVersion;
-		if (contrastRatio) requestBody.contrastRatio = contrastRatio;
-		if (expandedDomain !== undefined) requestBody.expandedDomain = expandedDomain;
-		if (fantasyAvatar !== undefined) requestBody.fantasyAvatar = fantasyAvatar;
-		if (highContrast !== undefined) requestBody.highContrast = highContrast;
-		if (highResolution !== undefined) requestBody.highResolution = highResolution;
-		if (imagePromptWeight) requestBody.imagePromptWeight = imagePromptWeight;
-		if (initStrength) requestBody.initStrength = initStrength;
-		if (numInferenceSteps) requestBody.numInferenceSteps = numInferenceSteps;
-		if (photoRealStrength) requestBody.photoRealStrength = photoRealStrength;
-		if (promptMagic !== undefined) requestBody.promptMagic = promptMagic;
-		if (promptMagicStrength) requestBody.promptMagicStrength = promptMagicStrength;
-		if (promptMagicVersion) requestBody.promptMagicVersion = promptMagicVersion;
-		if (scheduler) requestBody.scheduler = scheduler;
-		if (sdVersion) requestBody.sdVersion = sdVersion;
-		if (tiling !== undefined) requestBody.tiling = tiling;
-		if (transparency) requestBody.transparency = transparency;
-		if (unzoom !== undefined) requestBody.unzoom = unzoom;
-		if (unzoomAmount) requestBody.unzoomAmount = unzoomAmount;
-		if (upscaleRatio) requestBody.upscaleRatio = upscaleRatio;
-		if (enhancePrompt !== undefined) requestBody.enhancePrompt = enhancePrompt;
-		if (enhancePromptInstruction) requestBody.enhancePromptInstruction = enhancePromptInstruction;
+		Object.entries(INPUT_IDS_OPTIONAL).forEach(([_key, inputId]) => {
+			const value = currentInputs[inputId];
+			if (value !== undefined) {
+				requestBody[inputId] = value;
+			}
+		});
 
 		try {
-			const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
-			const expectedControlnets = Object.keys(CONTROLNET_MATRIX).reduce((count, inputId) => {
-				return _optionalInputsEnabled[inputId] ? count + 1 : count;
-			}, 0);
-			console.log('Expected controlnets:', expectedControlnets);
-
-			let availableControlnets = Object.entries(CONTROLNET_MATRIX)
-				.filter(([inputId, value]) => value !== null && io.getInputData(inputId))
-				.map(([inputId]) => ({
-					inputId,
-					value: io.getInputData(inputId)
-				}));
-
-			//for now we only support 1 file per controlnet
-			for (const controlnet of availableControlnets) {
-				if (Array.isArray(controlnet.value) && controlnet.value.length > 1) {
-					throw new Error(
-						'Only 1 file per controlnet is supported for: [' +
-							controlnet.inputId +
-							'] Received: ' +
-							controlnet.value.length
-					);
-				}
-				if (Array.isArray(controlnet.value)) {
-					controlnet.value = controlnet.value[0];
-				}
-			}
-			availableControlnets = availableControlnets.filter((controlnet) => !!controlnet.value);
-			console.log('availableControlnets', availableControlnets);
-
-			let controlnets: Controlnet[] = [];
-			for (const controlnet of availableControlnets) {
-				const modelTypeMapped = await getModelVersionFromModelId(modelId);
-				controlnets.push({
-					initImageId: await uploadInitImage(controlnet.value),
-					initImageType: 'UPLOADED',
-					preprocessorId: (CONTROLNET_MATRIX as any)[controlnet.inputId]?.[modelTypeMapped],
-					weight: 1,
-					strengthType: null
-				});
-			}
-
-			for (const controlnet of controlnets) {
-				if (!controlnet.preprocessorId) {
-					throw new Error(`Invalid controlnet: ${controlnet.initImageId}`);
-				}
-			}
-
-			if (controlnets.length !== expectedControlnets) {
-				throw new Error('Some input images are missing. Check all image references');
-			}
-
-			if (controlnets.length > 0) {
-				requestBody.controlnets = controlnets;
-			}
-
+			const controlnets = await prepareControlnets(requestBody[INPUT_IDS.MODEL_ID]);
 			const newValue = JSON.stringify({
 				...requestBody,
-				apiKey
+				apiKey,
+				controlnets
 			});
 
-			if (prompt) {
+			if (requestBody[INPUT_IDS.PROMPT]) {
 				if (!forceExecute && newValue === lastExecutedValue) {
 					return;
 				}
@@ -286,11 +223,13 @@
 				io.setOutputData('image_urls', null);
 				try {
 					callbacks.setStatus('loading');
+					const uploadedControlnets = await uploadControlnetImages(controlnets);
+					if (uploadedControlnets.length > 0) {
+						requestBody.controlnets = uploadedControlnets;
+					}
+
 					const response = await generateImage(requestBody);
-
 					const generationId = response.sdGenerationJob.generationId;
-
-					// Poll for the generation result
 					const imageUrls = await pollForGenerationResult(generationId);
 					lastOutputValue = await Promise.all(imageUrls.map(HorstFile.fromUrl));
 					io.setOutputData('image_urls', lastOutputValue);
@@ -418,9 +357,8 @@
 				type: 'text',
 				label: 'Preset Style',
 				input: {
-					inputOptionType: 'dropdown',
-					options: VALID_PRESET_STYLES,
-					default: VALID_PRESET_STYLES[0]
+					inputOptionType: 'input-field',
+					default: ''
 				},
 				optional: true
 			},
