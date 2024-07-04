@@ -14,7 +14,7 @@
 		type ConnectWith
 	} from '@/types';
 	import { NodeResizer, NodeToolbar, useConnection, useUpdateNodeInternals } from '@xyflow/svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, afterUpdate } from 'svelte';
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
@@ -28,7 +28,6 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
-	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -43,7 +42,6 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable */
 
 	// these are passed in
 	export let id: string = '';
@@ -225,7 +223,6 @@
 
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
-	// Function to handle checkbox change
 	function handleCheckboxChange(inputId: string, isChecked: boolean) {
 		optionalInputsEnabled.update((current) => {
 			console.log('current', current, 'id', id);
@@ -237,6 +234,8 @@
 			return current;
 		});
 	}
+
+	let nodeHeight: any;
 </script>
 
 {#if errors[0] === SPECIAL_ERRORS.OPENAI_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING || errors[0] === SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING}
@@ -263,7 +262,7 @@
 {/if}
 <div
 	class={cn('flex flex-col h-full gap-1')}
-	style="min-width: 200px; opacity: {hide ? 0.5 : 1};"
+	style="min-width: 200px; opacity: {hide ? 0.5 : 1}; max-height: 100%;"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
 	on:click={onClick}
@@ -312,132 +311,142 @@
 
 	<NodeResizer
 		minWidth={200}
+		minHeight={300}
 		isVisible={selected || hovered}
 		lineClass="!border-[1.5px]"
 		handleClass="!size-2"
 		onResizeStart={() => (isResizing = true)}
-		onResizeEnd={() => (isResizing = false)}
+		onResize={() => {
+			isResizing = true;
+		}}
+		onResizeEnd={() => {
+			isResizing = false;
+		}}
+		bind:this={nodeHeight}
 	/>
-	<div
-		class={cn(
-			colors.fullbackground,
-			'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0'
-		)}
-		style="height: 40px;"
-	>
-		<div class="ml-2">
-			{#if registered?.Icon}
-				<svelte:component this={registered.Icon} size="24" />
-			{/if}
-		</div>
-		<div class="flex-grow text-center">{label}</div>
-		<div class="w-[20px]"></div>
-		<!-- Spacer to balance the icon -->
-	</div>
-
-	<div
-		class={cn(
-			'shadow-md rounded-md bg-white border-stone-400 flex flex-col flex-grow',
-			colors.border,
-			errors.length && 'border-red-500'
-		)}
-		style="min-width: 200px; border-width: 2px"
-	>
+	<div class="relative w-full flex flex-col flex-1 max-h-full">
 		<div
 			class={cn(
-				'rounded-sm py-2 text-black',
-				hasContent && 'border-b-2 rounded-b-none',
-				colors.background,
-				colors.text,
-				colors.border
+				colors.fullbackground,
+				'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0'
 			)}
+			style="height: 40px;"
 		>
-			<div class="flex justify-between font-semibold leading-none max-w-full flex-shrink-0">
-				{#if $inputs.length > 0}
-					<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
-						{#each $inputs as input}
-							<CustomHandle
-								nodeId={id}
-								type="input"
-								base={input}
-								{setInputPlaceholderData}
-								{getCurrentInputPlaceholderData}
-							/>
-						{/each}
-					</div>
+			<div class="ml-2">
+				{#if registered?.Icon}
+					<svelte:component this={registered.Icon} size="24" />
 				{/if}
-				{#if $outputs.length > 0}
-					<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
-						{#each $outputs as output}
-							<CustomHandle
-								nodeId={id}
-								type="output"
-								base={output}
-								setInputPlaceholderData={() => {}}
-								getCurrentInputPlaceholderData={() => {}}
-							/>
-						{/each}
+			</div>
+			<div class="flex-grow text-center">{label}</div>
+			<div class="w-[20px]"></div>
+		</div>
+
+		<div
+			class={cn(
+				'shadow-md rounded-md bg-white border-stone-400 flex flex-col',
+				'flex-1 min-h-0',
+				colors.border,
+				errors.length && 'border-red-500'
+			)}
+			style="min-width: 200px; border-width: 2px;"
+		>
+			<div
+				class={cn(
+					'rounded-sm py-2 text-black flex-shrink-0',
+					hasContent && 'border-b-2 rounded-b-none',
+					colors.background,
+					colors.text,
+					colors.border
+				)}
+			>
+				<div class="flex justify-between font-semibold leading-none max-w-full flex-shrink-0">
+					{#if $inputs.length > 0}
+						<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
+							{#each $inputs as input}
+								<CustomHandle
+									nodeId={id}
+									type="input"
+									base={input}
+									{setInputPlaceholderData}
+									{getCurrentInputPlaceholderData}
+								/>
+							{/each}
+						</div>
+					{/if}
+					{#if $outputs.length > 0}
+						<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
+							{#each $outputs as output}
+								<CustomHandle
+									nodeId={id}
+									type="output"
+									base={output}
+									setInputPlaceholderData={() => {}}
+									getCurrentInputPlaceholderData={() => {}}
+								/>
+							{/each}
+						</div>
+					{/if}
+				</div>
+				{#if hasOptionalInputs}
+					<div class="flex justify-left items-center ml-5">
+						<Sheet>
+							<SheetTrigger>
+								<Button
+									class={`${colors.fullbackground} hover:${colors.background} text-white font-bold py-2 px-4 rounded cursor-pointer`}
+									size="flat"
+								>
+									Other Settings
+								</Button>
+							</SheetTrigger>
+							<SheetContent side="right" class="overflow-y-auto scrollbar-visible">
+								<SheetClose>
+									<Button variant="outline" size="sm">Close</Button>
+								</SheetClose>
+								<h2 class="text-lg font-semibold">Node Settings</h2>
+								<div class="mt-4">
+									{#each $inputs as input}
+										<div class="mb-4">
+											{#if input.optional}
+												<label class="flex items-center">
+													<input
+														type="checkbox"
+														bind:checked={checked[input.id]}
+														on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
+														disabled={input.unsupported?.unsupported}
+														class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
+															disabled:opacity-50 disabled:cursor-not-allowed"
+													/>
+													<span class="ml-2">{input.label}</span>
+												</label>
+											{:else}
+												<p>✔ {input.label}</p>
+											{/if}
+											{#if input.unsupported}
+												<p class="text-red-500 text-xs mt-1 ml-5">
+													{input.unsupported.message}
+												</p>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							</SheetContent>
+						</Sheet>
 					</div>
 				{/if}
 			</div>
-			{#if hasOptionalInputs}
-				<div class="flex justify-left items-center ml-5">
-					<Sheet>
-						<SheetTrigger>
-							<Button
-								class={`${colors.fullbackground} hover:${colors.background} text-white font-bold py-2 px-4 rounded cursor-pointer`}
-								size="flat"
-							>
-								Other Settings
-							</Button>
-						</SheetTrigger>
-						<SheetContent side="right" class="overflow-y-auto scrollbar-visible">
-							<SheetClose>
-								<Button variant="outline" size="sm">Close</Button>
-							</SheetClose>
-							<h2 class="text-lg font-semibold">Node Settings</h2>
-							<!-- Add your settings content here -->
-							<div class="mt-4">
-								{#each $inputs as input}
-									<div class="mb-4">
-										{#if input.optional}
-											<label class="flex items-center">
-												<input
-													type="checkbox"
-													bind:checked={checked[input.id]}
-													on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
-													disabled={input.unsupported?.unsupported}
-													class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
-														disabled:opacity-50 disabled:cursor-not-allowed"
-												/>
-												<span class="ml-2">{input.label}</span>
-											</label>
-										{:else}
-											<p>✔ {input.label}</p>
-										{/if}
-										{#if input.unsupported}
-											<p class="text-red-500 text-xs mt-1 ml-5">
-												{input.unsupported.message}
-											</p>
-										{/if}
-									</div>
-								{/each}
-							</div>
-						</SheetContent>
-					</Sheet>
+
+			{#if hasContent}
+				<div class="flex-1 min-h-0 overflow-hidden nowheel nowheel">
+					<div
+						class={cn(
+							'h-full overflow-x-hidden overflow-y-auto p-2 nodrag cursor-auto',
+							isResizing && 'pointer-events-none'
+						)}
+					>
+						<slot />
+					</div>
 				</div>
 			{/if}
 		</div>
-
-		{#if hasContent}
-			<div
-				class={cn(
-					'flex flex-col overflow-auto p-2 flex-grow nodrag cursor-auto',
-					isResizing && 'pointer-events-none'
-				)}
-			>
-				<slot />
-			</div>
-		{/if}
 	</div>
 </div>
