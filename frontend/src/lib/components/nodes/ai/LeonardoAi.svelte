@@ -124,6 +124,8 @@
 	const prepareControlnets = async (modelId: string): Promise<Controlnet[] | false> => {
 		const currentInputs = get(inputData)[id];
 		const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
+		if (!_optionalInputsEnabled) return [];
+
 		const expectedControlnets = Object.keys(CONTROLNET_MATRIX).reduce((count, inputId) => {
 			return _optionalInputsEnabled[inputId] ? count + 1 : count;
 		}, 0);
