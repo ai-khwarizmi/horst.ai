@@ -9,14 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import {
-		nodes,
-		edges,
-		viewport,
-		commandOpen,
-		createNodeParams,
-		resetProject
-	} from '$lib';
+	import { nodes, edges, viewport, commandOpen, createNodeParams, resetProject } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -113,9 +106,6 @@
 		{viewport}
 		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
-		proOptions={{
-			hideAttribution: true
-		}}
 		onconnect={handleConnect}
 		onconnectstart={handleConnectionStart}
 		onconnectend={handleConnectionEnd}

@@ -1,11 +1,15 @@
+import { sha256 } from 'js-sha256';
+
 export class HorstFile {
 	public readonly fileName: string;
 	public readonly fileSize: number;
 	public readonly fileType: string;
+	public readonly timeUploaded: number = Date.now();
 
 	//private because it may not be initialized. Don't change this. Use getFileData() instead.
 	private fileDataBase64: string | null = null;
 	private fileArrayBuffer: ArrayBuffer | null = null;
+	private fileHash: string | null = null;
 
 	constructor(file: File, callback: (file: HorstFile) => void) {
 		if (!file || !callback) {
@@ -21,6 +25,7 @@ export class HorstFile {
 	async readFile(file: File, callback: (file: HorstFile) => void) {
 		this.fileArrayBuffer = await this.readFileAsArrayBuffer(file);
 		this.fileDataBase64 = await this.readFileAsBase64();
+		this.fileHash = sha256(new Uint8Array(this.fileArrayBuffer));
 		callback(this);
 	}
 
@@ -55,6 +60,13 @@ export class HorstFile {
 			binary += String.fromCharCode(bytes[i]);
 		}
 		return binary;
+	}
+
+	getHash(): string {
+		if (!this.fileHash) {
+			throw new Error("File hash not initialized");
+		}
+		return this.fileHash;
 	}
 
 	getDataUrl(): string {

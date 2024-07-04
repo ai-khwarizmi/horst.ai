@@ -9,6 +9,8 @@ export const canConnectTypes = (obj: {
 }) => {
     if (obj.input === 'any') return true;
     if (obj.input === 'number' && obj.output === 'text') return true;
+    if (obj.input === 'file' && obj.output === 'file[]') return true;
+    if (obj.input === 'file[]' && obj.output === 'file') return true;
     return obj.output === obj.input;
 }
 
