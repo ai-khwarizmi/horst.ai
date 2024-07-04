@@ -199,7 +199,7 @@
 
 <div
 	style="flex-direction: {isInput ? 'row' : 'row-reverse'};"
-	class="flex items-center mb-4 h-[40px] relative"
+	class="flex items-center mb-4 min-h-[40px] relative"
 	class:hidden={canHideOptionalInput}
 >
 	<Handle
@@ -290,7 +290,13 @@
 						on:blur={saveInputValue}
 						on:keydown={handleKeyDown}
 					/>
+				{:else if base.input?.inputOptionType === 'custom'}
+					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
 				{/if}
+			</div>
+		{:else if 'input' in base && base.input?.inputOptionType === 'custom'}
+			<div class="flex flex-col w-full justify-center nodrag">
+				<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
 			</div>
 		{:else}
 			<div
