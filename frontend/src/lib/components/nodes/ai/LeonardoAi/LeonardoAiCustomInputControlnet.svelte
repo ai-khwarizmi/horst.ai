@@ -32,17 +32,6 @@
 		if (file) {
 			const horstFile = await HorstFile.fromFile(file);
 			nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, [horstFile]);
-
-			setTimeout(() => {
-				console.log(
-					'handleFileUpload for node',
-					nodeId,
-					' base',
-					base.id,
-					' data',
-					nodeIOHandlers[nodeId].getInputPlaceholderData(base.id)
-				);
-			}, 3000);
 		}
 	};
 </script>

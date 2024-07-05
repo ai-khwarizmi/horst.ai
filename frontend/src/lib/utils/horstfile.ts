@@ -22,7 +22,6 @@ export class HorstFile {
 	private fileDataBase64: string | null = null;
 	private fileArrayBuffer: ArrayBuffer | null = null;
 	private fileHash: string | null = null;
-	private data: any;
 
 	private loaded = false;
 	private onLoadPromises: { resolve: (file: HorstFile) => void }[] = [];
