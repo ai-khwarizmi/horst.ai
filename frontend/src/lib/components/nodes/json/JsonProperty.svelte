@@ -91,7 +91,7 @@
 	{#if currentOutput}
 		<p>Output:</p>
 		<div class="p-4 relative nodrag bg-gray-100">
-			{currentOutput}
+			<pre>{JSON.stringify(currentOutput, null, 2)}</pre>
 		</div>
 	{/if}
 </CustomNode>
