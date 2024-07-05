@@ -1,56 +1,87 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { inputData } from '@/index';
-	import { Input } from '@/components/ui/input';
+	import { inputData, inputPlaceholderData } from '@/index';
 	import { type Input as InputType, type Output as OutputType } from '@/types';
 	import { afterUpdate } from 'svelte';
-	import type { HorstFile } from '@/utils/horstfile';
+	import { HorstFile } from '@/utils/horstfile';
+	import { Upload, XCircle } from 'lucide-svelte';
+	import { nodeIOHandlers } from '@/utils';
+	import * as Dialog from '$lib/components/ui/dialog';
 
 	export let base: InputType<string> | OutputType<string>;
 	export let nodeId: string;
 
 	$: currentValue = $inputData[nodeId]?.[base.id] as HorstFile[];
+	$: currentPlaceholderData = $inputPlaceholderData[nodeId]?.[base.id] as HorstFile[];
+	$: currentlyUsingPlaceholderData = !!(currentValue && currentValue === currentPlaceholderData);
 
 	let imageUrl: string;
+	let showPopup = false;
 
 	afterUpdate(async () => {
 		await currentValue?.[0].waitForLoad();
 		imageUrl = currentValue?.[0].getDataUrl();
 	});
 
-	let showPopup = false;
-
-	const showImagePopup = () => {
-		showPopup = true;
-	};
-
-	const closeImagePopup = () => {
-		showPopup = false;
+	const handleFileUpload = async (e: Event) => {
+		const target = e.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (file) {
+			console.log(file);
+			const horstFile = await HorstFile.fromFile(file);
+			console.log(horstFile);
+			nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, [horstFile]);
+		}
 	};
 </script>
 
-<div class="flex space-x-4 bg-gray-100 p-2">
-	<div class="flex-1">
-		<button id="image" class="mr-2 p-0 border-none bg-transparent" on:click={showImagePopup}>
-			<img src={imageUrl} alt="" width="96" height="96" />
-		</button>
-	</div>
-
-	<div class="flex-1 flex flex-col justify-center">
-		<label class="text-xs text-muted-foreground mb-1 text-center" for="weight">Weight</label>
-		<Input
-			id="weight"
-			type="number"
-			class="w-full p-1 text-sm border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring focus:ring-opacity-20 h-[24px] text-center"
-		/>
+<div class="flex h-[80px] py-2 w-full pt-2">
+	<div class="flex-1 flex items-start justify-start">
+		{#if imageUrl && imageUrl !== ''}
+			<div class="relative h-full">
+				<button class="h-full p-0 border-none bg-transparent" on:click={() => (showPopup = true)}>
+					<img src={imageUrl} alt="" class="h-full object-contain object-left" />
+				</button>
+				{#if currentlyUsingPlaceholderData}
+					<button
+						class="absolute top-[-10px] left-[-10px] text-red-500 font-bold py-0.5 px-1 text-xs transition-transform hover:scale-110"
+						on:click={() => nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, null)}
+					>
+						<XCircle class="w-4 h-4 bg-white rounded-full" />
+					</button>
+				{/if}
+			</div>
+		{:else}
+			<Button
+				class="w-full h-full flex items-center justify-center bg-purple-500 text-white rounded hover:bg-purple-600"
+				on:click={() => document.getElementById('fileInput')?.click()}
+			>
+				<Upload class="w-5 h-5 mr-2" />
+				Upload
+			</Button>
+			<input
+				id="fileInput"
+				type="file"
+				accept="image/*"
+				class="hidden"
+				on:change={handleFileUpload}
+			/>
+		{/if}
 	</div>
 </div>
 
-{#if showPopup}
-	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto">
+<Dialog.Root bind:open={showPopup}>
+	<Dialog.Content class="w-full max-w-3xl">
+		<div class="max-h-[80vh] overflow-auto flex justify-center">
 			<img src={imageUrl} alt="" class="max-w-full max-h-[80vh] object-contain" />
-			<Button on:click={closeImagePopup} class="mt-4 w-full">Close</Button>
 		</div>
-	</div>
-{/if}
+		<Dialog.Footer>
+			<Button
+				on:click={() => (showPopup = false)}
+				class="w-full bg-purple-500 text-white hover:bg-purple-600"
+			>
+				Close
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
