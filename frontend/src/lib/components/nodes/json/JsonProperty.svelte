@@ -17,7 +17,7 @@
 	let currentOutput: any;
 
 	const parseJsonPath = (obj: any, path: string) => {
-		const parts = path.split(/[.\[\]]+/).filter(Boolean);
+		const parts = path.split(/[.[\]]+/).filter(Boolean);
 		let result = obj;
 		for (const part of parts) {
 			if (result === undefined) break;
