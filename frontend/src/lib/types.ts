@@ -1,4 +1,4 @@
-import type { ComponentType, SvelteComponent } from "svelte";
+import type { ComponentType } from "svelte";
 
 export enum NodeType {
     INPUT = 'input',
