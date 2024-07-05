@@ -426,13 +426,16 @@ export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
 }
 
 export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
-	inputPlaceholderData.update(currentData => ({
-		...currentData,
-		[id]: {
-			...currentData[id],
-			...data
-		}
-	}));
+	inputPlaceholderData.update(currentData => {
+		const output = {
+			...currentData,
+			[id]: {
+				...currentData[id],
+				...data
+			}
+		};
+		return output;
+	});
 }
 
 export const _getNodeOutputData = (id: string, handle: string) => {

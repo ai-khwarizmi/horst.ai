@@ -22,20 +22,19 @@ export class HorstFile {
 	private fileDataBase64: string | null = null;
 	private fileArrayBuffer: ArrayBuffer | null = null;
 	private fileHash: string | null = null;
+	private data: any;
 
 	private loaded = false;
 	private onLoadPromises: { resolve: (file: HorstFile) => void }[] = [];
 
 	constructor(fileOrId: File | string, callback?: (file: HorstFile) => void) {
 		if (typeof fileOrId === 'string') {
-			console.log("HorstFile constructor Id", fileOrId);
 			this.id = fileOrId;
 			this.fileName = '';
 			this.fileSize = 0;
 			this.fileType = '';
 			this.loadFromStorage();
 		} else {
-			console.log("HorstFile constructor File", fileOrId);
 			this.id = uuidv4().toString();
 			this.fileName = fileOrId.name;
 			this.fileSize = fileOrId.size;
@@ -50,7 +49,6 @@ export class HorstFile {
 			callback(this);
 		}
 		this.onLoadPromises.forEach(({ resolve }) => {
-			console.log("onLoad", this.id, resolve);
 			resolve(this);
 		});
 		this.onLoadPromises = [];
@@ -145,10 +143,8 @@ export class HorstFile {
 	}
 
 	async saveToStorage(): Promise<void> {
-		console.log("Starting saveToStorage", this.id);
 
 		if (!this.fileDataBase64 || !this.fileHash) {
-			console.error("Attempting to save incomplete file data");
 			throw new Error("File data or hash is missing");
 		}
 
@@ -164,7 +160,6 @@ export class HorstFile {
 
 		try {
 			await localforage.setItem(this.id, fileData);
-			console.log(`File with id ${this.id} saved successfully to storage`);
 		} catch (error) {
 			console.error("Error in saveToStorage:", error);
 			throw new Error(`Failed to save file with id ${this.id} to storage`);
@@ -172,10 +167,8 @@ export class HorstFile {
 	}
 
 	async loadFromStorage() {
-		console.log("Starting loadFromStorage", this.id);
 		try {
 			const data = await localforage.getItem<ReturnType<HorstFile['toJSON']>>(this.id);
-			console.log("loadFromStorage result:", data);
 			if (data) {
 				this.id = data.id;
 				this.fileName = data.fileName;

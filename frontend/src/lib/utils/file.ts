@@ -41,11 +41,9 @@ export function getSaveData(includeData: boolean, includeFileData: boolean = fal
 
     for (const node of n) {
         if (!node?.type) {
-            console.error('node is ', node);
             continue
         }
         if (!registeredNodes[node.type]) {
-            console.error('node type not registered', node.type);
             continue
         }
         const nodeType = registeredNodes[node.type].nodeType;
@@ -127,13 +125,11 @@ export const saveToLocalStorage = () => {
 }
 
 export const loadFromProjectId = async (projectId: string): Promise<boolean> => {
-    console.log("loadFromProjectId", projectId);
     if (typeof window === 'undefined') return false;
     const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + projectId;
     const str = window.localStorage.getItem(localStorageKey);
     if (!str) return false;
     const graph = minimalSuperJSON.parse<SavedGraph>(str);
-    console.log("loadFromProjectId", graph);
     if (!graph) return false;
     return loadFromGraph(graph);
 }
@@ -159,7 +155,6 @@ export const loadFromLocalStorage = () => {
     const str = window.localStorage.getItem(localStorageKey);
 
     if (!str) return false;
-    console.log("loadFromLocalStorage", str);
     const graph = minimalSuperJSON.parse<SavedGraph>(str);
     return loadFromGraph(graph);
 }
@@ -187,7 +182,6 @@ export const loadFromFile = async (file: File) => {
 export const loadFromGraph = (graph: SavedGraph) => {
     resetProject();
 
-    console.log("loadFromGraph", graph);
 
     if (graph.version !== FILE_VERSION) {
         toast.error('URL: Version mismatch');
@@ -221,7 +215,7 @@ export const loadFromGraph = (graph: SavedGraph) => {
     let invalid_edges = 0;
     for (const edge of graph.edges) {
         if (!isValidEdge(edge, valid_nodes)) {
-            console.log('edge', edge);
+            console.error('invalid edge', edge);
             toast.error('URL: Invalid edge');
             invalid_edges++;
             continue;

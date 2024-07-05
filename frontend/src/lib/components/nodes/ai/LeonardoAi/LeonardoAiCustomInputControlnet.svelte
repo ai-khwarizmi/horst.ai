@@ -10,6 +10,8 @@
 
 	export let base: InputType<string> | OutputType<string>;
 	export let nodeId: string;
+	// eslint-disable-next-line svelte/valid-compile
+	export let data: any;
 
 	$: currentValue = $inputData[nodeId]?.[base.id] as HorstFile[];
 	$: currentPlaceholderData = $inputPlaceholderData[nodeId]?.[base.id] as HorstFile[];
@@ -17,6 +19,7 @@
 
 	let imageUrl: string;
 	let showPopup = false;
+	let fileInput: HTMLInputElement;
 
 	afterUpdate(async () => {
 		await currentValue?.[0].waitForLoad();
@@ -27,10 +30,19 @@
 		const target = e.target as HTMLInputElement;
 		const file = target.files?.[0];
 		if (file) {
-			console.log(file);
 			const horstFile = await HorstFile.fromFile(file);
-			console.log(horstFile);
 			nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, [horstFile]);
+
+			setTimeout(() => {
+				console.log(
+					'handleFileUpload for node',
+					nodeId,
+					' base',
+					base.id,
+					' data',
+					nodeIOHandlers[nodeId].getInputPlaceholderData(base.id)
+				);
+			}, 3000);
 		}
 	};
 </script>
@@ -54,13 +66,13 @@
 		{:else}
 			<Button
 				class="w-full h-full flex items-center justify-center bg-purple-500 text-white rounded hover:bg-purple-600"
-				on:click={() => document.getElementById('fileInput')?.click()}
+				on:click={() => fileInput.click()}
 			>
 				<Upload class="w-5 h-5 mr-2" />
 				Upload
 			</Button>
 			<input
-				id="fileInput"
+				bind:this={fileInput}
 				type="file"
 				accept="image/*"
 				class="hidden"
