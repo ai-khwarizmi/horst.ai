@@ -31,15 +31,6 @@ assignees: metjm
 ## Use Case
 <!-- Describe a practical use case for this node in an AI workflow -->
 
-## Visual Editor Integration
-<!-- Explain how this node would be represented and connected in the visual editor -->
-
-## No-Code Considerations
-<!-- Discuss how this node supports the no-coding-needed approach of Horst.ai -->
-
-## Potential Challenges
-<!-- Discuss any potential challenges or considerations for implementing this node -->
-
 ## Contribution Interest
 <!-- Let us know if you're interested in helping to implement this node -->
 - [ ] Yes, I'm willing to contribute to the implementation
