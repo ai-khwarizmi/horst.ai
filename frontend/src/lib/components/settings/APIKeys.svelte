@@ -12,7 +12,7 @@
 	import OpenAI from 'openai';
 	import Anthropic from '@anthropic-ai/sdk';
 	import { Groq } from 'groq-sdk';
-	import { ANTHROPIC_BASE_URL } from '@/config';
+	import { ANTHROPIC_PROXY_BASE_URL } from '@/config';
 
 	async function validateOpenAI(key: string) {
 		const openai = new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true });
@@ -21,7 +21,7 @@
 	}
 
 	async function validateAnthropic(key: string) {
-		const anthropic = new Anthropic({ apiKey: key, baseURL: ANTHROPIC_BASE_URL });
+		const anthropic = new Anthropic({ apiKey: key, baseURL: ANTHROPIC_PROXY_BASE_URL });
 		await anthropic.messages.create({
 			max_tokens: 1,
 			messages: [{ role: 'user', content: 'Hello' }],
@@ -92,10 +92,20 @@
 					validateKey={validateGroq}
 				/>
 
-				<p class="text-gray-500">
-					<small>
-						<strong>Note:</strong> API keys are stored in your browser's local storage.
-					</small>
+				<p class="text-gray-500 text-sm mt-2">
+					We do not store your API keys on our servers. They are only stored in your browser's local
+					storage.
+				</p>
+				<p class="text-gray-500 text-sm mt-2">
+					Please note that some services do not support CORS, so we use a proxy to bypass this.
+				</p>
+				<p class="text-gray-500 text-sm mt-2">
+					You can find the code on our
+					<a
+						class="text-primary hover:underline"
+						href="https://github.com/ai-khwarizmi/horst.ai/tree/main/cors-proxy"
+						target="_blank">Github</a
+					> if you want to deploy your own.
 				</p>
 			</div>
 		</div>

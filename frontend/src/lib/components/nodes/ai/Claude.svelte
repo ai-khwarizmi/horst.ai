@@ -7,7 +7,7 @@
 	import Anthropic from '@anthropic-ai/sdk';
 	import { anthropic_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
-	import { ANTHROPIC_BASE_URL } from '@/config';
+	import { ANTHROPIC_PROXY_BASE_URL } from '@/config';
 
 	let anthropic: Anthropic;
 
@@ -18,7 +18,7 @@
 			const apiKey = get(anthropic_key) as string;
 			anthropic = new Anthropic({
 				apiKey,
-				baseURL: ANTHROPIC_BASE_URL
+				baseURL: ANTHROPIC_PROXY_BASE_URL
 			});
 		}
 		return anthropic;
