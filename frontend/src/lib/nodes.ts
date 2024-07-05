@@ -18,6 +18,7 @@ import TextAndFileInput from "./components/nodes/text/TextAndFileInput.svelte";
 import { SvelteComponent, type ComponentType } from 'svelte';
 import IconComponent from './components/ui/icon/IconComponent.svelte';
 import Groq from './components/nodes/ai/Groq.svelte';
+import JsonProperty from "./components/nodes/json/JsonProperty.svelte";
 
 interface IconProps {
     url: string;
@@ -109,6 +110,15 @@ const nodes = {
         Icon: FileDigit,
         category: NodeCategory.String,
     }),
+
+    //json
+    jsonProperty: registerNode(JsonProperty, {
+        name: "JSON Property",
+        nodeType: NodeType.TRANSFORM,
+        Icon: FileDigit,
+        category: NodeCategory.String,
+    }),
+
 
     // Number Tools
     // num2str: registerNode(NumberToString, {
