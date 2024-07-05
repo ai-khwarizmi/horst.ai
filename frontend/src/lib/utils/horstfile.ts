@@ -13,11 +13,11 @@ if (typeof window !== 'undefined') {
 }
 
 export class HorstFile {
-	protected id: string;
-	protected fileName: string;
-	protected fileSize: number;
-	protected fileType: string;
-	protected timeUploaded: number = Date.now();
+	id: string;
+	fileName: string;
+	fileSize: number;
+	fileType: string;
+	timeUploaded: number = Date.now();
 
 	private fileDataBase64: string | null = null;
 	private fileArrayBuffer: ArrayBuffer | null = null;

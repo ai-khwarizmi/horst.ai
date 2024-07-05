@@ -6,15 +6,44 @@
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { anthropic_key, openai_key, leonardo_key, groq_key } from '$lib/apikeys';
-	import Input from '../ui/input/input.svelte';
-	import Label from '../ui/label/label.svelte';
 	import { writable } from 'svelte/store';
-	import Button from '../ui/button/button.svelte';
+	import APIKeySetter from './APIKeySetter.svelte';
+	import { getUserInfo } from '$lib/utils/leonardoai';
+	import OpenAI from 'openai';
+	import Anthropic from '@anthropic-ai/sdk';
+	import { Groq } from 'groq-sdk';
+	import { ANTHROPIC_BASE_URL } from '@/config';
 
-	let visible = false;
-	let visibleAnthropic = false;
-	let visibleLeonardo = false;
-	let visibleGroq = false;
+	async function validateOpenAI(key: string) {
+		const openai = new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true });
+		await openai.models.list();
+		return true;
+	}
+
+	async function validateAnthropic(key: string) {
+		const anthropic = new Anthropic({ apiKey: key, baseURL: ANTHROPIC_BASE_URL });
+		await anthropic.messages.create({
+			max_tokens: 1,
+			messages: [{ role: 'user', content: 'Hello' }],
+			model: 'claude-3-5-sonnet-20240620'
+		});
+		return true;
+	}
+
+	async function validateLeonardo(key: string) {
+		await getUserInfo(key);
+		return true;
+	}
+
+	async function validateGroq(key: string) {
+		const groq = new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
+		await groq.chat.completions.create({
+			model: 'llama3-8b-8192',
+			max_tokens: 1,
+			messages: [{ role: 'user', content: 'Hello' }]
+		});
+		return true;
+	}
 </script>
 
 <Sheet.Root bind:open={$open}>
@@ -22,95 +51,46 @@
 		<Sheet.Header>
 			<Sheet.Title>API Keys</Sheet.Title>
 			<Sheet.Description>
-				<p>
-					API keys are used to authenticate with external services. <br />
-				</p>
+				<p>API keys are used to authenticate with external services.</p>
 			</Sheet.Description>
 		</Sheet.Header>
 		<div class="flex flex-col gap-2 pt-4">
 			<div>
-				<Label for="openai_key">OpenAI API Key</Label>
-				<div class="flex gap-2 items-center">
-					<Input
-						type={visible ? 'text' : 'password'}
-						bind:value={$openai_key}
-						id="openai_key"
-						placeholder="OpenAI API Key"
-					/>
-					<Button on:click={() => (visible = !visible)}>
-						{#if visible}
-							Hide
-						{:else}
-							Show
-						{/if}
-					</Button>
-				</div>
-				{#if $openai_key && !$openai_key.startsWith('sk-')}
-					<p class="text-red-500 text-xs mt-2">
-						<strong>Error:</strong> OpenAI API key start with "sk-".
-					</p>
-				{/if}
+				<APIKeySetter
+					label="OpenAI API Key"
+					id="openai_key"
+					placeholder="OpenAI API Key"
+					bind:value={$openai_key}
+					errorMessage="Invalid OpenAI API key."
+					validateKey={validateOpenAI}
+				/>
 
-				<Label for="anthropic_key">Anthropic API Key</Label>
-				<div class="flex gap-2 items-center">
-					<Input
-						type={visibleAnthropic ? 'text' : 'password'}
-						bind:value={$anthropic_key}
-						id="anthropic_key"
-						placeholder="Anthropic API Key"
-					/>
-					<Button on:click={() => (visibleAnthropic = !visibleAnthropic)}>
-						{#if visibleAnthropic}
-							Hide
-						{:else}
-							Show
-						{/if}
-					</Button>
-				</div>
-				{#if $anthropic_key && !$anthropic_key.startsWith('sk-ant-')}
-					<p class="text-red-500 text-xs mt-2">
-						<strong>Error:</strong> Anthropic API key start with "sk-".
-					</p>
-				{/if}
+				<APIKeySetter
+					label="Anthropic API Key"
+					id="anthropic_key"
+					placeholder="Anthropic API Key"
+					bind:value={$anthropic_key}
+					errorMessage="Invalid Anthropic API key."
+					validateKey={validateAnthropic}
+				/>
 
-				<Label for="leonardo_key">Leonardo API Key</Label>
-				<div class="flex gap-2 items-center">
-					<Input
-						type={visibleLeonardo ? 'text' : 'password'}
-						bind:value={$leonardo_key}
-						id="leonardo_key"
-						placeholder="Leonardo API Key"
-					/>
-					<Button on:click={() => (visibleLeonardo = !visibleLeonardo)}>
-						{#if visibleLeonardo}
-							Hide
-						{:else}
-							Show
-						{/if}
-					</Button>
-				</div>
+				<APIKeySetter
+					label="Leonardo API Key"
+					id="leonardo_key"
+					placeholder="Leonardo API Key"
+					bind:value={$leonardo_key}
+					errorMessage="Invalid Leonardo API key."
+					validateKey={validateLeonardo}
+				/>
 
-				{#if $groq_key && !$groq_key.startsWith('gsk_')}
-					<p class="text-red-500 text-xs mt-2">
-						<strong>Error:</strong> Groq API key start with "sk-groq-".
-					</p>
-				{/if}
-				<Label for="groq_key">Groq API Key</Label>
-				<div class="flex gap-2 items-center">
-					<Input
-						type={visibleGroq ? 'text' : 'password'}
-						bind:value={$groq_key}
-						id="groq_key"
-						placeholder="Groq API Key"
-					/>
-					<Button on:click={() => (visibleGroq = !visibleGroq)}>
-						{#if visibleGroq}
-							Hide
-						{:else}
-							Show
-						{/if}
-					</Button>
-				</div>
+				<APIKeySetter
+					label="Groq API Key"
+					id="groq_key"
+					placeholder="Groq API Key"
+					bind:value={$groq_key}
+					errorMessage="Invalid Groq API key."
+					validateKey={validateGroq}
+				/>
 
 				<p class="text-gray-500">
 					<small>
