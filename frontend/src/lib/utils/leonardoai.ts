@@ -177,7 +177,6 @@ export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
 	const fileHash = horstFile.getHash();
 
 	if (initImageCache[fileHash]) {
-		console.log('Cached init image found');
 		return initImageCache[fileHash];
 	}
 
@@ -189,7 +188,6 @@ export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
 	const presignedData = await apiCall('/init-image', 'POST', { extension });
 
 	const blob = horstFile.getBlob();
-	console.log('presignedData', presignedData);
 
 	const formData = new FormData();
 	const fields = JSON.parse(presignedData.uploadInitImage.fields);

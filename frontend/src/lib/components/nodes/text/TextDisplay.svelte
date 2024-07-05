@@ -8,7 +8,7 @@
 	export let id: string;
 	let data: string | null = null;
 
-	const onExecute = () => {
+	const onExecute = async () => {
 		const input = io.getInputData('data') ?? null;
 		if (input === null) {
 			data = null;
@@ -20,15 +20,17 @@
 			data = JSON.stringify(input, null, 2);
 		}
 		data = input.toString();
-	}
+	};
 
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'data', type: 'any', label: 'Data' }],
 		outputs: [],
-		onExecute: onExecute
+		onExecute,
+		isInputUnsupported: async () => {
+			return { unsupported: false };
+		}
 	});
-
 	function copyToClipboard() {
 		if (data) {
 			navigator.clipboard.writeText(data);
