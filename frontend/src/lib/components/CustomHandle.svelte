@@ -186,6 +186,7 @@
 	}
 
 	onMount(() => {
+		//set defaults depending on type
 		const currentValue = getCurrentInputPlaceholderData(base.id);
 		if ('input' in base && base.input?.inputOptionType === 'dropdown' && currentValue) {
 			selectedOption = currentValue;
@@ -209,10 +210,7 @@
 		{isValidConnection}
 		{onconnect}
 		style={`
-			position: absolute; 
-			top: 50%; 
-			transform: translateY(-50%); 
-			${isInput ? 'left: -1 !important;' : 'right: -1 !important;'} 
+			${isInput ? 'left: -1px !important;' : 'right: -1px !important;'} 
 			${getStyle}
 		`}
 	/>
