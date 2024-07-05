@@ -293,7 +293,10 @@
 			</div>
 		{:else if 'input' in base && base.input?.inputOptionType === 'custom'}
 			<div class="flex flex-col w-full justify-center nodrag">
-				<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
+				<span class="text-xs text-muted-foreground whitespace-nowrap">{base.label || ''}</span>
+				<div class="flex flex-col w-full justify-center nodrag">
+					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
+				</div>
 			</div>
 		{:else}
 			<div
