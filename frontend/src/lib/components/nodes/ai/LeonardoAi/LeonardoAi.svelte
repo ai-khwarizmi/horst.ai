@@ -1,5 +1,5 @@
 <script lang="ts">
-	import CustomNode from '../../CustomNode.svelte';
+	import CustomNode from '../../../CustomNode.svelte';
 	import { NodeIOHandler } from '$lib/utils';
 	import type { OnExecuteCallbacks } from '$lib/types';
 	import { SPECIAL_ERRORS } from '@/types';
@@ -16,6 +16,7 @@
 	} from '$lib/utils/leonardoai';
 	import { inputData, optionalInputsEnabled } from '@/index';
 	import { sha256 } from 'js-sha256';
+	import LeonardoAiCustomInputControlnet from './LeonardoAiCustomInputControlnet.svelte';
 
 	export let id: string;
 
@@ -450,7 +451,12 @@
 				id: INPUT_IDS.CONTROLNET_STYLE_REFERENCE,
 				type: 'file',
 				label: 'Style Reference (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_CHARACTER_REFERENCE,

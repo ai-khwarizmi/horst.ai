@@ -199,7 +199,7 @@
 
 <div
 	style="flex-direction: {isInput ? 'row' : 'row-reverse'};"
-	class="flex items-center mb-4 h-[40px] relative"
+	class="flex items-center mb-4 min-h-[40px] relative"
 	class:hidden={canHideOptionalInput}
 >
 	<Handle
@@ -210,10 +210,7 @@
 		{isValidConnection}
 		{onconnect}
 		style={`
-			position: absolute; // Changed from 'relative' to 'absolute'
-			top: 50%; // Center vertically
-			transform: translateY(-50%); // Adjust for exact centering
-			${isInput ? 'left: 0;' : 'right: 0;'} // Position on the correct side
+			${isInput ? 'left: -1px !important;' : 'right: -1px !important;'} 
 			${getStyle}
 		`}
 	/>
@@ -225,7 +222,7 @@
 		)}
 	>
 		{#if isInput && 'input' in base && ($inputDataWithoutPlaceholder?.[nodeId]?.[base.id] === undefined || connected.length === 0)}
-			<div class="flex flex-col w-full justify-center">
+			<div class="flex flex-col w-full justify-center nodrag">
 				<label class="text-xs text-muted-foreground" for="input-element"
 					>{base.label} <!--<span class="text-gray-500 bg-white">[{base.type}]</span>--></label
 				>
@@ -290,7 +287,13 @@
 						on:blur={saveInputValue}
 						on:keydown={handleKeyDown}
 					/>
+				{:else if base.input?.inputOptionType === 'custom'}
+					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
 				{/if}
+			</div>
+		{:else if 'input' in base && base.input?.inputOptionType === 'custom'}
+			<div class="flex flex-col w-full justify-center nodrag">
+				<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
 			</div>
 		{:else}
 			<div

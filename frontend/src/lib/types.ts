@@ -1,3 +1,5 @@
+import type { ComponentType } from "svelte";
+
 export enum NodeType {
     INPUT = 'input',
     VIEWER = 'viewer',
@@ -136,7 +138,13 @@ type InputOptionDropdown = {
     default: undefined | any;
 }
 
-type InputOption = InputOptionInputField | InputOptionDropdown;
+type InputOptionCustom = {
+    inputOptionType: 'custom';
+    component: ComponentType,
+    data: Record<string, any>
+}
+
+type InputOption = InputOptionInputField | InputOptionDropdown | InputOptionCustom;
 
 export function basicInputOptionInput(): InputOptionInputField {
     return {

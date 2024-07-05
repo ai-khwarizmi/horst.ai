@@ -75,11 +75,20 @@ export interface GetModelResponse {
 	} | null;
 }
 
+export interface UserInfo {
+	id: string;
+	username: string;
+	token_renewal_date: string;
+	subscription_tokens: number;
+	gpt_tokens: number;
+	model_training_tokens: number;
+}
+
 const modelCache: { [key: string]: { response: GetModelResponse | null, timestamp: number } } = {};
 let lastApiKey: string | null = null;
 
-async function apiCall(endpoint: string, method: string, body?: any): Promise<any> {
-	const apiKey = get(leonardo_key) as string;
+async function apiCall(endpoint: string, method: string, body?: any, _apiKey?: string): Promise<any> {
+	const apiKey = _apiKey || get(leonardo_key) as string;
 	const response = await fetch(`${BASE_URL}${endpoint}`, {
 		method,
 		headers: {
@@ -205,4 +214,9 @@ export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
 	initImageCache[fileHash] = presignedData.uploadInitImage.id;
 
 	return initImageCache[fileHash];
+}
+
+export async function getUserInfo(_apiKey?: string): Promise<UserInfo> {
+	const response = await apiCall('/me', 'GET', undefined, _apiKey);
+	return response as UserInfo;
 }

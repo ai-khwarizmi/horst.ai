@@ -32,6 +32,9 @@
 
 	const loadFiles = async () => {
 		let _files = io.getOutputData('files');
+		if (!_files) {
+			return;
+		}
 		_files = await Promise.all(_files.map((file: HorstFile) => file.waitForLoad()));
 		files = _files;
 	};

@@ -1,8 +1,9 @@
+import { CORS_PROXY_URL } from "@/config";
+
 export function corsProxyFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 	const request = new Request(input, init);
 	const originalUrl = new URL(request.url);
-	const workerUrl = 'https://cors-proxy.horst.ai';
-	const proxyUrl = new URL(originalUrl.pathname + originalUrl.search, workerUrl);
+	const proxyUrl = new URL(originalUrl.pathname + originalUrl.search, CORS_PROXY_URL);
 
 	const proxyInit = {
 		method: request.method,

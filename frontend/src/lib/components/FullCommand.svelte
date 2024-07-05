@@ -71,6 +71,19 @@
 
 <Command.Dialog bind:open={$commandOpen}>
 	<Command.Input placeholder="Search" />
+	<p class="text-sm text-muted-foreground m-2 text-center">
+		Haven't found what you need? <a
+			class="text-primary underline"
+			href="https://github.com/ai-khwarizmi/horst.ai/issues/new?assignees=metjm&labels=enhancement&projects=&template=feature-request---new-node.md&title=enhancement%2C+new+node"
+			target="_blank"
+		>
+			Open a Github issue
+		</a>
+		or fill out
+		<a class="text-primary underline" href="https://tally.so/r/wdP9Xo" target="_blank">
+			this form
+		</a>
+	</p>
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
 		<!-- <Command.Group heading="Recently Used">
