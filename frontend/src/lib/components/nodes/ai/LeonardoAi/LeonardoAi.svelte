@@ -474,67 +474,122 @@
 				id: INPUT_IDS.CONTROLNET_CHARACTER_REFERENCE,
 				type: 'file',
 				label: 'Character Reference (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_CONTENT_REFERENCE,
 				type: 'file',
 				label: 'Content Reference (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_EDGE_TO_IMAGE,
 				type: 'file',
 				label: 'Edge to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_DEPTH_TO_IMAGE,
 				type: 'file',
 				label: 'Depth to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_POSE_TO_IMAGE,
 				type: 'file',
 				label: 'Pose to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_TEXT_IMAGE_INPUT,
 				type: 'file',
 				label: 'Text to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_SKETCH_TO_IMAGE,
 				type: 'file',
 				label: 'Sketch to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_NORMAL_MAP,
 				type: 'file',
 				label: 'Normal Map (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_LINE_ART,
 				type: 'file',
 				label: 'Line Art (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_PATTERN_TO_IMAGE,
 				type: 'file',
 				label: 'Pattern to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTROLNET_QR_CODE_TO_IMAGE,
 				type: 'file',
 				label: 'QR Code to Image (Image)',
-				optional: true
+				optional: true,
+				input: {
+					inputOptionType: 'custom',
+					component: LeonardoAiCustomInputControlnet,
+					data: {}
+				}
 			},
 			{
 				id: INPUT_IDS.CONTRAST_RATIO,
