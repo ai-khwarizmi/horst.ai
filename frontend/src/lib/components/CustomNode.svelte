@@ -302,11 +302,13 @@
 			isResizing = false;
 		}}
 	/>
-	<div class="relative w-full flex flex-col flex-1 max-h-full">
+	<div
+		class="relative w-full flex flex-col flex-1 max-h-full bg-[rgba(255,255,255,0.7)] rounded-sm"
+	>
 		<div
 			class={cn(
 				colors.fullbackground,
-				'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0'
+				'w-full rounded-sm text-center font-semibold leading-none text-white flex items-center justify-between flex-shrink-0 mb-2'
 			)}
 			style="height: 40px;"
 		>
