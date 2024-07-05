@@ -193,6 +193,11 @@
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		const apiKey = get(leonardo_key) as string;
+		if (!apiKey) {
+			callbacks.setErrors([SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING]);
+			return;
+		}
+
 		const currentInputs = get(inputData)[id];
 
 		const requestBody: any = {
@@ -281,6 +286,13 @@
 		unsupported: boolean;
 		message?: string;
 	}> => {
+		const apiKey = get(leonardo_key) as string;
+		if (!apiKey) {
+			return {
+				unsupported: false
+			};
+		}
+
 		/*
 		leonardo supports different controlnets
 		the matrix of what is supported: can be found here: https://docs.leonardo.ai/docs/generate-images-using-image-to-image-guidance
