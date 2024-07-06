@@ -466,8 +466,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -477,8 +476,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -488,8 +486,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -499,8 +496,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -510,8 +506,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -521,8 +516,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -532,8 +526,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -543,8 +536,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -554,8 +546,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -565,8 +556,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -576,8 +566,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{
@@ -587,8 +576,7 @@
 				optional: true,
 				input: {
 					inputOptionType: 'custom',
-					component: LeonardoAiCustomInputControlnet,
-					data: {}
+					component: LeonardoAiCustomInputControlnet
 				}
 			},
 			{

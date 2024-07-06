@@ -10,8 +10,6 @@
 
 	export let base: InputType<string> | OutputType<string>;
 	export let nodeId: string;
-	// eslint-disable-next-line svelte/valid-compile
-	export let data: any;
 
 	$: currentValue = $inputData[nodeId]?.[base.id] as HorstFile[];
 	$: currentPlaceholderData = $inputPlaceholderData[nodeId]?.[base.id] as HorstFile[];

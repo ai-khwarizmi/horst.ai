@@ -141,7 +141,6 @@ type InputOptionDropdown = {
 type InputOptionCustom = {
     inputOptionType: 'custom';
     component: ComponentType,
-    data: Record<string, any>
 }
 
 type InputOption = InputOptionInputField | InputOptionDropdown | InputOptionCustom;

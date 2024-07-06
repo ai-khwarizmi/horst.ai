@@ -114,6 +114,23 @@ export class HorstFile {
 		return `data:${this.fileType};base64,${this.fileDataBase64}`;
 	}
 
+	getAsFileAttachment(): string {
+		if (!this.fileArrayBuffer) {
+			throw new Error("File data not initialized");
+		}
+		const fileContent = new TextDecoder().decode(this.fileArrayBuffer);
+		return `
+<FILE_ATTACHMENT>
+<FILE_NAME>
+${this.fileName}
+</FILE_NAME>
+<FILE_CONTENT>
+${fileContent}
+</FILE_CONTENT>
+</FILE_ATTACHMENT>
+`;
+	}
+
 	getFileText(): string {
 		if (!this.fileDataBase64) {
 			throw new Error("File data not initialized");
@@ -248,6 +265,10 @@ export class HorstFile {
 		}
 		const file = new File([blob], fileName, { type: blob.type });
 		return HorstFile.fromFile(file);
+	}
+
+	isImage(): boolean {
+		return this.fileType.startsWith('image/');
 	}
 }
 

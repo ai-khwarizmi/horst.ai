@@ -288,7 +288,7 @@
 						on:keydown={handleKeyDown}
 					/>
 				{:else if base.input?.inputOptionType === 'custom'}
-					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
+					<svelte:component this={base.input.component} {base} {nodeId} />
 				{/if}
 			</div>
 		{:else if 'input' in base && base.input?.inputOptionType === 'custom'}
