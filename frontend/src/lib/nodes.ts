@@ -19,6 +19,7 @@ import { SvelteComponent, type ComponentType } from 'svelte';
 import IconComponent from './components/ui/icon/IconComponent.svelte';
 import Groq from './components/nodes/ai/Groq.svelte';
 import JsonProperty from "./components/nodes/json/JsonProperty.svelte";
+import Ollama from "./components/nodes/ai/Ollama.svelte";
 
 interface IconProps {
     url: string;
@@ -26,13 +27,14 @@ interface IconProps {
     className?: string;
 }
 
-function createIconComponent(defaultUrl: string): ComponentType<SvelteComponent<IconProps>> {
+function createIconComponent(defaultUrl: string, style?: any): ComponentType<SvelteComponent<IconProps>> {
     return function (options: any) {
         const { props = {}, ...rest } = options;
         return new IconComponent({
             ...rest,
             props: {
                 url: defaultUrl,
+                style: style,
                 ...props
             }
         });
@@ -43,6 +45,7 @@ const OpenAiIcon = createIconComponent("https://static.horst.ai/openai-logomark.
 const Dalle3Icon = createIconComponent("https://static.horst.ai/openai-logomark.png");
 const ClaudeIcon = createIconComponent("https://static.horst.ai/claude-icon.png");
 const GroqIcon = createIconComponent("https://static.horst.ai/groq-logo.png");
+const OllamaIcon = createIconComponent("https://static.horst.ai/ollama-logo.png", 'background-color: white; border-radius: 100%;');
 
 export enum NodeCategory {
     String = "String",
@@ -157,6 +160,12 @@ const nodes = {
         name: "Groq",
         nodeType: NodeType.FUNCTION,
         Icon: GroqIcon,
+        category: NodeCategory.AI,
+    }),
+    ollama: registerNode(Ollama, {
+        name: "Ollama",
+        nodeType: NodeType.FUNCTION,
+        Icon: OllamaIcon,
         category: NodeCategory.AI,
     }),
 

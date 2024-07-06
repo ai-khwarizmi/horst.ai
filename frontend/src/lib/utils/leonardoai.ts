@@ -84,6 +84,22 @@ export interface UserInfo {
 	model_training_tokens: number;
 }
 
+export interface Element {
+	akUUID: string | null;
+	baseModel: string | null;
+	creatorName: string | null;
+	description: string | null;
+	name: string | null;
+	urlImage: string | null;
+	weightDefault: number | null;
+	weightMax: number | null;
+	weightMin: number | null;
+}
+
+export interface ListElementsResponse {
+	loras: Element[] | null;
+}
+
 const modelCache: { [key: string]: { response: GetModelResponse | null, timestamp: number } } = {};
 let lastApiKey: string | null = null;
 
@@ -217,4 +233,15 @@ export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
 export async function getUserInfo(_apiKey?: string): Promise<UserInfo> {
 	const response = await apiCall('/me', 'GET', undefined, _apiKey);
 	return response as UserInfo;
+}
+
+let elementsCache: ListElementsResponse | null = null;
+
+export async function listElements(): Promise<ListElementsResponse> {
+	if (elementsCache)
+		return elementsCache;
+
+	const response = await apiCall('/elements', 'GET');
+	elementsCache = response as ListElementsResponse;
+	return elementsCache;
 }
