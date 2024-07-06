@@ -7,6 +7,8 @@
 	import OpenAI from 'openai';
 	import { openai_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
+	import { isArray } from 'lodash-es';
+	import type { HorstFile } from '@/utils/horstfile';
 
 	let openai: OpenAI;
 	let temporaryOutput = '';
@@ -44,6 +46,7 @@
 			const frequencyPenalty = io.getInputData('frequency_penalty') as number;
 			const logitBias = io.getInputData('logit_bias') as string;
 			const user = io.getInputData('user') as string;
+			const files = io.getInputData('files') as HorstFile[];
 
 			const newValue = JSON.stringify({
 				systemPrompt,
@@ -59,7 +62,8 @@
 				presencePenalty,
 				frequencyPenalty,
 				logitBias,
-				user
+				user,
+				files
 			});
 
 			if (systemPrompt && userPrompt) {
@@ -76,11 +80,37 @@
 				io.setOutputData('response', null);
 
 				const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-					{ role: 'system', content: systemPrompt },
-					{ role: 'user', content: userPrompt }
+					{ role: 'system', content: systemPrompt }
 				];
 				try {
 					callbacks.setStatus('loading');
+					const userMessage: OpenAI.Chat.ChatCompletionUserMessageParam = {
+						role: 'user',
+						content: userPrompt
+					};
+					if (files) {
+						userMessage.content = [
+							{
+								type: 'text',
+								text: userPrompt
+							}
+						];
+						for (const file of files) {
+							if (file.isImage()) {
+								userMessage.content.push({
+									image_url: { url: file.getDataUrl() },
+									type: 'image_url'
+								} as OpenAI.Chat.ChatCompletionContentPartImage);
+							} else {
+								userMessage.content.push({
+									text: file.getAsFileAttachment(),
+									type: 'text'
+								});
+							}
+						}
+					}
+
+					messages.push(userMessage);
 
 					const request: OpenAI.Chat.ChatCompletionCreateParams = {
 						model: model,
