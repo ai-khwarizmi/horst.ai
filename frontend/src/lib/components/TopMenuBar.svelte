@@ -1,17 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/utils/file';
-	import {
-		Download,
-		Upload,
-		FilePlus,
-		Share2,
-		Key,
-		Info,
-		GithubIcon,
-		Settings
-	} from 'lucide-svelte';
-	import { openShareGraphModal } from './file/ShareGraph.svelte';
+	import { Download, Upload, FilePlus, Key, Info, GithubIcon, Settings } from 'lucide-svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
 	import { isMobile } from './Mobile.svelte';
@@ -90,15 +80,6 @@
 			class="pointer-events-auto"
 		>
 			<Settings class="size-3.5" />
-		</Button>
-		<Button
-			variant="secondary"
-			size="sm"
-			on:click={openShareGraphModal}
-			class="pointer-events-auto"
-		>
-			<Share2 class="mr-2 size-3.5" />
-			Share
 		</Button>
 		<div class="w-4 h-[1px] bg-gray-500"></div>
 		<Button variant="outline" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">

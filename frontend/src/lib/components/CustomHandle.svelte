@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn, removeEdgeByIds } from '@/utils';
-	import { edges, inputDataWithoutPlaceholder } from '..';
+	import { edges, inputDataWithoutPlaceholder, inputPlaceholderData } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
 	import { get } from 'svelte/store';
@@ -42,6 +42,8 @@
 	$: connected = connections.filter((edge) =>
 		type === 'output' ? edge.sourceHandle === base.id : edge.targetHandle === base.id
 	);
+
+	$: currentValue = $inputPlaceholderData[nodeId]?.[base.id];
 
 	const onconnect = (connections: Connection[]) => {
 		const edgesToRemove: string[] = [];
@@ -205,7 +207,10 @@
 	<Handle
 		type={isInput ? 'target' : 'source'}
 		position={isInput ? Position.Left : Position.Right}
-		class={cn('handle', connected.length ? '!bg-green-500' : '!bg-gray-500')}
+		class={cn(
+			'handle',
+			connected.length ? '!bg-green-500' : currentValue ? '!bg-green-500' : '!bg-gray-500'
+		)}
 		id={base.id}
 		{isValidConnection}
 		{onconnect}

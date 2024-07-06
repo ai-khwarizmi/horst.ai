@@ -14,7 +14,6 @@
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
 	import FullCommand from '@/components/FullCommand.svelte';
-	import ShareGraph from '@/components/file/ShareGraph.svelte';
 	import { onMount } from 'svelte';
 	import Apikeys from '@/components/settings/APIKeys.svelte';
 	import Button from '@/components/ui/button/button.svelte';
@@ -94,7 +93,6 @@
 </script>
 
 <main>
-	<ShareGraph />
 	<Apikeys />
 	<FileDropper />
 	<ProjectSettings />

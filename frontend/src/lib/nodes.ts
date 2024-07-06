@@ -64,6 +64,54 @@ export type NodeDetails = {
 }
 
 const nodes = {
+
+
+    // Number Tools
+    // num2str: registerNode(NumberToString, {
+    //     name: "Number to String",
+    //     nodeType: NodeType.TRANSFORM,
+    //     Icon: PencilRuler,
+    //     category: NodeCategory.Number,
+    // }),
+
+    // ai
+    chatGpt: registerNode(ChatGpt, {
+        name: "ChatGPT",
+        nodeType: NodeType.FUNCTION,
+        Icon: OpenAiIcon,
+        category: NodeCategory.AI,
+    }),
+    claude: registerNode(Claude, {
+        name: "Claude",
+        nodeType: NodeType.FUNCTION,
+        Icon: ClaudeIcon,
+        category: NodeCategory.AI,
+    }),
+    leonardoAi: registerNode(LeonardoAi, {
+        name: "Leonardo.ai",
+        nodeType: NodeType.FUNCTION,
+        Icon: LeonardoIcon,
+        category: NodeCategory.AI,
+    }),
+    groq: registerNode(Groq, {
+        name: "Groq",
+        nodeType: NodeType.FUNCTION,
+        Icon: GroqIcon,
+        category: NodeCategory.AI,
+    }),
+    ollama: registerNode(Ollama, {
+        name: "Ollama",
+        nodeType: NodeType.FUNCTION,
+        Icon: OllamaIcon,
+        category: NodeCategory.AI,
+    }),
+    dalle3: registerNode(Dalle3, {
+        name: "DALL-E 3",
+        nodeType: NodeType.FUNCTION,
+        Icon: Dalle3Icon,
+        category: NodeCategory.AI,
+    }),
+
     // String Tools
     textInput: registerNode(TextInput, {
         name: "Text Input",
@@ -120,53 +168,6 @@ const nodes = {
         nodeType: NodeType.TRANSFORM,
         Icon: FileDigit,
         category: NodeCategory.String,
-    }),
-
-
-    // Number Tools
-    // num2str: registerNode(NumberToString, {
-    //     name: "Number to String",
-    //     nodeType: NodeType.TRANSFORM,
-    //     Icon: PencilRuler,
-    //     category: NodeCategory.Number,
-    // }),
-
-    // ai
-    chatGpt: registerNode(ChatGpt, {
-        name: "ChatGPT",
-        nodeType: NodeType.FUNCTION,
-        Icon: OpenAiIcon,
-        category: NodeCategory.AI,
-    }),
-    dalle3: registerNode(Dalle3, {
-        name: "DALL-E 3",
-        nodeType: NodeType.FUNCTION,
-        Icon: Dalle3Icon,
-        category: NodeCategory.AI,
-    }),
-    claude: registerNode(Claude, {
-        name: "Claude",
-        nodeType: NodeType.FUNCTION,
-        Icon: ClaudeIcon,
-        category: NodeCategory.AI,
-    }),
-    leonardoAi: registerNode(LeonardoAi, {
-        name: "Leonardo.ai",
-        nodeType: NodeType.FUNCTION,
-        Icon: LeonardoIcon,
-        category: NodeCategory.AI,
-    }),
-    groq: registerNode(Groq, {
-        name: "Groq",
-        nodeType: NodeType.FUNCTION,
-        Icon: GroqIcon,
-        category: NodeCategory.AI,
-    }),
-    ollama: registerNode(Ollama, {
-        name: "Ollama",
-        nodeType: NodeType.FUNCTION,
-        Icon: OllamaIcon,
-        category: NodeCategory.AI,
     }),
 
     // display

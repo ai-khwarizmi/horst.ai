@@ -11,13 +11,11 @@
 		LucideGithub,
 		Menu,
 		Settings,
-		Share2,
 		Upload,
 		UsersRound
 	} from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
-	import { openShareGraphModal } from './file/ShareGraph.svelte';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/utils/file';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import PackageJson from '../../../package.json';
@@ -48,11 +46,6 @@
 		<DropdownMenu.Item on:click={openProjectSettings}>
 			<Settings class="mr-2 size-3.5" />
 			Settings
-		</DropdownMenu.Item>
-		<DropdownMenu.Separator />
-		<DropdownMenu.Item on:click={openShareGraphModal}>
-			<Share2 class="mr-2 size-3.5" />
-			Share
 		</DropdownMenu.Item>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Item on:click={openApiKeySettings}>
