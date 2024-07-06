@@ -7,7 +7,6 @@
 	import OpenAI from 'openai';
 	import { openai_key } from '$lib/apikeys';
 	import { get } from 'svelte/store';
-	import { isArray } from 'lodash-es';
 	import type { HorstFile } from '@/utils/horstfile';
 
 	let openai: OpenAI;
