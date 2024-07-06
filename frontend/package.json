@@ -1,7 +1,7 @@
 {
 	"name": "horst.ai",
 	"version": "0.0.1",
-	"description": "Create AI workflows with an easy-to-use visual editor. Connect ChatGPT, DALL-E, and other AI services to generate content, images, and PDFs. No coding required.",
+	"description": "Horst.ai is a visual playground for testing and building AI workflows. It lets you quickly connect AI tools like ChatGPT and DALL-E to create, test, and share your ideas without writing code.",
 	"keywords": [
 		"ai",
 		"nocode",

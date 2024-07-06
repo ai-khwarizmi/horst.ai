@@ -1,6 +1,6 @@
-# horst.ai - AI Workflow Editor Usage Guide
+# horst.ai - AI Workflow Playground - Usage Guide
 
-Create AI workflows with an easy-to-use visual editor. Connect ChatGPT, DALL-E, and other AI services to generate content, images, and PDFs. No coding required.
+Horst.ai is a visual playground for testing and building AI workflows. It lets you quickly connect AI tools like ChatGPT and DALL-E to create, test, and share your ideas without writing code.
 
 ## Getting Started
 

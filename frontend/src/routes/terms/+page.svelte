@@ -1,10 +1,25 @@
 <script>
 	import SvelteMarkdown from 'svelte-markdown';
-	import source from '../../../src/TOS.md?raw';
+	import { onMount } from 'svelte';
+
+	const TOS_URL = 'https://static.horst.ai/TOS.md';
+	let source = '';
+	onMount(async () => {
+		const response = await fetch(TOS_URL);
+		source = await response.text();
+	});
 </script>
 
 <div class="markdown-content">
-	<SvelteMarkdown {source} />
+	{#if source}
+		<SvelteMarkdown {source} />
+	{:else}
+		<p class="text-center">
+			Loading... If the content is not loading, please <a target="_blank" href={TOS_URL}
+				>click here</a
+			>.
+		</p>
+	{/if}
 </div>
 
 <svelte:head>
