@@ -11,7 +11,6 @@
 		LucideGithub,
 		Menu,
 		Settings,
-		Share2,
 		Upload,
 		UsersRound
 	} from 'lucide-svelte';

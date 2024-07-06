@@ -1,16 +1,7 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/utils/file';
-	import {
-		Download,
-		Upload,
-		FilePlus,
-		Share2,
-		Key,
-		Info,
-		GithubIcon,
-		Settings
-	} from 'lucide-svelte';
+	import { Download, Upload, FilePlus, Key, Info, GithubIcon, Settings } from 'lucide-svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
 	import { isMobile } from './Mobile.svelte';
