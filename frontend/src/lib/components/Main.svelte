@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, viewport, commandOpen, createNodeParams } from '$lib';
+	import { nodes, edges, viewport, commandOpen, createNodeParams, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -93,10 +93,10 @@
 	<OpenRecentPopup />
 	<SaveFilePopup />
 	<SvelteFlow
-		{nodes}
-		{edges}
+		nodes={$state.nodes}
+		edges={$state.edges}
 		{nodeTypes}
-		{viewport}
+		viewport={$state.viewport}
 		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
 		onconnect={handleConnect}

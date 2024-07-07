@@ -23,7 +23,7 @@
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
-	import { edges, nodes } from '..';
+	import { edges, nodes, state } from '..';
 	import { get } from 'svelte/store';
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
@@ -79,8 +79,8 @@
 		wrap: WrappedPromise
 	) => void = () => {};
 
-	const setInputPlaceholderData = (handleId: string, value: any) => {
-		io.setInputPlaceholderData(handleId, value);
+	const setInputDataPlaceholder = (handleId: string, value: any) => {
+		io.setInputDataPlaceholder(handleId, value);
 	};
 
 	const getCurrentInputPlaceholderData = (handleId: string) => {
@@ -112,7 +112,7 @@
 						const target = connectWith.type === 'input' ? connectWith.id : id;
 						const sourceHandle = connectWith.type === 'input' ? validHandle.id : connectWith.handle;
 						const targetHandle = connectWith.type === 'input' ? connectWith.handle : validHandle.id;
-						nodes.update((nodes) => {
+						get(nodes).update((nodes) => {
 							// remove data.connectWith
 							const node = nodes.find((n) => n.id === id);
 							if (node) {
@@ -120,7 +120,7 @@
 							}
 							return nodes;
 						});
-						edges.update((edges) => {
+						get(edges).update((edges) => {
 							edges.push({
 								id: `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`,
 								source,
@@ -143,10 +143,10 @@
 
 			switch (input.input?.inputOptionType) {
 				case 'input-field':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				case 'dropdown':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				default:
 					break;
@@ -170,8 +170,6 @@
 
 		connectToNodeOnMount();
 		setInputPlaceholderDataOnMount();
-
-		io.setHandler(() => onExecute(onExecuteCallbacks, false));
 	});
 
 	onDestroy(() => {
@@ -206,15 +204,18 @@
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
 	function handleCheckboxChange(inputId: string, isChecked: boolean) {
-		optionalInputsEnabled.update((current) => {
-			console.log('current', current, 'id', id);
+		state.update((state) => {
+			const current = state.optionalInputsEnabled;
 			if (!current[id]) {
 				current[id] = {};
 			}
 			current[id][inputId] = isChecked;
-			updateNodeInternals(id);
-			return current;
+			return {
+				...state,
+				optionalInputsEnabled: current
+			};
 		});
+		updateNodeInternals(id);
 	}
 </script>
 
@@ -343,26 +344,14 @@
 					{#if $inputs.length > 0}
 						<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $inputs as input}
-								<CustomHandle
-									nodeId={id}
-									type="input"
-									base={input}
-									{setInputPlaceholderData}
-									{getCurrentInputPlaceholderData}
-								/>
+								<CustomHandle nodeId={id} type="input" base={input} />
 							{/each}
 						</div>
 					{/if}
 					{#if $outputs.length > 0}
 						<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $outputs as output}
-								<CustomHandle
-									nodeId={id}
-									type="output"
-									base={output}
-									setInputPlaceholderData={() => {}}
-									getCurrentInputPlaceholderData={() => {}}
-								/>
+								<CustomHandle nodeId={id} type="output" base={output} />
 							{/each}
 						</div>
 					{/if}

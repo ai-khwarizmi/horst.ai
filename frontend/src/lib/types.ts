@@ -22,19 +22,19 @@ export type NodeValueType = RawNodeValueType | ArrayNodeValueType;
 
 export type NodeValueTypeConverted<T extends NodeValueType> = T extends ArrayNodeValueType
 	? T extends 'text[]'
-		? string[]
-		: T extends 'number[]'
-			? number[]
-			: T extends 'boolean[]'
-				? boolean[]
-				: any[]
+	? string[]
+	: T extends 'number[]'
+	? number[]
+	: T extends 'boolean[]'
+	? boolean[]
+	: any[]
 	: T extends 'text'
-		? string
-		: T extends 'number'
-			? number
-			: T extends 'boolean'
-				? boolean
-				: any;
+	? string
+	: T extends 'number'
+	? number
+	: T extends 'boolean'
+	? boolean
+	: any;
 
 type SuccessValidationResult<T> = {
 	success: true;
@@ -43,9 +43,9 @@ type SuccessValidationResult<T> = {
 type ValidationResult<T> =
 	| SuccessValidationResult<T>
 	| {
-			success: false;
-			error: string;
-	  };
+		success: false;
+		error: string;
+	};
 
 function isString(value: unknown): value is string {
 	return typeof value === 'string';
@@ -123,9 +123,9 @@ export const SPECIAL_ERRORS = {
 export type NodeError =
 	| string
 	| {
-			message: string;
-			resolve?: () => void;
-	  };
+		message: string;
+		resolve?: () => void;
+	};
 export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
 export type NodeStatus = NodeStatusWithoutError | 'error';
 export type OnExecuteCallbacks = {
@@ -177,3 +177,30 @@ export type Input<TNodeID extends string> = BaseIO<TNodeID> & {
 	input?: InputOption;
 };
 export type Output<TNodeID extends string> = BaseIO<TNodeID>;
+
+import type { Node, Edge, Viewport } from '@xyflow/svelte';
+import type { Writable } from 'svelte/store';
+
+export type State = {
+	nonce: number;
+	projectId: string | undefined;
+	projectName: string;
+	nodes: Writable<Node[]>;
+	edges: Writable<Edge[]>;
+	viewport: Writable<Viewport>;
+	optionalInputsEnabled: Record<string, Record<string, boolean>>;
+
+	outputDataDynamic: Record<string, Record<string, any>>;
+	outputDataPlaceholder: Record<string, Record<string, any>>;
+	inputDataPlaceholder: Record<string, Record<string, any>>;
+
+	inputData: Record<string, Record<string, any>>;
+	inputDataWithoutPlaceholder: Record<string, Record<string, any>>;
+};
+
+type RequiredExcept<T, K extends keyof T> = Required<Omit<T, K>> & Partial<Pick<T, K>>;
+export type SaveableState = RequiredExcept<State, 'handlers' | 'inputData' | 'inputDataWithoutPlaceholder' | 'outputDataDynamic'>;
+
+export type SaveFileFormat = SaveableState & {
+	version: string;
+}

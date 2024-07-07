@@ -2,16 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
-import {
-	edges,
-	handlers,
-	inputData,
-	inputDataWithoutPlaceholder,
-	inputPlaceholderData,
-	optionalInputsEnabled,
-	nodes,
-	outputData
-} from '$lib';
+import { edges, inputData, inputDataPlaceholder, optionalInputsEnabled, outputDataDynamic, outputDataPlaceholder, state } from '$lib';
 import { type XYPosition } from '@xyflow/svelte';
 import { get, writable } from 'svelte/store';
 import { type CustomNodeName } from './nodes';
@@ -33,10 +24,6 @@ import {
 	Observable,
 	firstValueFrom
 } from 'rxjs';
-
-export const clearData = () => {
-	nodes.update((n) => n.map((node) => ({ ...node, data: {} })));
-};
 
 export const getNodeColors = (
 	type: NodeType
@@ -172,7 +159,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	destroy = () => {
-		this.deleteHandler();
 		delete nodeIOHandlers[this.nodeId];
 	};
 
@@ -180,27 +166,20 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.onExecuteCallbacks = callbacks;
 	}
 
-	setHandler(handler: () => void) {
-		handlers[this.nodeId] = handler;
-	}
-	deleteHandler() {
-		delete handlers[this.nodeId];
-	}
-
-	setOutputData = (id: string, data: any) => {
-		_setNodeOutputData(this.nodeId, {
+	setDynamicOutputData = (id: string, data: any) => {
+		_setNodeDynamicOutputData(this.nodeId, {
 			[id]: data
 		});
 	};
 
 	addInput = (...newInputs: Input<TInput>[]) => {
-		nodes.update((n) => {
-			const node = n.find((n) => n.id === this.nodeId);
-			if (!node) return n;
+		state.update((state) => {
+			const node = get(state.nodes).find((n) => n.id === this.nodeId);
+			if (!node) return state;
 			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
 			const inputsToAdd = newInputs.filter((i) => !inputs.find((i2: any) => i2.id === i.id));
 			node.data = { ...node.data, inputs: [...inputs, ...inputsToAdd] };
-			return n;
+			return state;
 		});
 		this.inputs.update((i) => {
 			const inputsToAdd = newInputs.filter((input) => !i.find((i2) => i2.id === input.id));
@@ -212,34 +191,37 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		//iterate over all inputs, and check if their value changed
 		try {
 			let changed = false;
-			let changedWithoutPlaceholders = false;
-			const _inputData = get(inputData);
-			const _inputDataWithoutPlaceholders = get(inputDataWithoutPlaceholder);
-			get(this.inputs).forEach((input) => {
-				const inputValue = this.getInputData(input.id);
-				if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
-					if (!_inputData[this.nodeId]) {
-						_inputData[this.nodeId] = {};
+			state.update((currentState) => {
+				const _inputData = currentState.inputData;
+				const _inputDataWithoutPlaceholders = currentState.inputDataWithoutPlaceholder;
+
+				get(this.inputs).forEach((input) => {
+					const inputValue = this.getInputData(input.id);
+					if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
+						if (!_inputData[this.nodeId]) {
+							_inputData[this.nodeId] = {};
+						}
+						_inputData[this.nodeId][input.id] = inputValue;
+						changed = true;
 					}
-					_inputData[this.nodeId][input.id] = inputValue;
-					changed = true;
-				}
-				const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
-				if (
-					inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]
-				) {
-					if (!_inputDataWithoutPlaceholders[this.nodeId]) {
-						_inputDataWithoutPlaceholders[this.nodeId] = {};
+
+					const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
+					if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
+						if (!_inputDataWithoutPlaceholders[this.nodeId]) {
+							_inputDataWithoutPlaceholders[this.nodeId] = {};
+						}
+						_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
 					}
-					_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
-					changedWithoutPlaceholders = true;
-				}
+				});
+
+				return {
+					...currentState,
+					inputData: _inputData,
+					inputDataWithoutPlaceholder: _inputDataWithoutPlaceholders
+				};
 			});
-			if (changedWithoutPlaceholders) {
-				inputDataWithoutPlaceholder.set(_inputDataWithoutPlaceholders);
-			}
+
 			if (changed) {
-				inputData.set(_inputData);
 				this.onExecute(this.onExecuteCallbacks!, false);
 				this.updateUnsupportedInputs().catch(console.error);
 			}
@@ -251,36 +233,54 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	};
 
 	removeInput = (...ids: string[]) => {
-		nodes.update((n) => {
-			const node = n.find((n) => n.id === this.nodeId);
-			if (!node) return n;
-			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
-			node.data = { ...node.data, inputs: inputs.filter((i) => !ids.includes(i.id)) };
-			return n;
-		});
+		get(state).nodes.update(nodes => nodes.map(node => {
+			if (node.id === this.nodeId) {
+				const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+				return {
+					...node,
+					data: {
+						...node.data,
+						inputs: inputs.filter((i) => !ids.includes(i.id))
+					}
+				};
+			}
+			return node;
+		}));
+
 		this.inputs.update((i) => i.filter((input) => !ids.includes(input.id)));
 	};
 
 	removeOutput = (...ids: string[]) => {
-		nodes.update((n) => {
-			const node = n.find((n) => n.id === this.nodeId);
-			if (!node) return n;
-			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			node.data = { ...node.data, outputs: outputs.filter((o: any) => !ids.includes(o.id)) };
-			return n;
-		});
+		get(state).nodes.update(nodes => nodes.map(node => {
+			if (node.id === this.nodeId) {
+				const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+				return {
+					...node,
+					data: {
+						...node.data,
+						outputs: outputs.filter((o) => !ids.includes(o.id))
+					}
+				};
+			}
+			return node;
+		}));
+
 		this.outputs.update((o) => o.filter((output) => !ids.includes(output.id)));
 	};
 
 	addOutput = (...newOutputs: Output<TOutput>[]) => {
-		nodes.update((n) => {
-			const node = n.find((n) => n.id === this.nodeId);
-			if (!node) return n;
-			const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
-			const outputsToAdd = newOutputs.filter((o) => !outputs.find((o2: any) => o2.id === o.id));
-			node.data = { ...node.data, outputs: [...outputs, ...outputsToAdd] };
-			return n;
-		});
+		get(state).nodes.update(nodes => nodes.map(node => {
+			if (node.id === this.nodeId) {
+				const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+				const outputsToAdd = newOutputs.filter((o) => !outputs.find((o2: any) => o2.id === o.id));
+				return {
+					...node,
+					data: { ...node.data, outputs: [...outputs, ...outputsToAdd] }
+				};
+			}
+			return node;
+		}));
+
 		this.outputs.update((o) => {
 			const outputsToAdd = newOutputs.filter((output) => !o.find((o2) => o2.id === output.id));
 			return [...o, ...outputsToAdd];
@@ -299,15 +299,12 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		) {
 			return undefined;
 		}
-		const data = _getNodeInputPlaceholderData(this.nodeId, handle) ?? null;
+		const data = _getNodeInputDataPlaceholder(this.nodeId, handle) ?? null;
 		return data;
 	};
 
 	getInputData = (handle: string, ignorePlaceholder = false) => {
-		let data = _getNodeInputData(this.nodeId, handle);
-
-		if (!ignorePlaceholder && (data === null || data === undefined))
-			data = this.getInputPlaceholderData(handle);
+		let data = _getNodeInputData(this.nodeId, handle, ignorePlaceholder);
 
 		const inputDef = get(this.inputs).find((input) => input.id === handle);
 
@@ -354,8 +351,13 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		}
 	}
 
-	setInputPlaceholderData(handleId: string, value: any) {
-		_setNodeInputPlaceholderData(this.nodeId, { [handleId]: value });
+	setInputDataPlaceholder(handleId: string, value: any) {
+		_setNodeInputDataPlaceholder(this.nodeId, { [handleId]: value });
+		this.onOutputsChanged();
+	}
+
+	setOutputDataPlaceholder(handleId: string, value: any) {
+		_setNodeOutputDataPlaceholder(this.nodeId, { [handleId]: value });
 		this.onOutputsChanged();
 	}
 
@@ -369,7 +371,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
-	edges.update((e) => e.filter((edge) => !ids.includes(edge.id)));
+	get(state).edges.update(edges => edges.filter(edge => !ids.includes(edge.id)));
 };
 
 export function cn(...inputs: ClassValue[]) {
@@ -441,58 +443,95 @@ export const addNode = (
 		selected: true,
 		position: pos
 	};
-	nodes.update((prev) => {
-		const nodes = prev.map((prev) => ({
+
+	get(state).nodes.update(nodes => {
+		const updatedNodes = nodes.map(prev => ({
 			...prev,
 			selected: false
 		}));
-		nodes.push(node);
-		return nodes;
+		updatedNodes.push(node);
+		return updatedNodes;
 	});
 
 	return node;
 };
 
-export const _setNodeOutputData = (id: string, data: Record<string, any>) => {
-	outputData.update((currentData) => ({
-		...currentData,
-		[id]: {
-			...currentData[id],
-			...data
+const _setNodeDynamicOutputData = (id: string, data: Record<string, any>) => {
+	state.update((currentState) => ({
+		...currentState,
+		outputDataDynamic: {
+			...currentState.outputDataDynamic,
+			[id]: {
+				...currentState.outputDataDynamic[id],
+				...data
+			}
 		}
 	}));
 };
 
-export const _setNodeInputPlaceholderData = (id: string, data: Record<string, any>) => {
-	inputPlaceholderData.update((currentData) => {
-		const output = {
-			...currentData,
+const _setNodeOutputDataPlaceholder = (id: string, data: Record<string, any>) => {
+	state.update((currentState) => ({
+		...currentState,
+		outputDataPlaceholder: {
+			...currentState.outputDataPlaceholder,
 			[id]: {
-				...currentData[id],
+				...currentState.outputDataPlaceholder[id],
 				...data
 			}
-		};
-		return output;
-	});
+		}
+	}));
 };
 
-export const _getNodeOutputData = (id: string, handle: string) => {
-	const data = get(outputData)[id];
+const _setNodeInputDataPlaceholder = (id: string, data: Record<string, any>) => {
+	state.update((currentState) => ({
+		...currentState,
+		inputPlaceholderData: {
+			...currentState.inputDataPlaceholder,
+			[id]: {
+				...currentState.inputDataPlaceholder[id],
+				...data
+			}
+		}
+	}));
+};
+
+const _getNodeOutputDataDynamic = (id: string, handle: string) => {
+	const data = get(outputDataDynamic)[id];
 	if (!data) return;
 	return data[handle];
 };
 
-export const _getNodeInputPlaceholderData = (id: string, handle: string) => {
-	const data = get(inputPlaceholderData)[id];
+const _getNodeOutputDataPlaceholder = (id: string, handle: string) => {
+	const data = get(outputDataPlaceholder)[id];
 	if (!data) return;
 	return data[handle];
 };
 
-export const _getNodeInputData = (id: string, handle: string) => {
-	const e = get(edges);
+const _getNodeOutputData = (id: string, handle: string) => {
+	return _getNodeOutputDataDynamic(id, handle) ||
+		_getNodeOutputDataPlaceholder(id, handle);
+};
+
+const _getNodeInputDataPlaceholder = (id: string, handle: string) => {
+	const data = get(inputDataPlaceholder)[id];
+	if (!data) return;
+	return data[handle];
+};
+
+const _getNodeInputDataWithoutPlaceholder = (id: string, handle: string) => {
+	//yikes lol
+	const e = get(get(edges));
 	const edge = e.find((e) => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;
+};
+
+const _getNodeInputData = (id: string, handle: string, ignorePlaceholder: boolean) => {
+	if (ignorePlaceholder) {
+		return _getNodeInputDataWithoutPlaceholder(id, handle);
+	}
+	return _getNodeInputDataWithoutPlaceholder(id, handle) ||
+		_getNodeInputDataPlaceholder(id, handle);
 };
 
 export function createCancellableContext() {

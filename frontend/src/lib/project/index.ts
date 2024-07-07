@@ -1,22 +1,12 @@
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils/validate';
 import { FILE_VERSION } from '@/utils/version';
-import type { Edge, Node } from '@xyflow/svelte';
 import { toast } from 'svelte-sonner';
 import {
-	edges,
-	inputData,
-	inputDataWithoutPlaceholder,
-	inputPlaceholderData,
 	nodes,
-	optionalInputsEnabled,
-	outputData,
 	projectId,
-	projectName,
-	resetHandlers,
-	updatedAt,
-	viewport
+	state
 } from '..';
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import {
 	getGraphFromLocalProject,
@@ -26,24 +16,11 @@ import {
 	saveToLocalStorage
 } from './local';
 import { connectToCloud } from './cloud';
-import { browser } from '$app/environment';
 import { registeredNodes } from '@/nodes';
-import { NodeType } from '@/types';
+import { NodeType, type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
 
-export interface SavedGraph {
-	id: string;
-	name: string;
-	nodes: Node[];
-	edges: Edge[];
-	viewport: any;
-	data: Record<string, any>;
-	inputPlaceholderData: Record<string, any>;
-	optionalInputsEnabled: Record<string, Record<string, boolean>>;
-	updatedAt: number;
-	version: string;
-}
 
 export function getSaveData(
 	includeData: boolean,
@@ -61,7 +38,7 @@ export function getSaveData(
 	const n = get(nodes);
 	const e = get(edges);
 	const v = get(viewport);
-	const _updatedAt = get(updatedAt);
+	const _nonce = get(nonce);
 	const data: any = {};
 	const _inputPlaceholderData: any = {};
 	const _optionalInputsEnabled = get(optionalInputsEnabled);
@@ -92,7 +69,7 @@ export function getSaveData(
 		data,
 		inputPlaceholderData: _inputPlaceholderData,
 		optionalInputsEnabled: _optionalInputsEnabled,
-		updatedAt: _updatedAt,
+		nonce: _nonce,
 		version: FILE_VERSION
 	};
 
@@ -138,7 +115,8 @@ export const loadProjectByProjectId = async (_projectId?: string): Promise<void>
 	loading = false;
 };
 
-export const loadFromGraph = (graph: SavedGraph) => {
+
+function validateSaveFile(graph: SaveFileFormat): boolean {
 	if (graph.version !== FILE_VERSION) {
 		toast.error('Graph: Version mismatch');
 		return false;
@@ -147,61 +125,50 @@ export const loadFromGraph = (graph: SavedGraph) => {
 		toast.error('Graph: Invalid project file');
 		return false;
 	}
+	if (Number.isNaN(graph.nonce)) {
+		throw new Error('Graph: Invalid nonce');
+	}
 
-	let valid_nodes: Node[] = [];
-	let valid_edges: Edge[] = [];
-
-	let invalid_nodes = 0;
-	for (const node of graph.nodes) {
+	for (const node of get(graph.nodes)) {
 		if (!isValidNode(node)) {
-			toast.error('Graph: Invalid node');
-			invalid_nodes++;
-			continue;
+			throw new Error('Graph: Invalid node');
 		}
-		valid_nodes.push(node);
 	}
 
-	if (invalid_nodes > 0) {
-		toast.error(`Graph: ${invalid_nodes} invalid nodes`);
-	}
-
-	let invalid_edges = 0;
-	for (const edge of graph.edges) {
-		if (!isValidEdge(edge, valid_nodes)) {
-			toast.error('Graph: Invalid edge');
-			invalid_edges++;
-			continue;
+	for (const edge of get(graph.edges)) {
+		if (!isValidEdge(edge, get(graph.nodes))) {
+			throw new Error('Graph: Invalid edge');
 		}
-		valid_edges.push(edge);
 	}
 
-	if (invalid_edges > 0) {
-		toast.error(`Graph: ${invalid_edges} invalid edges`);
+	if (!isValidViewPort(graph.viewport)) {
+		throw new Error('Graph: Invalid viewport');
 	}
 
-	projectId.set(graph.id);
-	projectName.set(graph.name ?? '');
-	updatedAt.set(graph.updatedAt ?? Date.now());
+	return true;
 
-	outputData.set(graph.data ?? {});
-	inputPlaceholderData.set(graph.inputPlaceholderData ?? {});
-	optionalInputsEnabled.set(graph.optionalInputsEnabled ?? {});
+}
 
-	valid_edges = valid_edges.filter(
-		(edge, index, self) => index === self.findIndex((t) => t.id === edge.id)
-	);
-
-	valid_nodes = valid_nodes.filter(
-		(node, index, self) => index === self.findIndex((t) => t.id === node.id)
-	);
-
-	nodes.set(valid_nodes);
-	edges.set(valid_edges);
-	if (graph.viewport && isValidViewPort(graph.viewport)) {
-		viewport.set(graph.viewport);
-	} else {
-		viewport.set({ x: 0, y: 0, zoom: 1 });
+export const loadFromGraph = (graph: SaveFileFormat) => {
+	if (!validateSaveFile(graph)) {
+		return false;
 	}
+
+	state.set({
+		projectId: graph.projectId,
+		projectName: graph.projectName,
+		nonce: graph.nonce,
+		inputDataPlaceholder: graph.inputDataPlaceholder,
+		optionalInputsEnabled: graph.optionalInputsEnabled,
+		outputDataPlaceholder: graph.outputDataPlaceholder,
+		nodes: graph.nodes,
+		edges: graph.edges,
+		viewport: graph.viewport,
+
+		outputDataDynamic: {},
+		inputData: {},
+		inputDataWithoutPlaceholder: {},
+	});
 
 	return true;
 };
@@ -217,73 +184,36 @@ export function deleteCurrentProject() {
 }
 
 export const resetProject = (redirect = true) => {
-	projectId.set(undefined);
-	nodes.set([]);
-	edges.set([]);
-	projectName.set('');
-	updatedAt.set(0);
-	viewport.set({ x: 0, y: 0, zoom: 1 });
-	outputData.set({});
-	inputPlaceholderData.set({});
-	inputData.set({});
-	inputDataWithoutPlaceholder.set({});
-	optionalInputsEnabled.set({});
+	console.log('resetting project');
+	state.set({
+		projectId: undefined,
+		projectName: '',
+		nodes: writable([]),
+		edges: writable([]),
+		viewport: writable({ x: 0, y: 0, zoom: 1 }),
+		inputDataPlaceholder: {},
+		inputData: {},
+		inputDataWithoutPlaceholder: {},
+		optionalInputsEnabled: {},
+		outputDataPlaceholder: {},
+		outputDataDynamic: {},
+		nonce: 0
+	});
 	resetLastProjectId();
-	resetHandlers();
 	if (redirect) goto('/');
 };
 
 export function createNewProject() {
+	console.log('creating new project');
 	const _projectId = generateProjectId('local');
-	projectId.set(_projectId);
-	projectName.set('');
-	updatedAt.set(0);
-	viewport.set({ x: 0, y: 0, zoom: 1 });
-	outputData.set({});
-	inputPlaceholderData.set({});
-	inputData.set({});
-	inputDataWithoutPlaceholder.set({});
-	optionalInputsEnabled.set({});
-	nodes.set([]);
-	edges.set([]);
+
+	resetProject();
+	state.update((state) => ({
+		...state,
+		projectId: _projectId
+	}));
+
 	saveToLocalStorage();
-	resetHandlers();
 	goto(`/project/${_projectId}`);
 	return _projectId;
 }
-
-export const handleProjectChange = () => {
-	const _projectId = get(projectId);
-	if (!_projectId) {
-		const _nodes = get(nodes);
-		if (_nodes.length === 0) return;
-		const _newProjectId = generateProjectId('local');
-		projectId.set(_newProjectId);
-		saveToLocalStorage();
-		goto(`/project/${_newProjectId}`);
-		return;
-	}
-
-	if (_projectId.startsWith('local-')) {
-		updatedAt.set(Date.now());
-		saveToLocalStorage();
-	} else {
-		// This is done at an interval
-		// cloudSaveCurrentProject();
-	}
-};
-
-export const handleProjectIdChange = (projectId: string | undefined) => {
-	if (!browser) return;
-	if (!projectId || projectId.length < 3) return;
-
-	const _nodes = get(nodes);
-	if (_nodes.length === 0) return;
-
-	const targetPath = `/project/${projectId}/`;
-	const currentPath = window.location.pathname;
-
-	if (currentPath === targetPath) return;
-
-	goto(targetPath, { replaceState: true });
-};

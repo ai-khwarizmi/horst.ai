@@ -3,9 +3,8 @@ import { clerk } from '@/auth/Clerk';
 import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph, resetProject, type SavedGraph } from '.';
-import { setUpdatedGraph } from '@/components/popups/VersionChangePopup.svelte';
 import { PUBLIC_API_HOST } from '$env/static/public';
-import { updatedAt } from '..';
+import { nonce, projectStoreSaveable, state } from '..';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -31,7 +30,6 @@ export const saveAsCloudProject = async () => {
 	if (data) goto(`/project/${data.id}`);
 };
 
-let updateInterval: any = null;
 let webSocket: WebSocket | null = null;
 let hasWritePermission = false;
 
@@ -41,6 +39,64 @@ export const disconnectFromCloud = async () => {
 		webSocket = null;
 	}
 };
+
+let lastSentData: any | null = null;
+let canSendData: boolean = false;
+
+async function sendUpdate() {
+	if (!canSendData) {
+		console.log('skipping update. Not ready to send');
+		return;
+	}
+	const dataString = JSON.stringify(get(projectStoreSaveable));
+	console.log('length ', dataString.length, lastSentData?.length);
+	if (dataString === lastSentData) {
+		console.log('skipping update. Equal to remote');
+		return;
+	}
+	console.log('lastSentData', lastSentData);
+	console.log('dataString', dataString);
+
+	state.update((s) => ({
+		...s,
+		nonce: s.nonce + 1
+	}));
+
+	console.log('sending update', get(nonce));
+	if (webSocket?.readyState === WebSocket.OPEN) {
+		if (hasWritePermission) {
+			webSocket.send(
+				JSON.stringify({
+					type: 'update',
+					data: getSaveData(true, false).graph
+				})
+			);
+			lastSentData = dataString;
+		}
+	}
+}
+
+let updateTimeout: NodeJS.Timeout | null = null;
+let lastUpdateTime = Date.now();
+
+const UPDATE_DEBOUNCE_TIME = 1000;
+const MAX_UPDATE_INTERVAL = 30000;
+export function debouncedSendUpdate() {
+	const now = Date.now();
+	const timeSinceLastUpdate = now - lastUpdateTime;
+	if (updateTimeout) {
+		clearTimeout(updateTimeout);
+	}
+	if (timeSinceLastUpdate >= MAX_UPDATE_INTERVAL) {
+		sendUpdate();
+		lastUpdateTime = now;
+	} else {
+		updateTimeout = setTimeout(() => {
+			sendUpdate();
+			lastUpdateTime = Date.now();
+		}, UPDATE_DEBOUNCE_TIME);
+	}
+}
 
 export const connectToCloud = (projectId: string) => {
 	resetProject(false);
@@ -65,43 +121,30 @@ export const connectToCloud = (projectId: string) => {
 				toast.error('failed to authenticate with server');
 				resolve(true);
 			}
-			// every five seconds for now
-			updateInterval = setInterval(() => {
-				if (webSocket?.readyState === WebSocket.OPEN) {
-					if (hasWritePermission) {
-						webSocket.send(
-							JSON.stringify({
-								type: 'update',
-								data: getSaveData(true, false).graph
-							})
-						);
-					} else {
-						webSocket.send(
-							JSON.stringify({
-								type: 'project'
-							})
-						);
-					}
-				}
-			}, 5000);
 			resolve(true);
 		};
 
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
+				canSendData = true;
 				const graph: SavedGraph = data.data;
-				const lastUpdated = get(updatedAt);
-				if (lastUpdated === 0) {
+				const locallyStoredNonce = get(nonce);
+				if (locallyStoredNonce === 0) {
+					//this kinda sucks, we need a better way to tell if they're equal
+					lastSentData = JSON.stringify(get(projectStoreSaveable));
+				}
+				if (graph.nonce > locallyStoredNonce) {
 					loadFromGraph(graph);
-					toast.success('loaded project from cloud');
-				} else if (graph.updatedAt > lastUpdated) {
-					toast.info('loading latest version from cloud...');
-					setUpdatedGraph(data.data);
-				} else if (getSaveData(true).graph) {
-					console.log('same version', graph.updatedAt, lastUpdated);
+					lastSentData = JSON.stringify(get(projectStoreSaveable));
+				} else if (graph.nonce === locallyStoredNonce) {
+					console.log('received same version', graph.nonce, locallyStoredNonce);
 				} else {
-					console.log('old version', graph.updatedAt, lastUpdated);
+					/*
+						this is really the case where we need to ask the user if they want to 
+						override, or clone.
+					*/
+					console.log('received old version', graph.nonce, locallyStoredNonce);
 				}
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
@@ -115,7 +158,6 @@ export const connectToCloud = (projectId: string) => {
 				duration: 60000
 			});
 
-			if (updateInterval) clearInterval(updateInterval);
 
 			// auto reconnect
 			setTimeout(() => {
