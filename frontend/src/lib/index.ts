@@ -1,4 +1,4 @@
-import { type XYPosition } from '@xyflow/svelte';
+import { type Edge, type Node, type XYPosition } from '@xyflow/svelte';
 import { derived, writable, type Writable } from 'svelte/store';
 import type { ConnectWith, State } from './types';
 import { nodeIOHandlers } from './utils';
@@ -117,14 +117,35 @@ outputDataDynamic.subscribe(() => {
 	debouncedHandleChanges();
 });
 
-edges.subscribe(() => {
-	debouncedHandleChanges();
-});
-
 projectStoreSaveable.subscribe(() => {
 	debouncedSendUpdate();
 });
 
-state.subscribe(() => {
+
+let subscribedEdgeWritable: Writable<Edge[]> | null = null;
+let unsubscribeEdge: () => void;
+let subscribedNodeWritable: Writable<Node[]> | null = null;
+let unsubscribeNode: () => void;
+
+state.subscribe((state) => {
 	saveToLocalStorage();
+
+	if (subscribedEdgeWritable !== state.edges) {
+		if (unsubscribeEdge) {
+			unsubscribeEdge();
+		}
+		unsubscribeEdge = state.edges.subscribe(() => {
+			debouncedHandleChanges();
+		});
+		subscribedEdgeWritable = state.edges;
+	}
+	if (subscribedNodeWritable !== state.nodes) {
+		if (unsubscribeNode) {
+			unsubscribeNode();
+		}
+		unsubscribeNode = state.nodes.subscribe(() => {
+			debouncedHandleChanges();
+		});
+		subscribedNodeWritable = state.nodes;
+	}
 });
