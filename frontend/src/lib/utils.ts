@@ -142,6 +142,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		}, 1);
 	}
 
+	setOnExecute(handler: () => void) {
+		this.handler = handler;
+	}
+
 	onExecute = (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		this.executeSubject.next({ callbacks, forceExecute });
 	};
@@ -166,8 +170,8 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.onExecuteCallbacks = callbacks;
 	}
 
-	setDynamicOutputData = (id: string, data: any) => {
-		_setNodeDynamicOutputData(this.nodeId, {
+	setOutputDataDynamic = (id: string, data: any) => {
+		_setNodeOutputDataDynamic(this.nodeId, {
 			[id]: data
 		});
 	};
@@ -188,40 +192,39 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	};
 
 	onOutputsChanged = () => {
-		//iterate over all inputs, and check if their value changed
 		try {
 			let changed = false;
-			state.update((currentState) => {
-				const _inputData = currentState.inputData;
-				const _inputDataWithoutPlaceholders = currentState.inputDataWithoutPlaceholder;
 
-				get(this.inputs).forEach((input) => {
-					const inputValue = this.getInputData(input.id);
-					if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
-						if (!_inputData[this.nodeId]) {
-							_inputData[this.nodeId] = {};
-						}
-						_inputData[this.nodeId][input.id] = inputValue;
-						changed = true;
+			const currentState = get(state);
+			const _inputData = { ...currentState.inputData };
+			const _inputDataWithoutPlaceholders = { ...currentState.inputDataWithoutPlaceholder };
+
+			get(this.inputs).forEach((input) => {
+				const inputValue = this.getInputData(input.id);
+				if (inputValue !== _inputData[this.nodeId]?.[input.id]) {
+					if (!_inputData[this.nodeId]) {
+						_inputData[this.nodeId] = {};
 					}
+					_inputData[this.nodeId][input.id] = inputValue;
+					changed = true;
+				}
 
-					const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
-					if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
-						if (!_inputDataWithoutPlaceholders[this.nodeId]) {
-							_inputDataWithoutPlaceholders[this.nodeId] = {};
-						}
-						_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
+				const inputValueWithoutPlaceholder = this.getInputData(input.id, true);
+				if (inputValueWithoutPlaceholder !== _inputDataWithoutPlaceholders[this.nodeId]?.[input.id]) {
+					if (!_inputDataWithoutPlaceholders[this.nodeId]) {
+						_inputDataWithoutPlaceholders[this.nodeId] = {};
 					}
-				});
-
-				return {
-					...currentState,
-					inputData: _inputData,
-					inputDataWithoutPlaceholder: _inputDataWithoutPlaceholders
-				};
+					_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
+					changed = true;
+				}
 			});
 
 			if (changed) {
+				state.update((currentState) => ({
+					...currentState,
+					inputData: _inputData,
+					inputDataWithoutPlaceholder: _inputDataWithoutPlaceholders
+				}));
 				this.onExecute(this.onExecuteCallbacks!, false);
 				this.updateUnsupportedInputs().catch(console.error);
 			}
@@ -456,7 +459,7 @@ export const addNode = (
 	return node;
 };
 
-const _setNodeDynamicOutputData = (id: string, data: Record<string, any>) => {
+const _setNodeOutputDataDynamic = (id: string, data: Record<string, any>) => {
 	state.update((currentState) => ({
 		...currentState,
 		outputDataDynamic: {

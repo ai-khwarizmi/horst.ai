@@ -42,7 +42,7 @@
 			focus = true;
 		}}
 		on:blur={(e) => {
-			io.setOutputData('text', e.currentTarget.value);
+			io.setOutputDataPlaceholder('text', e.currentTarget.value);
 			focus = false;
 		}}
 	/>

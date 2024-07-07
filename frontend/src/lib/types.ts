@@ -183,7 +183,7 @@ import type { Writable } from 'svelte/store';
 
 export type State = {
 	nonce: number;
-	projectId: string | undefined;
+	projectId: string;
 	projectName: string;
 	nodes: Writable<Node[]>;
 	edges: Writable<Edge[]>;
@@ -198,8 +198,17 @@ export type State = {
 	inputDataWithoutPlaceholder: Record<string, Record<string, any>>;
 };
 
-type RequiredExcept<T, K extends keyof T> = Required<Omit<T, K>> & Partial<Pick<T, K>>;
-export type SaveableState = RequiredExcept<State, 'handlers' | 'inputData' | 'inputDataWithoutPlaceholder' | 'outputDataDynamic'>;
+export type SaveableState = {
+	projectId: string;
+	projectName: string;
+	nodes: Node[];
+	edges: Edge[];
+	viewport: Viewport;
+	optionalInputsEnabled: Record<string, Record<string, boolean>>;
+
+	outputDataPlaceholder: Record<string, Record<string, any>>;
+	inputDataPlaceholder: Record<string, Record<string, any>>;
+}
 
 export type SaveFileFormat = SaveableState & {
 	version: string;

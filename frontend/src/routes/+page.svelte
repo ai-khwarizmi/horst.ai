@@ -1,20 +1,23 @@
 <script lang="ts">
 	import Main from '@/components/Main.svelte';
-	import {
-		getGraphFromLocalProject,
-		getLastLocalProjectId,
-		resetLastProjectId
-	} from '@/project/local';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import Button from '@/components/ui/button/button.svelte';
+	import { getGraphFromLocalProject, getLastLocalProjectId } from '@/project/local';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
-	$: mostRecentProjectId = getLastLocalProjectId();
-	$: project = mostRecentProjectId && getGraphFromLocalProject(mostRecentProjectId);
+	onMount(() => {
+		const mostRecentProjectId = getLastLocalProjectId();
+		const project = mostRecentProjectId && getGraphFromLocalProject(mostRecentProjectId);
+
+		console.log('mostRecentProjectId', mostRecentProjectId);
+		if (project) {
+			goto(`/project/${mostRecentProjectId}`);
+		}
+	});
 </script>
 
 <Main />
 
+<!--
 {#if mostRecentProjectId}
 	<Dialog.Root open>
 		<Dialog.Content>
@@ -26,9 +29,9 @@
 			</Dialog.Header>
 			<div class="text-sm text-gray-500">
 				{#if project}
-					You were last working on <strong>{project.name}</strong>.
+					You were last working on <strong>{project.projectName}</strong>.
 				{:else}
-					You were last working on an untitled project.
+					You were last working on an untitled project. {mostRecentProjectId}
 				{/if}
 			</div>
 			<Dialog.Footer class="gap-2">
@@ -52,3 +55,4 @@
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
+-->

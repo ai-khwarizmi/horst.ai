@@ -1,9 +1,11 @@
 import { type XYPosition } from '@xyflow/svelte';
-import { derived, writable, type Readable, type Writable } from 'svelte/store';
-import type { ConnectWith, SaveableState, State } from './types';
+import { derived, writable, type Writable } from 'svelte/store';
+import type { ConnectWith, State } from './types';
 import { nodeIOHandlers } from './utils';
 import { debounce } from 'lodash-es';
 import { debouncedSendUpdate } from './project/cloud';
+import { saveToLocalStorage } from './project/local';
+import { generateProjectId } from './utils/projectId';
 
 /*
 	There are 3 types of data:
@@ -19,7 +21,7 @@ import { debouncedSendUpdate } from './project/cloud';
 */
 export const state: Writable<State> = writable({
 	nonce: 0,
-	projectId: undefined,
+	projectId: generateProjectId('local'),
 	projectName: '',
 	nodes: writable([]),
 	edges: writable([]),
@@ -77,7 +79,7 @@ export const inputDataWithoutPlaceholder = derived(state, ($state) => {
 	return $state.inputDataWithoutPlaceholder;
 });
 
-export const projectStoreSaveable: Readable<SaveableState> = derived(state, ({
+export const projectStoreSaveable = derived(state, ({
 	nonce,
 	projectId,
 	projectName,
@@ -121,4 +123,8 @@ edges.subscribe(() => {
 
 projectStoreSaveable.subscribe(() => {
 	debouncedSendUpdate();
+});
+
+state.subscribe(() => {
+	saveToLocalStorage();
 });

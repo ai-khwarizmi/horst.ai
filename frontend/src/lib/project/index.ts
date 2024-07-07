@@ -2,7 +2,6 @@ import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils
 import { FILE_VERSION } from '@/utils/version';
 import { toast } from 'svelte-sonner';
 import {
-	nodes,
 	projectId,
 	state
 } from '..';
@@ -16,8 +15,7 @@ import {
 	saveToLocalStorage
 } from './local';
 import { connectToCloud } from './cloud';
-import { registeredNodes } from '@/nodes';
-import { NodeType, type SaveFileFormat } from '@/types';
+import { type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
 
@@ -26,51 +24,21 @@ export function getSaveData(
 	includeData: boolean,
 	includeFileData: boolean = false
 ): {
-	graph: SavedGraph;
+	graph: SaveFileFormat;
 	stringifiedGraph: string;
 } {
-	let id = get(projectId);
-	if (!id) {
-		id = generateProjectId('local');
-		projectId.set(id);
-	}
-	const name = get(projectName);
-	const n = get(nodes);
-	const e = get(edges);
-	const v = get(viewport);
-	const _nonce = get(nonce);
-	const data: any = {};
-	const _inputPlaceholderData: any = {};
-	const _optionalInputsEnabled = get(optionalInputsEnabled);
+	const _state = get(state);
 
-	for (const node of n) {
-		if (!node?.type) {
-			continue;
-		}
-		if (!registeredNodes[node.type]) {
-			continue;
-		}
-		const nodeType = registeredNodes[node.type].nodeType;
-		if (includeData && nodeType === NodeType.INPUT) {
-			const originalData = get(outputData)[node.id];
-			data[node.id] = originalData;
-		}
-		if (includeData) {
-			_inputPlaceholderData[node.id] = get(inputPlaceholderData)[node.id];
-		}
-	}
-
-	const object: SavedGraph = {
-		id,
-		name,
-		nodes: n,
-		edges: e,
-		viewport: v,
-		data,
-		inputPlaceholderData: _inputPlaceholderData,
-		optionalInputsEnabled: _optionalInputsEnabled,
-		nonce: _nonce,
-		version: FILE_VERSION
+	const object: SaveFileFormat = {
+		projectId: _state.projectId,
+		projectName: _state.projectName,
+		nodes: get(_state.nodes),
+		edges: get(_state.edges),
+		viewport: get(_state.viewport),
+		version: FILE_VERSION,
+		optionalInputsEnabled: _state.optionalInputsEnabled,
+		outputDataPlaceholder: _state.outputDataPlaceholder,
+		inputDataPlaceholder: _state.inputDataPlaceholder,
 	};
 
 	const stringifiedGraph = includeFileData
@@ -125,18 +93,15 @@ function validateSaveFile(graph: SaveFileFormat): boolean {
 		toast.error('Graph: Invalid project file');
 		return false;
 	}
-	if (Number.isNaN(graph.nonce)) {
-		throw new Error('Graph: Invalid nonce');
-	}
 
-	for (const node of get(graph.nodes)) {
+	for (const node of graph.nodes) {
 		if (!isValidNode(node)) {
 			throw new Error('Graph: Invalid node');
 		}
 	}
 
-	for (const edge of get(graph.edges)) {
-		if (!isValidEdge(edge, get(graph.nodes))) {
+	for (const edge of graph.edges) {
+		if (!isValidEdge(edge, graph.nodes)) {
 			throw new Error('Graph: Invalid edge');
 		}
 	}
@@ -157,13 +122,13 @@ export const loadFromGraph = (graph: SaveFileFormat) => {
 	state.set({
 		projectId: graph.projectId,
 		projectName: graph.projectName,
-		nonce: graph.nonce,
+		nonce: 1,
 		inputDataPlaceholder: graph.inputDataPlaceholder,
 		optionalInputsEnabled: graph.optionalInputsEnabled,
 		outputDataPlaceholder: graph.outputDataPlaceholder,
-		nodes: graph.nodes,
-		edges: graph.edges,
-		viewport: graph.viewport,
+		nodes: writable(graph.nodes),
+		edges: writable(graph.edges),
+		viewport: writable(graph.viewport),
 
 		outputDataDynamic: {},
 		inputData: {},
@@ -186,7 +151,7 @@ export function deleteCurrentProject() {
 export const resetProject = (redirect = true) => {
 	console.log('resetting project');
 	state.set({
-		projectId: undefined,
+		projectId: generateProjectId('local'),
 		projectName: '',
 		nodes: writable([]),
 		edges: writable([]),

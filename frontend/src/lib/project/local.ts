@@ -1,7 +1,8 @@
 import { minimalSuperJSON } from '@/utils/horstfile';
-import { getSaveData, type SavedGraph } from '.';
+import { getSaveData } from '.';
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import type { SaveFileFormat } from '@/types';
 
 const LOCALSTORAGE_KEY_LAST_PROJECT_ID = 'horst.ai.last_project_id';
 const LOCALSTORAGE_KEY_SAVEFILES = 'horst.ai.savefiles';
@@ -11,12 +12,12 @@ export const localProjectIds = writable<string[]>([]);
 
 if (browser) getAllLocalProjectIds();
 
-export const getGraphFromLocalProject = (projectId: string): SavedGraph | undefined => {
+export const getGraphFromLocalProject = (projectId: string): SaveFileFormat | undefined => {
 	if (typeof window === 'undefined') return undefined;
 	const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + projectId;
 	const str = window.localStorage.getItem(localStorageKey);
 	if (!str) return undefined;
-	const graph = minimalSuperJSON.parse<SavedGraph>(str);
+	const graph = minimalSuperJSON.parse<SaveFileFormat>(str);
 	if (!graph) return undefined;
 	return graph;
 };
@@ -29,11 +30,11 @@ export const saveToLocalStorage = () => {
 		return;
 	}
 
-	addSaveFileId(graph.graph.id);
-	const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.graph.id;
+	addSaveFileId(graph.graph.projectId);
+	const localStorageKey = LOCALSTORAGE_KEY_SAVEFILES + '.' + graph.graph.projectId;
 	window.localStorage.setItem(localStorageKey, graph.stringifiedGraph);
-	window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.graph.id);
-	addSaveFileId(graph.graph.id);
+	window.localStorage.setItem(LOCALSTORAGE_KEY_LAST_PROJECT_ID, graph.graph.projectId);
+	addSaveFileId(graph.graph.projectId);
 };
 
 export const addSaveFileId = (projectId: string) => {

@@ -1,6 +1,7 @@
 import { fullSuperJSON } from '@/utils/horstfile';
-import { getSaveData, loadFromGraph, type SavedGraph } from '.';
+import { getSaveData, loadFromGraph, } from '.';
 import { toast } from 'svelte-sonner';
+import type { SaveFileFormat } from '@/types';
 
 export const loadGraphFromUploadedFile = async () => {
 	const input = document.createElement('input');
@@ -18,14 +19,15 @@ export const loadGraphFromUploadedFile = async () => {
 
 export const loadFromFile = async (file: File) => {
 	const text = await file.text();
-	const graph = fullSuperJSON.parse<SavedGraph>(text);
+	console.log('loadFromFile', text);
+	const graph = fullSuperJSON.parse<SaveFileFormat>(text);
 	return loadFromGraph(graph);
 };
 
 export const saveGraphToJson = () => {
 	const graph = getSaveData(true, true);
 
-	const name = graph.graph.name || 'graph';
+	const name = graph.graph.projectName || 'graph';
 	const filename = name
 		.replace(/[^a-z0-9]/gi, '_')
 		.toLowerCase()
