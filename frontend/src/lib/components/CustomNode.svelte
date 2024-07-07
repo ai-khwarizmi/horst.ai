@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		cn,
-		getNodeColors,
-		NodeIOHandler,
-		nodeIOHandlers,
-		type WrappedPromise
-	} from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
