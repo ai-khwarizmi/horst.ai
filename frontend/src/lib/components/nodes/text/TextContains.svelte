@@ -4,7 +4,7 @@
 
 	export let id: string;
 
-	const onExecute = () => {
+	const onExecute = async () => {
 		const input = io.getInputData('text') as string;
 		const input2 = io.getInputData('text2') as string;
 		if (!input || !input2) {
@@ -19,7 +19,7 @@
 				currentOutput = output;
 			}
 		}
-	}
+	};
 
 	const io = new NodeIOHandler({
 		nodeId: id,
@@ -28,7 +28,8 @@
 			{ id: 'text2', type: 'text' }
 		],
 		outputs: [{ id: 'contains', type: 'boolean' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let currentOutput: boolean | null = null;

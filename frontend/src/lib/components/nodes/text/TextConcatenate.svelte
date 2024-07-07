@@ -4,7 +4,7 @@
 
 	export let id: string;
 
-	function onExecute() {
+	async function onExecute() {
 		const input = io.getInputData('text') as string;
 		const input2 = io.getInputData('text2') as string;
 		if (!input || !input2) {
@@ -28,11 +28,11 @@
 			{ id: 'text2', type: 'text' }
 		],
 		outputs: [{ id: 'text', type: 'text' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let currentOutput: string | null = null;
-
 </script>
 
 <CustomNode {io} {onExecute} {...$$props}></CustomNode>

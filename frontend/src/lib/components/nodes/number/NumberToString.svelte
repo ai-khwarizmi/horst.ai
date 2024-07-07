@@ -8,7 +8,8 @@
 		nodeId: id,
 		inputs: [{ id: 'num', type: 'number' }],
 		outputs: [{ id: 'str', type: 'text' }],
-		onExecute: () => {}
+		onExecute: async () => {},
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	const onExecute = () => {

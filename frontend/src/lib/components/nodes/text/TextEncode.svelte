@@ -4,7 +4,7 @@
 
 	export let id: string;
 
-	const onExecute = () => {
+	const onExecute = async () => {
 		const input = io.getInputData('data');
 		if (!input) {
 			return;
@@ -17,7 +17,8 @@
 		nodeId: id,
 		inputs: [{ id: 'data', type: 'text' }],
 		outputs: [{ id: 'encoded', type: 'text', label: 'Base64' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let data: string | null = null;

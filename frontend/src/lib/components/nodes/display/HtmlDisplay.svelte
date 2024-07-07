@@ -7,7 +7,7 @@
 	let lastDrawData: string | null = null;
 	let data: string | null = null;
 
-	const onExecute = () => {
+	const onExecute = async () => {
 		const input = io.getInputData('html') ?? null;
 		if (input !== lastDrawData) {
 			lastDrawData = input;
@@ -17,13 +17,14 @@
 				data = null;
 			}
 		}
-	}
+	};
 
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'html', type: 'text' }],
 		outputs: [],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	function cleanHtmlString(input: string): string {
@@ -41,7 +42,6 @@
 		}
 		return input.slice(codeTagStart + 3, codeTagEnd);
 	}
-
 
 	function openInCodePen() {
 		const htmlCode = data ?? '';

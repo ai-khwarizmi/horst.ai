@@ -42,7 +42,8 @@
 		nodeId: id,
 		inputs: [{ id: 'code', type: 'text', label: 'LaTeX code' }],
 		outputs: [],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastCompiledCode: string | null = null;

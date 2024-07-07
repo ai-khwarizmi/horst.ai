@@ -13,7 +13,8 @@
 		nodeId: id,
 		inputs: [],
 		outputs: [{ id: 'text', type: 'text' }],
-		onExecute: () => {}
+		onExecute: async () => {},
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let value: DateValue | undefined = undefined;

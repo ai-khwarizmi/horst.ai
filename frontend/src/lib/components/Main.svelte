@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, viewport, commandOpen, createNodeParams, resetProject } from '$lib';
+	import { nodes, edges, viewport, commandOpen, createNodeParams } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -18,23 +18,28 @@
 	import Apikeys from '@/components/settings/APIKeys.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
-	import HashLoader from '@/components/file/HashLoader.svelte';
 	import { isMobile } from '@/components/Mobile.svelte';
 	import { Info } from 'lucide-svelte';
-	import MobileMenu from '@/components/MobileMenu.svelte';
 	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	import PackageJson from '../../../package.json';
 	import DebugView from '@/components/DebugView.svelte';
 	import type { ConnectWith } from '@/types';
 	import ProjectSettings from '@/components/ProjectSettings.svelte';
-	import { loadFromLocalStorage, loadFromProjectId } from '@/utils/file';
 	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
 	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
 	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
 	import { anthropic_key, openai_key } from '@/apikeys';
+	import SaveFilePopup from './popups/SaveFilePopup.svelte';
+	import { cn } from '$lib/utils';
+	import { loadProjectByProjectId } from '@/project';
+	import OpenFilePopup from './popups/OpenFilePopup.svelte';
+	import OpenRecentPopup from './popups/OpenRecentPopup.svelte';
+	import VersionChangePopup from './popups/VersionChangePopup.svelte';
 
 	export let projectId: string | undefined = undefined;
+
+	$: projectId && loadProjectByProjectId(projectId);
 
 	onMount(async () => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
@@ -44,20 +49,6 @@
 		const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
 		if (existingAnthropicApiKey) {
 			anthropic_key.set(existingAnthropicApiKey);
-		}
-
-		//loading logic
-		let loaded = false;
-		if (projectId) {
-			loaded = await loadFromProjectId(projectId);
-		}
-		if (!loaded) {
-			console.log('Loading from local storage');
-			loaded = await loadFromLocalStorage();
-		}
-
-		if (!loaded) {
-			resetProject();
 		}
 	});
 
@@ -97,6 +88,10 @@
 	<FileDropper />
 	<ProjectSettings />
 	<NewFilePopup />
+	<VersionChangePopup />
+	<OpenFilePopup />
+	<OpenRecentPopup />
+	<SaveFilePopup />
 	<SvelteFlow
 		{nodes}
 		{edges}
@@ -109,30 +104,29 @@
 		onconnectend={handleConnectionEnd}
 	>
 		<DebugView />
-		<HashLoader />
 		<FullCommand />
 		<Background />
 		<Controls />
 		<Panel position="top-right">
-			{#if $isMobile}
-				<MobileMenu />
-			{:else}
+			<div class="flex gap-2">
 				<Button
 					variant={$isMobile ? 'outline' : 'ghost'}
-					size="sm"
+					size={$isMobile ? 'icon' : undefined}
 					target="_blank"
 					href="/how-to-use"
 				>
-					<Info class="mr-2 size-3.5" />
-					How to Use
+					<Info class={cn('size-3.5', !$isMobile && 'mr-2')} />
+					{#if !$isMobile}
+						How to Use
+					{/if}
 				</Button>
-			{/if}
-			<ClerkSigninButton />
-			<ClerkProfileButton />
-			<ClerkSignoutButton />
+				<ClerkSigninButton />
+				<ClerkProfileButton />
+				<ClerkSignoutButton />
+			</div>
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
-			<TopMenuBar />
+			<TopMenuBar {projectId} />
 		</Panel>
 		<Panel position="bottom-center">
 			<BottomBar />
@@ -151,7 +145,7 @@
 						alt="Github"
 						style="margin-right: 10px; width: 1.5rem; height: 1.5rem;"
 					/>
-					Github
+					Github (v{PackageJson.version})
 				</Button>
 				<Button variant="link" class="text-xs" target="_blank" href="/credits">Credits</Button>
 			{/if}

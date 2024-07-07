@@ -25,17 +25,23 @@ export const session = writable<User | null>(null);
 export const attemptClerkInit = async () => {
     if (!browser) return
     if (PUBLIC_CLERK_PUBLISHABLE_KEY) {
-        const _clerk = new CLERK.Clerk(PUBLIC_CLERK_PUBLISHABLE_KEY);
-        initClerk(_clerk);
-        clerk.set(_clerk);
-        await _clerk.load()
-        clerkLoaded.set(true);
+        try {
+            const _clerk = new CLERK.Clerk(PUBLIC_CLERK_PUBLISHABLE_KEY);
+            initClerk(_clerk);
+            clerk.set(_clerk);
+            await _clerk.load()
+            clerkLoaded.set(true);
+        } catch (err) {
+            console.error("Failed to load Clerk", err);
+            clerk.set(null);
+            clerkLoaded.set(true);
+        }
     }
 }
 
 const initClerk = (clerk: CLERK.Clerk) => {
     if (!browser) return;
-    clerk.addListener(({ user }) => {
+    clerk.addListener(async ({ client, session: sess, user }) => {
         if (user) {
             const email = user.primaryEmailAddress?.emailAddress || null;
             const emailVerified = user.primaryEmailAddress?.verification.status === "verified";

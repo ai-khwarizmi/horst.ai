@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Main from "@/components/Main.svelte";
+	import { page } from '$app/stores';
+	import Main from '@/components/Main.svelte';
 
-	export let data: { projectId: string };
-	const { projectId } = data;
+	$: projectId = $page.params.id;
 </script>
 
 <Main {projectId}></Main>

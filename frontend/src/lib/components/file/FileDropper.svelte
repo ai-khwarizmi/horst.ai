@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { loadFromFile } from '@/utils/file';
+	import { loadFromFile } from '@/project/file';
 	import { toast } from 'svelte-sonner';
 </script>
 

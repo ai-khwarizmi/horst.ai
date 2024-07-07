@@ -10,7 +10,6 @@ import { NodeType, type Input, type Output, type NodeValueType, type OnExecuteCa
 import { HorstFile } from "./utils/horstfile";
 import { Subject, switchMap, catchError, EMPTY, takeUntil, from, Observable, firstValueFrom } from 'rxjs';
 
-
 export const clearData = () => {
 	nodes.update(n => n.map(node => ({ ...node, data: {} })));
 }
@@ -394,6 +393,7 @@ export const addNode = (type: CustomNodeName, pos: XYPosition, connectWith?: {
 	id: string;
 	handle: string;
 }) => {
+
 	const node = {
 		id: Math.random().toString(36).substr(2, 9),
 		type,
