@@ -9,13 +9,13 @@
 		const input2 = io.getInputData('text2') as string;
 		if (!input || !input2) {
 			if (currentOutput !== null) {
-				io.setOutputData('contains', null);
+				io.setOutputDataDynamic('contains', null);
 			}
 			return;
 		} else {
 			const output = input.includes(input2);
 			if (output !== currentOutput) {
-				io.setOutputData('contains', output);
+				io.setOutputDataDynamic('contains', output);
 				currentOutput = output;
 			}
 		}
@@ -35,4 +35,4 @@
 	let currentOutput: boolean | null = null;
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}></CustomNode>
+<CustomNode {io} {...$$props}></CustomNode>

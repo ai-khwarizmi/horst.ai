@@ -126,7 +126,6 @@ let subscribedEdgeWritable: Writable<Edge[]> | null = null;
 let unsubscribeEdge: () => void;
 let subscribedNodeWritable: Writable<Node[]> | null = null;
 let unsubscribeNode: () => void;
-
 state.subscribe((state) => {
 	saveToLocalStorage();
 
