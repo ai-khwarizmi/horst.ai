@@ -21,7 +21,7 @@ import { generateProjectId } from '@/utils/projectId';
 
 
 export function getSaveData(
-	includeData: boolean,
+	_includeData: boolean,
 	includeFileData: boolean = false
 ): {
 	graph: SaveFileFormat;

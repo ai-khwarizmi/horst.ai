@@ -2,9 +2,10 @@ import { goto } from '$app/navigation';
 import { clerk } from '@/auth/Clerk';
 import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
-import { getSaveData, loadFromGraph, resetProject, type SavedGraph } from '.';
+import { getSaveData, loadFromGraph, resetProject } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, projectStoreSaveable, state } from '..';
+import type { CloudSaveFileFormat } from '@/types';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -128,7 +129,7 @@ export const connectToCloud = (projectId: string) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
 				canSendData = true;
-				const graph: SavedGraph = data.data;
+				const graph: CloudSaveFileFormat = data.data;
 				const locallyStoredNonce = get(nonce);
 				if (locallyStoredNonce === 0) {
 					//this kinda sucks, we need a better way to tell if they're equal

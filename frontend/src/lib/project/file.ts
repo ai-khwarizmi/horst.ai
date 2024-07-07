@@ -11,6 +11,9 @@ export const loadGraphFromUploadedFile = async () => {
 		const target = e.target as HTMLInputElement;
 		if (!target.files) return alert('no file selected');
 		const file = target.files[0];
+		if (!file) {
+			throw new Error('No file selected');
+		}
 		await loadFromFile(file);
 		toast.success('Project loaded');
 	};

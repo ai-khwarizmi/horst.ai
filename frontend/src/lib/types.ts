@@ -213,3 +213,7 @@ export type SaveableState = {
 export type SaveFileFormat = SaveableState & {
 	version: string;
 }
+
+export type CloudSaveFileFormat = SaveFileFormat & {
+	nonce: number;
+}

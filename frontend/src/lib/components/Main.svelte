@@ -74,7 +74,7 @@
 			const position =
 				e instanceof MouseEvent
 					? { x: e.clientX, y: e.clientY }
-					: { x: e.touches[0].clientX, y: e.touches[0].clientY };
+					: { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY };
 			createNodeParams.set({
 				position,
 				node: startNode ?? undefined

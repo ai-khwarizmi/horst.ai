@@ -38,12 +38,13 @@
 		_files = await Promise.all(_files.map((file: HorstFile) => file.waitForLoad()));
 		files = _files;
 	};
-	function handleDragOver(event: DragEvent) {
+
+	function handleDragOver(event: any) {
 		event.preventDefault();
 		event.stopPropagation();
 	}
 
-	function handleDrop(event: DragEvent) {
+	function handleDrop(event: any) {
 		const dropZone = event.target?.closest('.text-input-drop-zone');
 		if (!dropZone || dropZone.dataset.id !== id) {
 			return;
@@ -59,12 +60,12 @@
 	const handleFiles = async (newFiles: FileList) => {
 		const _files = await Promise.all(Array.from(newFiles).map((file) => HorstFile.fromFile(file)));
 		files = [...files, ..._files];
-		io.setOutputData('files', files);
+		io.setOutputDataPlaceholder('files', files);
 	};
 
 	const removeFile = (index: number) => {
 		files = files.filter((_, i) => i !== index);
-		io.setOutputData('files', files);
+		io.setOutputDataPlaceholder('files', files);
 	};
 </script>
 
@@ -99,7 +100,7 @@
 				style="resize: none;"
 				data-id={id}
 				on:blur={(e) => {
-					io.setOutputData('text', e.currentTarget.value);
+					io.setOutputDataPlaceholder('text', e.currentTarget.value);
 				}}
 				on:dragover={handleDragOver}
 				on:drop={handleDrop}

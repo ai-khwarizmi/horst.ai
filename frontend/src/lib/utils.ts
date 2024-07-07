@@ -149,7 +149,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	async updateUnsupportedInputs() {
 		const data = get(inputData);
 		for (const input of get(this.inputs)) {
-			const isUnsupported = await this.isInputUnsupported(input.id, data[this.nodeId]);
+			const isUnsupported = await this.isInputUnsupported(input.id, data[this.nodeId]!);
 			if (isUnsupported.unsupported) {
 				input.unsupported = isUnsupported;
 			} else {
@@ -176,7 +176,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		state.update((state) => {
 			const node = get(state.nodes).find((n) => n.id === this.nodeId);
 			if (!node) return state;
-			const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+			const inputs = Array.isArray(node.data['inputs']) ? node.data['inputs'] : [];
 			const inputsToAdd = newInputs.filter((i) => !inputs.find((i2: any) => i2.id === i.id));
 			node.data = { ...node.data, inputs: [...inputs, ...inputsToAdd] };
 			return state;
@@ -201,7 +201,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 					if (!_inputData[this.nodeId]) {
 						_inputData[this.nodeId] = {};
 					}
-					_inputData[this.nodeId][input.id] = inputValue;
+					_inputData[this.nodeId]![input.id] = inputValue;
 					changed = true;
 				}
 
@@ -210,7 +210,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 					if (!_inputDataWithoutPlaceholders[this.nodeId]) {
 						_inputDataWithoutPlaceholders[this.nodeId] = {};
 					}
-					_inputDataWithoutPlaceholders[this.nodeId][input.id] = inputValueWithoutPlaceholder;
+					_inputDataWithoutPlaceholders[this.nodeId]![input.id] = inputValueWithoutPlaceholder;
 					changed = true;
 				}
 			});
@@ -234,7 +234,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	removeInput = (...ids: string[]) => {
 		get(state).nodes.update(nodes => nodes.map(node => {
 			if (node.id === this.nodeId) {
-				const inputs = Array.isArray(node.data.inputs) ? node.data.inputs : [];
+				const inputs = Array.isArray(node.data['inputs']) ? node.data['inputs'] : [];
 				return {
 					...node,
 					data: {
@@ -252,7 +252,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	removeOutput = (...ids: string[]) => {
 		get(state).nodes.update(nodes => nodes.map(node => {
 			if (node.id === this.nodeId) {
-				const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+				const outputs = Array.isArray(node.data['outputs']) ? node.data['outputs'] : [];
 				return {
 					...node,
 					data: {
@@ -270,7 +270,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	addOutput = (...newOutputs: Output<TOutput>[]) => {
 		get(state).nodes.update(nodes => nodes.map(node => {
 			if (node.id === this.nodeId) {
-				const outputs = Array.isArray(node.data.outputs) ? node.data.outputs : [];
+				const outputs = Array.isArray(node.data['outputs']) ? node.data['outputs'] : [];
 				const outputsToAdd = newOutputs.filter((o) => !outputs.find((o2: any) => o2.id === o.id));
 				return {
 					...node,
