@@ -1,10 +1,10 @@
-import { type Node, type Edge, type Viewport, type XYPosition } from "@xyflow/svelte";
-import { writable } from "svelte/store";
-import type { ConnectWith } from "./types";
-import { nodeIOHandlers } from "./utils";
+import { type Node, type Edge, type Viewport, type XYPosition } from '@xyflow/svelte';
+import { writable } from 'svelte/store';
+import type { ConnectWith } from './types';
+import { nodeIOHandlers } from './utils';
 import { debounce } from 'lodash-es';
-import { browser } from "$app/environment";
-import { handleProjectChange, handleProjectIdChange } from "./project";
+import { browser } from '$app/environment';
+import { handleProjectChange, handleProjectIdChange } from './project';
 
 export const projectId = writable<string | undefined>(undefined);
 export const projectName = writable<string>('');
@@ -21,33 +21,34 @@ export const updatedAt = writable<number>(0);
 export let handlers: Record<string, () => void> = {};
 
 export const resetHandlers = () => {
-    handlers = {};
-}
+	handlers = {};
+};
 
 if (browser) {
-    projectName.subscribe(handleProjectChange);
-    nodes.subscribe(handleProjectChange);
-    edges.subscribe(handleProjectChange);
-    viewport.subscribe(handleProjectChange);
+	projectName.subscribe(handleProjectChange);
+	nodes.subscribe(handleProjectChange);
+	edges.subscribe(handleProjectChange);
+	viewport.subscribe(handleProjectChange);
 
-    projectId.subscribe(handleProjectIdChange)
+	projectId.subscribe(handleProjectIdChange);
 }
 
 export const commandOpen = writable(false);
 export const createNodeParams = writable<{
-    position: XYPosition; node?: ConnectWith
+	position: XYPosition;
+	node?: ConnectWith;
 } | null>(null);
 
 const debouncedHandleChanges = debounce(() => {
-    Object.values(nodeIOHandlers).forEach((ioHandler) => {
-        ioHandler.onOutputsChanged();
-    });
+	Object.values(nodeIOHandlers).forEach((ioHandler) => {
+		ioHandler.onOutputsChanged();
+	});
 }, 50);
 
 outputData.subscribe(() => {
-    debouncedHandleChanges();
+	debouncedHandleChanges();
 });
 
 edges.subscribe(() => {
-    debouncedHandleChanges();
+	debouncedHandleChanges();
 });

@@ -9,7 +9,6 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { writable } from 'svelte/store';
-	import Button from '../ui/button/button.svelte';
 </script>
 
 <Dialog.Root bind:open={$openFileOpen}>

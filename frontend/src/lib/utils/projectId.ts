@@ -12,16 +12,16 @@ export function generateProjectId(prefix: Prefix): string {
 		throw new Error('Invalid prefix');
 	}
 	if (prefix) {
-		return `${prefix}-${uuidv4()}`
+		return `${prefix}-${uuidv4()}`;
 	} else {
 		return uuidv4();
 	}
 }
 
 type ProjectId = {
-	prefix: Prefix,
-	uuid: string
-}
+	prefix: Prefix;
+	uuid: string;
+};
 
 export function parseProjectId(id: string): ProjectId | null {
 	const parts = id.split('-');

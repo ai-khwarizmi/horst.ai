@@ -10,17 +10,12 @@
 		GithubIcon,
 		Workflow,
 		LifeBuoy,
-		Cloud,
-		CircleX,
 		Save,
-		Pen,
 		Keyboard,
 		LucideGithub,
 		ExternalLinkIcon,
 		UsersRound,
 		Handshake,
-		Share,
-		Share2,
 		Clock,
 		Settings,
 		FilePlus
@@ -31,14 +26,11 @@
 	import PackageJson from '../../../package.json';
 	import { usesClerk } from '@/auth/Clerk';
 	import { openSaveFilePopup } from './popups/SaveFilePopup.svelte';
-	import Input from './ui/input/input.svelte';
 	import { projectName } from '$lib';
 	import { commandOpen } from '$lib';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/project/file';
 	import { getGraphFromLocalProject, localProjectIds } from '@/project/local';
-	import { createNewProject } from '@/project';
 	import { openProjectSettings } from './ProjectSettings.svelte';
-	import { openFilePopup } from './popups/OpenFilePopup.svelte';
 	import { openRecentPopup } from './popups/OpenRecentPopup.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 

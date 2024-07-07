@@ -39,7 +39,7 @@
 
 	export let projectId: string | undefined = undefined;
 
-	$: projectId && loadProjectByProjectId(projectId);
+	$: loadProjectByProjectId(projectId);
 
 	onMount(async () => {
 		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');

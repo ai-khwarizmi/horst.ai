@@ -8,5 +8,4 @@ export default defineConfig({
 			allow: ['./package.json']
 		}
 	}
-
 });
