@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		cn,
-		getNodeColors,
-		NodeIOHandler,
-		nodeIOHandlers,
-		type WrappedPromise
-	} from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -73,21 +67,7 @@
 		}
 	};
 
-	export let onExecute: (
-		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
-		wrap: WrappedPromise
-	) => void = () => {};
-
-	const setInputDataPlaceholder = (handleId: string, value: any) => {
-		io.setInputDataPlaceholder(handleId, value);
-	};
-
-	const getCurrentInputPlaceholderData = (handleId: string) => {
-		return io.getInputPlaceholderData(handleId);
-	};
-
-	const forceExecute = () => {
+	export const forceExecute = () => {
 		io.onExecute(onExecuteCallbacks, true);
 	};
 

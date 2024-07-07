@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, viewport, commandOpen, createNodeParams, state } from '$lib';
+	import { commandOpen, createNodeParams, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
