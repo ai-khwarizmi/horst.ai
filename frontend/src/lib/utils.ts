@@ -142,10 +142,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		}, 1);
 	}
 
-	setOnExecute(handler: () => void) {
-		this.handler = handler;
-	}
-
 	onExecute = (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		this.executeSubject.next({ callbacks, forceExecute });
 	};
@@ -486,16 +482,21 @@ const _setNodeOutputDataPlaceholder = (id: string, data: Record<string, any>) =>
 };
 
 const _setNodeInputDataPlaceholder = (id: string, data: Record<string, any>) => {
-	state.update((currentState) => ({
-		...currentState,
-		inputPlaceholderData: {
-			...currentState.inputDataPlaceholder,
-			[id]: {
+	state.update((currentState) => {
+		if (!currentState.inputDataPlaceholder[id]) {
+			currentState.inputDataPlaceholder[id] = {
+				...data
+			};
+		} else {
+			currentState.inputDataPlaceholder[id] = {
 				...currentState.inputDataPlaceholder[id],
 				...data
-			}
+			};
 		}
-	}));
+		return {
+			...currentState,
+		}
+	});
 };
 
 const _getNodeOutputDataDynamic = (id: string, handle: string) => {

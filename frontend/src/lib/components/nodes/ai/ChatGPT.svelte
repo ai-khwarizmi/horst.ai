@@ -64,6 +64,7 @@
 				user,
 				files
 			});
+			console.log('newValue', newValue);
 
 			if (systemPrompt && userPrompt) {
 				if (!forceExecute && newValue === lastExecutedValue) {
