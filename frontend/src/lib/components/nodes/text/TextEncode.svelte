@@ -10,7 +10,7 @@
 			return;
 		}
 		data = btoa(input);
-		io.setOutputData('encoded', data);
+		io.setOutputDataDynamic('encoded', data);
 	};
 
 	const io = new NodeIOHandler({
@@ -24,7 +24,7 @@
 	let data: string | null = null;
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<textarea class="w-full h-full outline-none border-none bg-transparent resize-none" readonly>
 		{data}
 	</textarea>

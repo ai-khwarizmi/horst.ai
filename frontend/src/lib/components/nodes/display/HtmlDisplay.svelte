@@ -77,7 +77,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<div class="flex justify-end mb-2">
 		{#if data}
 			<button

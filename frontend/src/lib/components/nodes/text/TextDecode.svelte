@@ -9,7 +9,7 @@
 		if (!input) {
 			return;
 		}
-		io.setOutputData('data', atob(input));
+		io.setOutputDataDynamic('data', atob(input));
 	};
 	const io = new NodeIOHandler({
 		nodeId: id,
@@ -20,4 +20,4 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props} />
+<CustomNode {io} {...$$props} />

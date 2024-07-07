@@ -9,6 +9,7 @@
 	import Label from './ui/label/label.svelte';
 	import { edges, nodes, projectId, projectName } from '..';
 	import type { Node } from '@xyflow/svelte';
+	import { get } from 'svelte/store';
 
 	$: open = browser && $page.url.searchParams.has('debug');
 
@@ -33,7 +34,7 @@
 		});
 
 		// Add edges
-		edges.update((e) => {
+		get(edges).update((e) => {
 			for (let i = 0; i < transforms.length; i++) {
 				const current = transforms[i];
 				const next = i === transforms.length - 1 ? null : transforms[i + 1];
@@ -99,12 +100,12 @@
 					<!-- Node COunt -->
 					<div class="flex gap-2 justify-between">
 						<div>Node Count</div>
-						<div>{$nodes.length}</div>
+						<div>{get($nodes).length}</div>
 					</div>
 					<!-- Edge Count -->
 					<div class="flex gap-2 justify-between">
 						<div>Edge Count</div>
-						<div>{$edges.length}</div>
+						<div>{get($edges).length}</div>
 					</div>
 				</div>
 			</Tabs.Content>

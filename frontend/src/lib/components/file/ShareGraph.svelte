@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-	import { writable } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { edges, nodes } from '@/index';
 	import * as LZString from 'lz-string';
@@ -26,7 +26,7 @@
 	const generateUrl = (includeData: boolean) => {
 		const url = new URL(location.href);
 
-		if ($nodes.length === 0 && $edges.length === 0) {
+		if (get($nodes).length === 0 && get($edges).length === 0) {
 			url.hash = '';
 			return url.href;
 		}

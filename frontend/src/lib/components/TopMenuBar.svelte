@@ -47,7 +47,7 @@
 		const project = getGraphFromLocalProject(id);
 		return {
 			id,
-			name: project?.name || 'Untitled'
+			name: project?.projectName || 'Untitled'
 		};
 	});
 </script>

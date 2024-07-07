@@ -41,7 +41,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<Button size="sm" variant="outline" on:click={copyToClipboard}>
 		<Copy class="mr-2" />
 		Copy to clipboard

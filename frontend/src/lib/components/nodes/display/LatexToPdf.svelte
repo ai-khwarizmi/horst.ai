@@ -113,7 +113,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	{#if cleanedLatexCode}
 		<div class="flex justify-end mt-2">
 			<button

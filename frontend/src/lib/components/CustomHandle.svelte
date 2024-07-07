@@ -89,7 +89,7 @@
 		}
 	`;
 
-	if ('input' in base && base.input?.default) {
+	if ('input' in base && base.input && 'default' in base.input) {
 		if (base.input.inputOptionType === 'dropdown') {
 			selectedOption = base.input.default;
 		} else if (base.input.inputOptionType === 'input-field') {
@@ -116,7 +116,7 @@
 		nodeIOHandlers[nodeId].setInputDataPlaceholder(base.id, option);
 	}
 
-	function handleKeyDown(event: KeyboardEvent) {
+	function handleKeyDown(event: any) {
 		if (event.key === 'Escape') {
 			event.preventDefault();
 			isOpen = false;
@@ -298,7 +298,7 @@
 			<div class="flex flex-col w-full justify-center nodrag">
 				<span class="text-xs text-muted-foreground whitespace-nowrap">{base.label || ''}</span>
 				<div class="flex flex-col w-full justify-center nodrag">
-					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
+					<svelte:component this={base.input.component} {base} {nodeId} />
 				</div>
 			</div>
 		{:else}

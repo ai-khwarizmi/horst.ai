@@ -4,7 +4,10 @@
 	import { cn } from '$lib/utils.js';
 
 	type $$Props = HTMLTextareaAttributes;
-	type $$Events = TextareaEvents;
+	type $$Events = TextareaEvents & {
+		dragover: DragEvent;
+		drop: DragEvent;
+	};
 
 	let className: $$Props['class'] = undefined;
 	export let value: $$Props['value'] = undefined;
@@ -34,5 +37,7 @@
 	on:mouseleave
 	on:paste
 	on:input
+	on:dragover
+	on:drop
 	{...$$restProps}
 ></textarea>

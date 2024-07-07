@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
-	const newGraph = writable<SavedGraph | undefined>();
+	const newGraph = writable<SaveFileFormat | undefined>();
 
-	export const setUpdatedGraph = (graph: SavedGraph) => {
+	export const setUpdatedGraph = (graph: SaveFileFormat) => {
 		newGraph.set(graph);
 	};
 </script>
@@ -10,7 +10,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
-	import { loadFromGraph, type SavedGraph } from '@/project';
+	import { loadFromGraph } from '@/project';
+	import type { SaveFileFormat } from '@/types';
 </script>
 
 <Dialog.Root open={!!$newGraph} onOpenChange={(open) => !open && newGraph.set(undefined)}>

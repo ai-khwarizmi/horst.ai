@@ -22,7 +22,6 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
-	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -37,7 +36,24 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable */
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const otherProps = {
+		selectable,
+		deletable,
+		sourcePosition,
+		targetPosition,
+		zIndex,
+		dragging,
+		draggable,
+		dragHandle,
+		parentId,
+		isConnectable,
+		positionAbsoluteX,
+		positionAbsoluteY,
+		width,
+		height
+	};
 
 	export let id: string = '';
 	export let type: string = '';
@@ -183,7 +199,8 @@
 
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
-	function handleCheckboxChange(inputId: string, isChecked: boolean) {
+	function handleCheckboxChange(inputId: string, event: any) {
+		const isChecked = event.target.checked;
 		state.update((state) => {
 			const current = state.optionalInputsEnabled;
 			if (!current[id]) {
@@ -360,7 +377,7 @@
 													<input
 														type="checkbox"
 														bind:checked={checked[input.id]}
-														on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
+														on:change={(e) => handleCheckboxChange(input.id, e)}
 														disabled={input.unsupported?.unsupported}
 														class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
 															disabled:opacity-50 disabled:cursor-not-allowed"

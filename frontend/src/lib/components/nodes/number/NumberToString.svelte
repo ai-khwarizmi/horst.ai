@@ -4,18 +4,18 @@
 
 	export let id: string;
 
+	const onExecute = async () => {
+		const input = io.getInputData('num');
+		io.setOutputDataDynamic('str', String(input));
+	};
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'num', type: 'number' }],
 		outputs: [{ id: 'str', type: 'text' }],
-		onExecute: async () => {},
+		onExecute: onExecute,
 		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
-
-	const onExecute = () => {
-		const input = io.getInputData('num');
-		io.setOutputData('str', String(input));
-	};
 </script>
 
-<CustomNode {io} {onExecute} {...$$props} />
+<CustomNode {io} {...$$props} />

@@ -63,6 +63,10 @@
 		io.setOutputDataPlaceholder('files', files);
 	};
 
+	const onFilesSelected = (e: any) => {
+		handleFiles(e.target?.files);
+	};
+
 	const removeFile = (index: number) => {
 		files = files.filter((_, i) => i !== index);
 		io.setOutputDataPlaceholder('files', files);
@@ -117,7 +121,7 @@
 					type="file"
 					multiple
 					class="hidden"
-					on:change={(e) => handleFiles(e.target?.files)}
+					on:change={onFilesSelected}
 				/>
 			</div>
 		</div>

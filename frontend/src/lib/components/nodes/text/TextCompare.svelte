@@ -9,13 +9,13 @@
 		const input2 = io.getInputData('text2') as string;
 		if (!input || !input2) {
 			if (currentOutput !== null) {
-				io.setOutputData('identical', null);
+				io.setOutputDataDynamic('identical', null);
 			}
 			return;
 		} else {
 			const output = input === input2;
 			if (output !== currentOutput) {
-				io.setOutputData('identical', output);
+				io.setOutputDataDynamic('identical', output);
 				currentOutput = output;
 			}
 		}
@@ -35,4 +35,4 @@
 	let currentOutput: boolean | null = null;
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}></CustomNode>
+<CustomNode {io} {...$$props}></CustomNode>

@@ -33,7 +33,7 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<Textarea
 		bind:value
 		class="w-full h-full min-h-0 min-w-0 nodrag"

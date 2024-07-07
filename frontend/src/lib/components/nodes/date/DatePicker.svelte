@@ -23,7 +23,7 @@
 	});
 	$: date = value ? value.toDate(getLocalTimeZone()) : null;
 
-	$: io.setOutputData('text', date ? df.format(date) : null);
+	$: io.setOutputDataPlaceholder('text', date ? df.format(date) : null);
 </script>
 
 <CustomNode {io} {...$$props}>

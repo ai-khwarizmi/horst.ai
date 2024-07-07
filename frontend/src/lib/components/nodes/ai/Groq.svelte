@@ -74,7 +74,7 @@
 				}
 				lastOutputValue = null;
 				temporaryOutput = '';
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 
 				const messages: Groq.Chat.ChatCompletionMessageParam[] = [
 					{ role: 'system', content: systemPrompt },
@@ -111,7 +111,7 @@
 
 					if (lastExecutedValue === newValue) {
 						lastOutputValue = output;
-						io.setOutputData('response', lastOutputValue);
+						io.setOutputDataDynamic('response', lastOutputValue);
 						callbacks.setStatus('success');
 					}
 				} catch (error) {
@@ -122,7 +122,7 @@
 				if (lastOutputValue !== null) {
 					temporaryOutput = '';
 					lastOutputValue = null;
-					io.setOutputData('response', null);
+					io.setOutputDataDynamic('response', null);
 				}
 			}
 		} catch (error: any) {
@@ -131,7 +131,7 @@
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
 				temporaryOutput = '';
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 			}
 		}
 	};
@@ -258,6 +258,6 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<p style="user-select: text; white-space: pre-wrap;">{temporaryOutput}</p>
 </CustomNode>

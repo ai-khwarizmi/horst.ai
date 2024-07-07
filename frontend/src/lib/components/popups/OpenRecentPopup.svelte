@@ -28,10 +28,10 @@
 							<Button
 								class="w-full"
 								variant="outline"
-								href="/project/{project.id}"
+								href="/project/{project.projectId}"
 								on:click={() => openRecentFiles.set(false)}
 							>
-								{project?.name || 'Untitled'}
+								{project?.projectId || 'Untitled'}
 							</Button>
 						</div>
 					{/if}
