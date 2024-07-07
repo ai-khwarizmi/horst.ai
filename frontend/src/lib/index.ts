@@ -3,7 +3,7 @@ import { derived, writable, type Writable } from 'svelte/store';
 import type { ConnectWith, State } from './types';
 import { nodeIOHandlers } from './utils';
 import { debounce } from 'lodash-es';
-import { debouncedSendUpdate } from './project/cloud';
+import { saveToCloud } from './project/cloud';
 import { saveToLocalStorage } from './project/local';
 import { generateProjectId } from './utils/projectId';
 
@@ -118,7 +118,7 @@ outputDataDynamic.subscribe(() => {
 });
 
 projectStoreSaveable.subscribe(() => {
-	debouncedSendUpdate();
+	saveToCloud();
 });
 
 
@@ -126,6 +126,7 @@ let subscribedEdgeWritable: Writable<Edge[]> | null = null;
 let unsubscribeEdge: () => void;
 let subscribedNodeWritable: Writable<Node[]> | null = null;
 let unsubscribeNode: () => void;
+
 state.subscribe((state) => {
 	saveToLocalStorage();
 
@@ -135,6 +136,8 @@ state.subscribe((state) => {
 		}
 		unsubscribeEdge = state.edges.subscribe(() => {
 			debouncedHandleChanges();
+			saveToLocalStorage();
+			saveToCloud();
 		});
 		subscribedEdgeWritable = state.edges;
 	}
@@ -144,6 +147,8 @@ state.subscribe((state) => {
 		}
 		unsubscribeNode = state.nodes.subscribe(() => {
 			debouncedHandleChanges();
+			saveToLocalStorage();
+			saveToCloud();
 		});
 		subscribedNodeWritable = state.nodes;
 	}

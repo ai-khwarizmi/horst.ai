@@ -2,8 +2,11 @@ import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils
 import { FILE_VERSION } from '@/utils/version';
 import { toast } from 'svelte-sonner';
 import {
+	edges,
+	nodes,
 	projectId,
-	state
+	state,
+	viewport
 } from '..';
 import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
@@ -15,7 +18,7 @@ import {
 	saveToLocalStorage
 } from './local';
 import { connectToCloud } from './cloud';
-import { type SaveFileFormat } from '@/types';
+import { type CloudSaveFileFormat, type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
 
@@ -114,26 +117,30 @@ function validateSaveFile(graph: SaveFileFormat): boolean {
 
 }
 
-export const loadFromGraph = (graph: SaveFileFormat) => {
+export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 	if (!validateSaveFile(graph)) {
+		console.log('invalid graph', graph);
 		return false;
 	}
 
-	state.set({
+	console.log('loading graph', graph);
+
+
+	state.update((state) => ({
+		...state,
 		projectId: graph.projectId,
 		projectName: graph.projectName,
-		nonce: 1,
+		nonce: (graph as CloudSaveFileFormat).nonce || 1,
 		inputDataPlaceholder: graph.inputDataPlaceholder,
 		optionalInputsEnabled: graph.optionalInputsEnabled,
 		outputDataPlaceholder: graph.outputDataPlaceholder,
-		nodes: writable(graph.nodes),
-		edges: writable(graph.edges),
-		viewport: writable(graph.viewport),
-
 		outputDataDynamic: {},
 		inputData: {},
 		inputDataWithoutPlaceholder: {},
-	});
+	}));
+	get(nodes).set(graph.nodes);
+	get(edges).set(graph.edges);
+	get(viewport).set(graph.viewport);
 
 	return true;
 };

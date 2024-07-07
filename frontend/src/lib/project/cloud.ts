@@ -4,7 +4,7 @@ import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph, resetProject } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
-import { nonce, projectStoreSaveable, state } from '..';
+import { nonce, state } from '..';
 import type { CloudSaveFileFormat } from '@/types';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
@@ -14,14 +14,20 @@ WS_HOST.protocol = WS_HOST.protocol === 'https:' ? 'wss:' : 'ws:';
 export const socketId = writable<number>(-1);
 
 export const saveAsCloudProject = async () => {
-	const c = get(clerk);
-	const token = await c?.session?.getToken();
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+	const saveData = getSaveData(true, false);
+	const cloudSave: CloudSaveFileFormat = {
+		nonce: get(nonce),
+		...saveData.graph
+	}
+
 	const data = await fetch(`${API_HOST.toString()}project/new`, {
 		method: 'POST',
 		headers: {
 			authorization: 'Bearer ' + token
 		},
-		body: JSON.stringify(getSaveData(true, false).graph)
+		body: JSON.stringify(cloudSave)
 	})
 		.then((res) => res.json())
 		.catch((err) => {
@@ -49,14 +55,18 @@ async function sendUpdate() {
 		console.log('skipping update. Not ready to send');
 		return;
 	}
-	const dataString = JSON.stringify(get(projectStoreSaveable));
-	console.log('length ', dataString.length, lastSentData?.length);
+	const saveData = getSaveData(true, false);
+	const dataString = saveData.stringifiedGraph;
+
 	if (dataString === lastSentData) {
 		console.log('skipping update. Equal to remote');
 		return;
 	}
-	console.log('lastSentData', lastSentData);
-	console.log('dataString', dataString);
+
+	const saveDataCloud: CloudSaveFileFormat = {
+		nonce: get(nonce) + 1,
+		...saveData.graph
+	}
 
 	state.update((s) => ({
 		...s,
@@ -69,7 +79,7 @@ async function sendUpdate() {
 			webSocket.send(
 				JSON.stringify({
 					type: 'update',
-					data: getSaveData(true, false).graph
+					data: saveDataCloud
 				})
 			);
 			lastSentData = dataString;
@@ -82,7 +92,7 @@ let lastUpdateTime = Date.now();
 
 const UPDATE_DEBOUNCE_TIME = 1000;
 const MAX_UPDATE_INTERVAL = 30000;
-export function debouncedSendUpdate() {
+export function saveToCloud() {
 	const now = Date.now();
 	const timeSinceLastUpdate = now - lastUpdateTime;
 	if (updateTimeout) {
@@ -110,6 +120,7 @@ export const connectToCloud = (projectId: string) => {
 			const c = get(clerk);
 			const token = await c?.session?.getToken();
 			if (token) {
+				console.log('sending auth token...')
 				webSocket?.send(
 					JSON.stringify({
 						type: 'auth',
@@ -129,24 +140,13 @@ export const connectToCloud = (projectId: string) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
 				canSendData = true;
+
 				const graph: CloudSaveFileFormat = data.data;
 				const locallyStoredNonce = get(nonce);
-				if (locallyStoredNonce === 0) {
-					//this kinda sucks, we need a better way to tell if they're equal
-					lastSentData = JSON.stringify(get(projectStoreSaveable));
-				}
-				if (graph.nonce > locallyStoredNonce) {
-					loadFromGraph(graph);
-					lastSentData = JSON.stringify(get(projectStoreSaveable));
-				} else if (graph.nonce === locallyStoredNonce) {
-					console.log('received same version', graph.nonce, locallyStoredNonce);
-				} else {
-					/*
-						this is really the case where we need to ask the user if they want to 
-						override, or clone.
-					*/
-					console.log('received old version', graph.nonce, locallyStoredNonce);
-				}
+
+				console.log('loading graph!!!', graph.nonce, locallyStoredNonce);
+				loadFromGraph(graph);
+				lastSentData = getSaveData(true, false).stringifiedGraph;
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
 			} else {
@@ -171,16 +171,4 @@ export const connectToCloud = (projectId: string) => {
 
 		return webSocket;
 	});
-};
-
-export const cloudSaveCurrentProject = async () => {
-	const saveData = getSaveData(true, false);
-	if (!webSocket) return;
-
-	webSocket.send(
-		JSON.stringify({
-			type: 'update',
-			data: saveData.graph
-		})
-	);
 };
