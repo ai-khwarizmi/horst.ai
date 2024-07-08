@@ -4,7 +4,7 @@
 	import * as Popover from '$lib/components/ui/popover';
 	import Label from './ui/label/label.svelte';
 	import Input from './ui/input/input.svelte';
-	import { projectId, projectName } from '..';
+	import { projectId, state } from '$lib';
 	import Button from './ui/button/button.svelte';
 	import { Trash } from 'lucide-svelte';
 	import { deleteCurrentProject } from '@/project';
@@ -22,7 +22,7 @@
 			<Dialog.Title>Workflow Settings</Dialog.Title>
 		</Dialog.Header>
 		<Label for="projectName">Project Name</Label>
-		<Input bind:value={$projectName} id="projectName" placeholder="Name" />
+		<Input bind:value={$state.projectName} id="projectName" placeholder="Name" />
 		<Dialog.Footer>
 			<!-- Delete -->
 			{#if $projectId}

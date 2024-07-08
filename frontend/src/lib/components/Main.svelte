@@ -36,6 +36,7 @@
 	import OpenFilePopup from './popups/OpenFilePopup.svelte';
 	import OpenRecentPopup from './popups/OpenRecentPopup.svelte';
 	import VersionChangePopup from './popups/VersionChangePopup.svelte';
+	import CustomEdge from './CustomEdge.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -81,6 +82,10 @@
 			});
 		}
 	};
+
+	const edgeTypes = {
+		custom: CustomEdge
+	};
 </script>
 
 <main>
@@ -96,12 +101,16 @@
 		nodes={$state.nodes}
 		edges={$state.edges}
 		{nodeTypes}
+		{edgeTypes}
 		viewport={$state.viewport}
 		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
 		onconnect={handleConnect}
 		onconnectstart={handleConnectionStart}
 		onconnectend={handleConnectionEnd}
+		defaultEdgeOptions={{
+			type: 'custom'
+		}}
 	>
 		<DebugView />
 		<FullCommand />
