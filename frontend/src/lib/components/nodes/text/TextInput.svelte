@@ -7,10 +7,22 @@
 	export let id: string;
 	let value = '';
 
+	let focus = false;
+
+	const onExecute = async () => {
+		if (focus) return;
+		// allow for clearing the value or programmatically setting it
+		if (value != io.getOutputData('text')) {
+			value = io.getOutputData('text') as string;
+		}
+	};
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [],
-		outputs: [{ id: 'text', type: 'text' }]
+		outputs: [{ id: 'text', type: 'text' }],
+		onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	onMount(() => {
@@ -19,19 +31,9 @@
 			value = String(data);
 		}
 	});
-
-	let focus = false;
-
-	const onExecute = () => {
-		if (focus) return;
-		// allow for clearing the value or programmatically setting it
-		if (value != io.getOutputData('text')) {
-			value = io.getOutputData('text') as string;
-		}
-	};
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<Textarea
 		bind:value
 		class="w-full h-full min-h-0 min-w-0 nodrag"
@@ -40,7 +42,7 @@
 			focus = true;
 		}}
 		on:blur={(e) => {
-			io.setOutputData('text', e.currentTarget.value);
+			io.setOutputDataPlaceholder('text', e.currentTarget.value);
 			focus = false;
 		}}
 	/>

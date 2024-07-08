@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		cn,
-		getNodeColors,
-		NodeIOHandler,
-		nodeIOHandlers,
-		type WrappedPromise
-	} from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -23,12 +17,11 @@
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
-	import { edges, nodes } from '..';
+	import { edges, nodes, state } from '..';
 	import { get } from 'svelte/store';
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
-	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -43,7 +36,24 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable */
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const otherProps = {
+		selectable,
+		deletable,
+		sourcePosition,
+		targetPosition,
+		zIndex,
+		dragging,
+		draggable,
+		dragHandle,
+		parentId,
+		isConnectable,
+		positionAbsoluteX,
+		positionAbsoluteY,
+		width,
+		height
+	};
 
 	export let id: string = '';
 	export let type: string = '';
@@ -73,21 +83,7 @@
 		}
 	};
 
-	export let onExecute: (
-		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
-		wrap: WrappedPromise
-	) => void = () => {};
-
-	const setInputPlaceholderData = (handleId: string, value: any) => {
-		io.setInputPlaceholderData(handleId, value);
-	};
-
-	const getCurrentInputPlaceholderData = (handleId: string) => {
-		return io.getInputPlaceholderData(handleId);
-	};
-
-	const forceExecute = () => {
+	export const forceExecute = () => {
 		io.onExecute(onExecuteCallbacks, true);
 	};
 
@@ -112,7 +108,7 @@
 						const target = connectWith.type === 'input' ? connectWith.id : id;
 						const sourceHandle = connectWith.type === 'input' ? validHandle.id : connectWith.handle;
 						const targetHandle = connectWith.type === 'input' ? connectWith.handle : validHandle.id;
-						nodes.update((nodes) => {
+						get(nodes).update((nodes) => {
 							// remove data.connectWith
 							const node = nodes.find((n) => n.id === id);
 							if (node) {
@@ -120,7 +116,7 @@
 							}
 							return nodes;
 						});
-						edges.update((edges) => {
+						get(edges).update((edges) => {
 							edges.push({
 								id: `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`,
 								source,
@@ -143,10 +139,10 @@
 
 			switch (input.input?.inputOptionType) {
 				case 'input-field':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				case 'dropdown':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				default:
 					break;
@@ -170,8 +166,6 @@
 
 		connectToNodeOnMount();
 		setInputPlaceholderDataOnMount();
-
-		io.setHandler(() => onExecute(onExecuteCallbacks, false));
 	});
 
 	onDestroy(() => {
@@ -205,16 +199,20 @@
 
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
-	function handleCheckboxChange(inputId: string, isChecked: boolean) {
-		optionalInputsEnabled.update((current) => {
-			console.log('current', current, 'id', id);
+	function handleCheckboxChange(inputId: string, event: any) {
+		const isChecked = event.target.checked;
+		state.update((state) => {
+			const current = state.optionalInputsEnabled;
 			if (!current[id]) {
 				current[id] = {};
 			}
 			current[id][inputId] = isChecked;
-			updateNodeInternals(id);
-			return current;
+			return {
+				...state,
+				optionalInputsEnabled: current
+			};
 		});
+		updateNodeInternals(id);
 	}
 </script>
 
@@ -343,26 +341,14 @@
 					{#if $inputs.length > 0}
 						<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $inputs as input}
-								<CustomHandle
-									nodeId={id}
-									type="input"
-									base={input}
-									{setInputPlaceholderData}
-									{getCurrentInputPlaceholderData}
-								/>
+								<CustomHandle nodeId={id} type="input" base={input} />
 							{/each}
 						</div>
 					{/if}
 					{#if $outputs.length > 0}
 						<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $outputs as output}
-								<CustomHandle
-									nodeId={id}
-									type="output"
-									base={output}
-									setInputPlaceholderData={() => {}}
-									getCurrentInputPlaceholderData={() => {}}
-								/>
+								<CustomHandle nodeId={id} type="output" base={output} />
 							{/each}
 						</div>
 					{/if}
@@ -391,7 +377,7 @@
 													<input
 														type="checkbox"
 														bind:checked={checked[input.id]}
-														on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
+														on:change={(e) => handleCheckboxChange(input.id, e)}
 														disabled={input.unsupported?.unsupported}
 														class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
 															disabled:opacity-50 disabled:cursor-not-allowed"

@@ -50,7 +50,7 @@
 			lastOutputValue = null;
 			lastExecutedValue = newValue;
 			temporaryOutput = '';
-			io.setOutputData('response', null);
+			io.setOutputDataDynamic('response', null);
 
 			const messages: Anthropic.MessageParam[] = [
 				{ role: 'user', content: `${systemPrompt}\n\n${userPrompt}` }
@@ -70,7 +70,7 @@
 				let output = '';
 				for await (const chunk of stream) {
 					if (chunk.type === 'content_block_delta') {
-						output += chunk.delta.text || '';
+						output += (chunk as any).delta.text || '';
 						if (lastExecutedValue === newValue) {
 							temporaryOutput = output;
 						}
@@ -79,7 +79,7 @@
 
 				if (lastExecutedValue === newValue) {
 					lastOutputValue = output;
-					io.setOutputData('response', lastOutputValue);
+					io.setOutputDataDynamic('response', lastOutputValue);
 					callbacks.setStatus('success');
 				}
 			} catch (error) {
@@ -89,7 +89,7 @@
 		} else {
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 			}
 		}
 	};
@@ -113,6 +113,6 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<p>{temporaryOutput}</p>
 </CustomNode>

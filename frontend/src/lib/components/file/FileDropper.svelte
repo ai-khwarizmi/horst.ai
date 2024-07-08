@@ -1,17 +1,15 @@
 <script lang="ts">
-	import { loadFromFile } from '@/utils/file';
+	import { loadFromFile } from '@/project/file';
 	import { toast } from 'svelte-sonner';
-</script>
 
-<svelte:window
-	on:dragover={(e) => {
+	const ondragover = (e: any) => {
 		e.preventDefault();
-	}}
-	on:drop={(e) => {
-		// Check if the drop target or any of its parents have the text-input-drop-zone class
+	};
+
+	const ondrop = (e: any) => {
 		console.log('drop event fileDropper');
 		if (e.target?.closest('.text-input-drop-zone')) {
-			return; // Exit early if dropped on a text input
+			return;
 		}
 
 		e.preventDefault();
@@ -31,5 +29,7 @@
 					});
 			}
 		}
-	}}
-/>
+	};
+</script>
+
+<svelte:window on:dragover={ondragover} on:drop={ondrop} />

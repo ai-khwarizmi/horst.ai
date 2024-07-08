@@ -1,4 +1,4 @@
-import { CORS_PROXY_URL } from "@/config";
+import { CORS_PROXY_URL } from '@/config';
 
 export function corsProxyFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
 	const request = new Request(input, init);
@@ -9,7 +9,7 @@ export function corsProxyFetch(input: RequestInfo | URL, init?: RequestInit): Pr
 		method: request.method,
 		headers: request.headers,
 		redirect: request.redirect,
-		signal: request.signal,
+		signal: request.signal
 	} as RequestInit;
 
 	if (request.body) {

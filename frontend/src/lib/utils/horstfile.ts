@@ -8,7 +8,7 @@ if (typeof window !== 'undefined') {
 		driver: localforage.INDEXEDDB,
 		name: 'horst.ai',
 		version: 1.0,
-		storeName: 'horst.ai',
+		storeName: 'horst.ai'
 	});
 }
 
@@ -88,7 +88,7 @@ export class HorstFile {
 				const binaryString = this.arrayBufferToBinaryString(this.fileArrayBuffer);
 				resolve(btoa(binaryString));
 			} else {
-				reject(new Error("File data not initialized"));
+				reject(new Error('File data not initialized'));
 			}
 		});
 	}
@@ -105,7 +105,7 @@ export class HorstFile {
 
 	getHash(): string {
 		if (!this.fileHash) {
-			throw new Error("File hash not initialized");
+			throw new Error('File hash not initialized');
 		}
 		return this.fileHash;
 	}
@@ -116,7 +116,7 @@ export class HorstFile {
 
 	getAsFileAttachment(): string {
 		if (!this.fileArrayBuffer) {
-			throw new Error("File data not initialized");
+			throw new Error('File data not initialized');
 		}
 		const fileContent = new TextDecoder().decode(this.fileArrayBuffer);
 		return `
@@ -133,14 +133,14 @@ ${fileContent}
 
 	getFileText(): string {
 		if (!this.fileDataBase64) {
-			throw new Error("File data not initialized");
+			throw new Error('File data not initialized');
 		}
 		return atob(this.fileDataBase64);
 	}
 
 	getBlob(): Blob {
 		if (!this.fileDataBase64) {
-			throw new Error("File data not initialized");
+			throw new Error('File data not initialized');
 		}
 		const binaryString = atob(this.fileDataBase64);
 		const len = binaryString.length;
@@ -153,15 +153,14 @@ ${fileContent}
 
 	getFileBase64(): string {
 		if (!this.fileDataBase64) {
-			throw new Error("File data not initialized");
+			throw new Error('File data not initialized');
 		}
 		return this.fileDataBase64;
 	}
 
 	async saveToStorage(): Promise<void> {
-
 		if (!this.fileDataBase64 || !this.fileHash) {
-			throw new Error("File data or hash is missing");
+			throw new Error('File data or hash is missing');
 		}
 
 		const fileData = {
@@ -177,7 +176,7 @@ ${fileContent}
 		try {
 			await localforage.setItem(this.id, fileData);
 		} catch (error) {
-			console.error("Error in saveToStorage:", error);
+			console.error('Error in saveToStorage:', error);
 			throw new Error(`Failed to save file with id ${this.id} to storage`);
 		}
 	}
@@ -200,7 +199,7 @@ ${fileContent}
 				console.error(`File with id ${this.id} not found in storage`);
 			}
 		} catch (error) {
-			console.error("Error in loadFromStorage:", error);
+			console.error('Error in loadFromStorage:', error);
 			throw new Error(`Error loading file with id ${this.id} from storage`);
 		}
 		this.onLoad();
@@ -230,7 +229,7 @@ ${fileContent}
 
 	toSimpleJson() {
 		return {
-			id: this.id,
+			id: this.id
 		};
 	}
 
@@ -259,7 +258,7 @@ ${fileContent}
 		const response = await fetch(url);
 		const blob = await response.blob();
 		const contentDisposition = response.headers.get('Content-Disposition');
-		let fileName = "downloadedFile";
+		let fileName = 'downloadedFile';
 		if (contentDisposition && contentDisposition.includes('filename=')) {
 			fileName = contentDisposition.split('filename=')[1].split(';')[0].trim();
 		}
@@ -281,7 +280,7 @@ fullSuperJSON.registerCustom<HorstFile, ReturnType<HorstFile['toJSON']>>(
 			const file = new HorstFile(v.id);
 			Object.assign(file, v);
 			return file;
-		},
+		}
 	},
 	'HorstFile'
 );
@@ -291,7 +290,7 @@ minimalSuperJSON.registerCustom<HorstFile, ReturnType<HorstFile['toSimpleJson']>
 	{
 		isApplicable: (v): v is HorstFile => v instanceof HorstFile,
 		serialize: (v) => v.toSimpleJson(),
-		deserialize: (v) => new HorstFile(v.id),
+		deserialize: (v) => new HorstFile(v.id)
 	},
 	'HorstFile'
 );

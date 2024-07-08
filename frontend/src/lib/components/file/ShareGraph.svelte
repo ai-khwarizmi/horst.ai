@@ -1,14 +1,14 @@
 <script context="module" lang="ts">
-	import { writable } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { edges, nodes } from '@/index';
-	import { getSaveData } from '@/utils/file';
 	import * as LZString from 'lz-string';
 	import Input from '../ui/input/input.svelte';
 	import { toast } from 'svelte-sonner';
 	import Label from '../ui/label/label.svelte';
 	import Switch from '../ui/switch/switch.svelte';
 	import Button from '../ui/button/button.svelte';
+	import { getSaveData } from '@/project';
 
 	let open = writable(false);
 
@@ -26,7 +26,7 @@
 	const generateUrl = (includeData: boolean) => {
 		const url = new URL(location.href);
 
-		if ($nodes.length === 0 && $edges.length === 0) {
+		if (get($nodes).length === 0 && get($edges).length === 0) {
 			url.hash = '';
 			return url.href;
 		}

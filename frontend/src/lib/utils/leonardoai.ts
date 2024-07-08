@@ -100,11 +100,16 @@ export interface ListElementsResponse {
 	loras: Element[] | null;
 }
 
-const modelCache: { [key: string]: { response: GetModelResponse | null, timestamp: number } } = {};
+const modelCache: { [key: string]: { response: GetModelResponse | null; timestamp: number } } = {};
 let lastApiKey: string | null = null;
 
-async function apiCall(endpoint: string, method: string, body?: any, _apiKey?: string): Promise<any> {
-	const apiKey = _apiKey || get(leonardo_key) as string;
+async function apiCall(
+	endpoint: string,
+	method: string,
+	body?: any,
+	_apiKey?: string
+): Promise<any> {
+	const apiKey = _apiKey || (get(leonardo_key) as string);
 	const response = await fetch(`${BASE_URL}${endpoint}`, {
 		method,
 		headers: {
@@ -117,7 +122,8 @@ async function apiCall(endpoint: string, method: string, body?: any, _apiKey?: s
 	const responseData = await response.json();
 
 	if (!response.ok) {
-		const errorMessage = responseData.error ||
+		const errorMessage =
+			responseData.error ||
 			(responseData.code === 'unexpected' ? responseData.error : null) ||
 			`HTTP error! status: ${response.status}`;
 		throw new Error(errorMessage);
@@ -126,9 +132,11 @@ async function apiCall(endpoint: string, method: string, body?: any, _apiKey?: s
 	return responseData;
 }
 
-export async function generateImage(requestBody: GenerateImageRequestBody): Promise<GenerateImageResponse> {
+export async function generateImage(
+	requestBody: GenerateImageRequestBody
+): Promise<GenerateImageResponse> {
 	const response = await apiCall('/generations', 'POST', {
-		...requestBody,
+		...requestBody
 	});
 	return response as GenerateImageResponse;
 }
@@ -137,7 +145,7 @@ export async function tryGetModelById(modelId: string): Promise<GetModelResponse
 	const apiKey = get(leonardo_key) as string;
 
 	if (lastApiKey !== apiKey) {
-		Object.keys(modelCache).forEach(key => delete modelCache[key]);
+		Object.keys(modelCache).forEach((key) => delete modelCache[key]);
 		lastApiKey = apiKey;
 	}
 
@@ -150,7 +158,7 @@ export async function tryGetModelById(modelId: string): Promise<GetModelResponse
 	}
 
 	// if we received null previously, we return null for max 10 seconds
-	if (cached && (now - cached.timestamp < 10000)) {
+	if (cached && now - cached.timestamp < 10000) {
 		return cached.response;
 	}
 
@@ -216,13 +224,15 @@ export async function uploadInitImage(horstFile: HorstFile): Promise<string> {
 
 	const uploadResponse = await corsProxyFetch(presignedData.uploadInitImage.url, {
 		method: 'POST',
-		body: formData,
+		body: formData
 	});
 
 	if (!uploadResponse.ok) {
 		const errorText = await uploadResponse.text();
 		console.error('Upload error:', errorText);
-		throw new Error(`Failed to upload image to S3: ${uploadResponse.status} ${uploadResponse.statusText}`);
+		throw new Error(
+			`Failed to upload image to S3: ${uploadResponse.status} ${uploadResponse.statusText}`
+		);
 	}
 
 	initImageCache[fileHash] = presignedData.uploadInitImage.id;
@@ -238,8 +248,7 @@ export async function getUserInfo(_apiKey?: string): Promise<UserInfo> {
 let elementsCache: ListElementsResponse | null = null;
 
 export async function listElements(): Promise<ListElementsResponse> {
-	if (elementsCache)
-		return elementsCache;
+	if (elementsCache) return elementsCache;
 
 	const response = await apiCall('/elements', 'GET');
 	elementsCache = response as ListElementsResponse;

@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	let innerWidth = browser ? window.innerWidth : 0;
-	let innerHeight =  browser ? window.innerHeight : 0;
+	let innerHeight = browser ? window.innerHeight : 0;
 
 	$: if (innerWidth < 768) {
 		isMobile.set(true);

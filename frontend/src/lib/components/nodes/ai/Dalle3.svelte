@@ -61,7 +61,7 @@
 				return;
 			}
 			lastOutputValue = null;
-			io.setOutputData('image_url', null);
+			io.setOutputDataDynamic('image_url', null);
 			try {
 				callbacks.setStatus('loading');
 
@@ -85,7 +85,7 @@
 				const response = await wrap(getOpenai().images.generate(request));
 				const dataUrl = 'data:image/webp;base64,' + response.data[0].b64_json;
 				lastOutputValue = dataUrl || null;
-				io.setOutputData('image_url', lastOutputValue);
+				io.setOutputDataDynamic('image_url', lastOutputValue);
 				callbacks.setStatus('success');
 			} catch (error: any) {
 				callbacks.setErrors(['Error calling DALL-E', error.message]);
@@ -93,7 +93,7 @@
 			}
 		} else {
 			callbacks.setStatus('idle');
-			io.setOutputData('image_url', null);
+			io.setOutputDataDynamic('image_url', null);
 			lastOutputValue = null;
 		}
 	};
@@ -182,7 +182,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	{#if lastOutputValue}
 		<img src={lastOutputValue} alt="Dalle3 Result" class="object-contain max-w-full max-h-full" />
 		<div class="flex justify-end mt-2 space-x-2">

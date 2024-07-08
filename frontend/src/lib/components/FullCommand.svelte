@@ -3,39 +3,30 @@
 	import { registeredNodes, type CustomNodeName, type RegisteredNode } from '@/nodes';
 	import { addNode, cn, getNodeColors } from '@/utils';
 	import { useSvelteFlow } from '@xyflow/svelte';
-	import { onMount } from 'svelte';
 	import { commandOpen, createNodeParams } from '..';
 
-	onMount(() => {
-		function handleKeydown(e: KeyboardEvent) {
-			// if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-			// 	e.preventDefault();
-			// 	commandOpen.update((prev) => !prev);
-			// }
-			const { activeElement } = document;
-			if (activeElement) {
-				if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
-					return;
-				}
-			}
-			if (e.code === 'Space') {
-				if (!$commandOpen) {
-					e.preventDefault();
-					commandOpen.set(true);
-				}
-			}
-			if (e.key === 'Escape') {
-				e.preventDefault();
-				commandOpen.set(false);
+	function handleKeydown(e: KeyboardEvent) {
+		// if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+		// 	e.preventDefault();
+		// 	commandOpen.update((prev) => !prev);
+		// }
+		const { activeElement } = document;
+		if (activeElement) {
+			if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+				return;
 			}
 		}
-
-		document.addEventListener('keydown', handleKeydown);
-
-		return () => {
-			document.removeEventListener('keydown', handleKeydown);
-		};
-	});
+		if (e.code === 'Space' && (e.metaKey || e.ctrlKey)) {
+			if (!$commandOpen) {
+				e.preventDefault();
+				commandOpen.set(true);
+			}
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			commandOpen.set(false);
+		}
+	}
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
@@ -68,6 +59,8 @@
 		return acc;
 	}, {});
 </script>
+
+<svelte:document on:keydown={handleKeydown} />
 
 <Command.Dialog bind:open={$commandOpen}>
 	<Command.Input placeholder="Search" />

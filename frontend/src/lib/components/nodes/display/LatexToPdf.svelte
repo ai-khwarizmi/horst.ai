@@ -42,7 +42,8 @@
 		nodeId: id,
 		inputs: [{ id: 'code', type: 'text', label: 'LaTeX code' }],
 		outputs: [],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
 	let lastCompiledCode: string | null = null;
@@ -112,7 +113,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	{#if cleanedLatexCode}
 		<div class="flex justify-end mt-2">
 			<button

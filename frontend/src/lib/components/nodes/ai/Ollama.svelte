@@ -63,7 +63,7 @@
 				lastExecutedValue = newValue;
 				lastOutputValue = null;
 				temporaryOutput = '';
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 
 				try {
 					callbacks.setStatus('loading');
@@ -107,7 +107,7 @@
 
 					if (lastExecutedValue === newValue) {
 						lastOutputValue = output;
-						io.setOutputData('response', lastOutputValue);
+						io.setOutputDataDynamic('response', lastOutputValue);
 						callbacks.setStatus('success');
 					}
 				} catch (error) {
@@ -129,14 +129,14 @@
 				if (lastOutputValue !== null) {
 					temporaryOutput = '';
 					lastOutputValue = null;
-					io.setOutputData('response', null);
+					io.setOutputDataDynamic('response', null);
 				}
 			}
 		} catch (error: any) {
 			callbacks.setErrors(['Error executing Ollama node', error.toString?.() || 'Unknown error']);
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 			}
 		}
 	};
@@ -244,7 +244,7 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	{#if temporaryOutput}
 		<p style="user-select: text; white-space: pre-wrap;">{temporaryOutput}</p>
 	{/if}

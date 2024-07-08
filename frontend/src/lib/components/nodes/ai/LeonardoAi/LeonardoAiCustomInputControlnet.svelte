@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { inputData, inputPlaceholderData } from '@/index';
+	import { inputData, inputDataPlaceholder } from '@/index';
 	import { type Input as InputType, type Output as OutputType } from '@/types';
 	import { afterUpdate } from 'svelte';
 	import { HorstFile } from '@/utils/horstfile';
@@ -12,7 +12,7 @@
 	export let nodeId: string;
 
 	$: currentValue = $inputData[nodeId]?.[base.id] as HorstFile[];
-	$: currentPlaceholderData = $inputPlaceholderData[nodeId]?.[base.id] as HorstFile[];
+	$: currentPlaceholderData = $inputDataPlaceholder[nodeId]?.[base.id] as HorstFile[];
 	$: currentlyUsingPlaceholderData = !!(currentValue && currentValue === currentPlaceholderData);
 
 	let imageUrl: string;
@@ -29,7 +29,7 @@
 		const file = target.files?.[0];
 		if (file) {
 			const horstFile = await HorstFile.fromFile(file);
-			nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, [horstFile]);
+			nodeIOHandlers[nodeId].setInputDataPlaceholder(base.id, [horstFile]);
 		}
 	};
 </script>
@@ -44,7 +44,7 @@
 				{#if currentlyUsingPlaceholderData}
 					<button
 						class="absolute top-[-10px] left-[-10px] text-red-500 font-bold py-0.5 px-1 text-xs transition-transform hover:scale-110"
-						on:click={() => nodeIOHandlers[nodeId].setInputPlaceholderData(base.id, null)}
+						on:click={() => nodeIOHandlers[nodeId].setInputDataPlaceholder(base.id, null)}
 					>
 						<XCircle class="w-4 h-4 bg-white rounded-full" />
 					</button>

@@ -10,7 +10,7 @@ const config = {
 			fallback: '200.html'
 		}),
 		alias: {
-			"@/*": "./src/lib/*",
+			'@/*': './src/lib/*'
 		},
 		paths: {
 			relative: false
