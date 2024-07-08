@@ -2,6 +2,7 @@ import TextDisplay from './components/nodes/text/TextDisplay.svelte';
 import TextInput from './components/nodes/text/TextInput.svelte';
 import ChatGpt from './components/nodes/ai/ChatGPT.svelte';
 import Dalle3 from './components/nodes/ai/Dalle3.svelte';
+import Perplexity from './components/nodes/ai/Perplexity.svelte';
 import LatexToPdf from './components/nodes/display/LatexToPdf.svelte';
 import { AlignLeft, CalendarCog, FileDigit, FileText, TextCursorInput } from 'lucide-svelte';
 import { NodeType } from './types';
@@ -46,6 +47,7 @@ function createIconComponent(
 const LeonardoIcon = createIconComponent('https://static.horst.ai/leonardoai-icon.webp');
 const OpenAiIcon = createIconComponent('https://static.horst.ai/openai-logomark.png');
 const Dalle3Icon = createIconComponent('https://static.horst.ai/openai-logomark.png');
+const PerplexityIcon = createIconComponent('https://static.horst.ai/pplx_icon.webp');
 const ClaudeIcon = createIconComponent('https://static.horst.ai/claude-icon.png');
 const GroqIcon = createIconComponent('https://static.horst.ai/groq-logo.png');
 const OllamaIcon = createIconComponent(
@@ -113,6 +115,12 @@ const nodes = {
 		name: 'DALL-E 3',
 		nodeType: NodeType.FUNCTION,
 		Icon: Dalle3Icon,
+		category: NodeCategory.AI
+	}),
+	perplexity: registerNode(Perplexity, {
+		name: 'Perplexity',
+		nodeType: NodeType.FUNCTION,
+		Icon: PerplexityIcon,
 		category: NodeCategory.AI
 	}),
 
