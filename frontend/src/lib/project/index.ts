@@ -1,20 +1,15 @@
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils/validate';
 import { FILE_VERSION } from '@/utils/version';
 import { toast } from 'svelte-sonner';
-import { edges, nodes, projectId, state, viewport } from '..';
-import { get, writable } from 'svelte/store';
-import { goto } from '$app/navigation';
-import {
-	getGraphFromLocalProject,
-	removeProjectFromLocalStorage,
-	removeSaveFileId,
-	resetLastProjectId,
-	saveToLocalStorage
-} from './local';
-import { connectToCloud } from './cloud';
-import { type CloudSaveFileFormat, type SaveFileFormat } from '@/types';
+import { edges, nodes, projectType, state, viewport } from '..';
+import { get } from 'svelte/store';
+import { _getGraphFromLocalStorage, _saveToLocalStorage } from './local';
+import { _connectToCloud, _saveToCloud, saveAsCloudProject } from './cloud';
+import { type CloudSaveFileFormat, type ProjectType, type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
+import { session } from '@/auth/Clerk';
+import { debounce } from 'lodash-es';
 
 export function getSaveData(
 	_includeData: boolean,
@@ -26,6 +21,7 @@ export function getSaveData(
 	const _state = get(state);
 
 	const object: SaveFileFormat = {
+		projectType: _state.projectType,
 		projectId: _state.projectId,
 		projectName: _state.projectName,
 		nodes: get(_state.nodes),
@@ -49,37 +45,57 @@ export function getSaveData(
 
 let loading = false;
 
-export const loadProjectByProjectId = async (_projectId?: string): Promise<void> => {
-	if (!_projectId) {
-		return;
-	}
-	const activeProjectId = get(projectId);
-	if (activeProjectId && activeProjectId === _projectId) {
-		return;
-	}
-	if (loading) {
-		return;
-	}
+export const loadCloudProject = async (projectId: string) => {
+	console.log('loading cloud project', projectId);
+	if (loading) return;
 	loading = true;
 	try {
-		if (_projectId.startsWith('local-')) {
-			const graph = getGraphFromLocalProject(_projectId);
-			if (!graph) {
-				removeSaveFileId(_projectId);
-				toast.error('Project not found: ' + _projectId);
-				goto('/');
-			} else loadFromGraph(graph);
-		} else {
-			await connectToCloud(_projectId);
-		}
+		await _connectToCloud(projectId, resetProject);
 	} catch (err) {
 		console.error(err);
 		toast.error('Failed to load project');
+		loading = false;
 	}
 	loading = false;
 };
 
+export const loadLocalProject = () => {
+	const graph = _getGraphFromLocalStorage();
+	if (!graph) {
+		return false;
+	} else {
+		console.log('loading local project', graph);
+		return loadFromGraph(graph);
+	}
+};
+
+const debouncedSaveProject = debounce(() => {
+	console.log(getSaveData(false, false));
+	const _projectType = get(projectType);
+	if (_projectType === 'LOCAL') {
+		console.log('saveProject: local');
+		_saveToLocalStorage();
+	} else if (_projectType === 'CLOUD') {
+		console.log('saveProject: cloud');
+		_saveToCloud();
+	} else {
+		console.log('Not saving. Project type is ', _projectType);
+	}
+}, 50);
+
+/*
+	this is the only function that should ever be called for saving the project
+	locally or cloud. (only exception is downloading a json file)
+*/
+export const saveProject = () => {
+	debouncedSaveProject();
+};
+
 function validateSaveFile(graph: SaveFileFormat): boolean {
+	if (graph.projectType !== 'LOCAL' && graph.projectType !== 'CLOUD') {
+		toast.error('Graph: Missing project type: ' + graph.projectType);
+		return false;
+	}
 	if (graph.version !== FILE_VERSION) {
 		toast.error('Graph: Version mismatch');
 		return false;
@@ -113,11 +129,9 @@ export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 		console.log('invalid graph', graph);
 		return false;
 	}
-
-	console.log('loading graph', graph);
-
 	state.update((state) => ({
 		...state,
+		projectType: graph.projectType,
 		projectId: graph.projectId,
 		projectName: graph.projectName,
 		nonce: (graph as CloudSaveFileFormat).nonce || 1,
@@ -136,46 +150,57 @@ export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 };
 
 export function deleteCurrentProject() {
+	throw 'this function doesnt appear to delete from the cloud yet, so shouldnt be used';
+	/*
 	const _projectId = get(projectId);
 	if (!_projectId) return;
 	resetProject();
 	goto('/');
-	if (_projectId.startsWith('local-')) {
-		removeProjectFromLocalStorage(_projectId);
-	}
+	*/
 }
 
-export const resetProject = (redirect = true) => {
-	console.log('resetting project');
-	state.set({
-		projectId: generateProjectId('local'),
-		projectName: '',
-		nodes: writable([]),
-		edges: writable([]),
-		viewport: writable({ x: 0, y: 0, zoom: 1 }),
-		inputDataPlaceholder: {},
-		inputData: {},
-		inputDataWithoutPlaceholder: {},
-		optionalInputsEnabled: {},
-		outputDataPlaceholder: {},
-		outputDataDynamic: {},
-		nonce: 0
+const resetProject = (projectType: ProjectType) => {
+	if (projectType === 'CLOUD') {
+		throw new Error(
+			'Cannot reset to cloud. Use UNINITIALIZED if you are preparing to connect to a cloud project'
+		);
+	}
+	const newId = generateProjectId(projectType);
+	state.update((state) => {
+		state.edges.set([]);
+		state.nodes.set([]);
+		state.viewport.set({ x: 0, y: 0, zoom: 1 });
+		return {
+			projectType: projectType,
+			projectId: newId,
+			projectName: '',
+			nodes: state.nodes,
+			edges: state.edges,
+			viewport: state.viewport,
+			inputDataPlaceholder: {},
+			inputData: {},
+			inputDataWithoutPlaceholder: {},
+			optionalInputsEnabled: {},
+			outputDataPlaceholder: {},
+			outputDataDynamic: {},
+			nonce: 0
+		};
 	});
-	resetLastProjectId();
-	if (redirect) goto('/');
 };
 
 export function createNewProject() {
-	console.log('creating new project');
-	const _projectId = generateProjectId('local');
-
-	resetProject();
-	state.update((state) => ({
-		...state,
-		projectId: _projectId
-	}));
-
-	saveToLocalStorage();
-	goto(`/project/${_projectId}`);
-	return _projectId;
+	if (get(session)) {
+		console.log('creating new project in cloud');
+		resetProject('CLOUD');
+		saveAsCloudProject();
+	} else {
+		console.log('creating new project in local');
+		console.log('creating new project');
+		resetProject('LOCAL');
+		_saveToLocalStorage();
+	}
 }
+
+export const saveProjectToLocalStorage = () => {
+	_saveToLocalStorage();
+};

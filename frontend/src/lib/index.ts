@@ -1,11 +1,9 @@
 import { type Edge, type Node, type XYPosition } from '@xyflow/svelte';
 import { derived, writable, type Writable } from 'svelte/store';
-import type { ConnectWith, State } from './types';
+import { type ConnectWith, type State } from './types';
 import { nodeIOHandlers } from './utils';
 import { debounce } from 'lodash-es';
-import { saveToCloud } from './project/cloud';
-import { saveToLocalStorage } from './project/local';
-import { generateProjectId } from './utils/projectId';
+import { saveProject } from './project';
 
 /*
 	There are 3 types of data:
@@ -20,8 +18,9 @@ import { generateProjectId } from './utils/projectId';
 	4. null
 */
 export const state: Writable<State> = writable({
+	projectType: 'UNINITIALIZED',
 	nonce: 0,
-	projectId: generateProjectId('local'),
+	projectId: '',
 	projectName: '',
 	nodes: writable([]),
 	edges: writable([]),
@@ -78,6 +77,9 @@ export const inputData = derived(state, ($state) => {
 export const inputDataWithoutPlaceholder = derived(state, ($state) => {
 	return $state.inputDataWithoutPlaceholder;
 });
+export const projectType = derived(state, ($state) => {
+	return $state.projectType;
+});
 
 export const projectStoreSaveable = derived(
 	state,
@@ -121,7 +123,7 @@ outputDataDynamic.subscribe(() => {
 });
 
 projectStoreSaveable.subscribe(() => {
-	saveToCloud();
+	saveProject();
 });
 
 let subscribedEdgeWritable: Writable<Edge[]> | null = null;
@@ -129,8 +131,28 @@ let unsubscribeEdge: () => void;
 let subscribedNodeWritable: Writable<Node[]> | null = null;
 let unsubscribeNode: () => void;
 
+let firstNodesWritable: any = null;
+let firstEdgesWritable: any = null;
 state.subscribe((state) => {
-	saveToLocalStorage();
+	if (!firstNodesWritable) {
+		firstNodesWritable = state.nodes;
+		firstEdgesWritable = state.edges;
+	} else {
+		if (firstNodesWritable !== state.nodes) {
+			console.error('before: ', firstNodesWritable);
+			console.error('after: ', state.nodes);
+			throw new Error('nodes writable changed. This should never happen');
+		}
+		if (firstEdgesWritable !== state.edges) {
+			console.error('before: ', firstEdgesWritable);
+			console.error('after: ', state.edges);
+			throw new Error('edges writable changed. This should never happen');
+		}
+	}
+});
+
+state.subscribe((state) => {
+	saveProject();
 
 	if (subscribedEdgeWritable !== state.edges) {
 		if (unsubscribeEdge) {
@@ -138,8 +160,7 @@ state.subscribe((state) => {
 		}
 		unsubscribeEdge = state.edges.subscribe(() => {
 			debouncedHandleChanges();
-			saveToLocalStorage();
-			saveToCloud();
+			saveProject();
 		});
 		subscribedEdgeWritable = state.edges;
 	}
@@ -149,8 +170,7 @@ state.subscribe((state) => {
 		}
 		unsubscribeNode = state.nodes.subscribe(() => {
 			debouncedHandleChanges();
-			saveToLocalStorage();
-			saveToCloud();
+			saveProject();
 		});
 		subscribedNodeWritable = state.nodes;
 	}

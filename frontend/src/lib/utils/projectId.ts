@@ -1,3 +1,4 @@
+import type { ProjectType } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 type Prefix = 'local' | undefined;
@@ -7,14 +8,15 @@ type Prefix = 'local' | undefined;
  * The generated ID will be prefixed with either local or an empty string, depending on
  * whether it was generated on the client or server.
  */
-export function generateProjectId(prefix: Prefix): string {
-	if (prefix !== 'local' && prefix !== undefined) {
-		throw new Error('Invalid prefix');
+export function generateProjectId(projectType: ProjectType): string {
+	if (projectType !== 'LOCAL' && projectType !== 'CLOUD') {
+		return '';
 	}
-	if (prefix) {
-		return `${prefix}-${uuidv4()}`;
+	if (projectType === 'LOCAL') {
+		return `local-${uuidv4()}`;
 	} else {
-		return uuidv4();
+		//will be replaced with the actual cloud project ID generated in backend
+		return `temporary`;
 	}
 }
 

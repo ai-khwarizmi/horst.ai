@@ -182,7 +182,10 @@ export type Output<TNodeID extends string> = BaseIO<TNodeID>;
 import type { Node, Edge, Viewport } from '@xyflow/svelte';
 import type { Writable } from 'svelte/store';
 
+export type ProjectType = 'LOCAL' | 'CLOUD' | 'UNINITIALIZED';
+
 export type State = {
+	projectType: ProjectType;
 	nonce: number;
 	projectId: string;
 	projectName: string;
@@ -200,6 +203,7 @@ export type State = {
 };
 
 export type SaveableState = {
+	projectType: ProjectType;
 	projectId: string;
 	projectName: string;
 	nodes: Node[];

@@ -29,9 +29,7 @@
 	import { projectName } from '$lib';
 	import { commandOpen } from '$lib';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/project/file';
-	import { getGraphFromLocalProject, localProjectIds } from '@/project/local';
 	import { openProjectSettings } from './ProjectSettings.svelte';
-	import { openRecentPopup } from './popups/OpenRecentPopup.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 
 	export let projectId: string | undefined;
@@ -42,14 +40,6 @@
 			e.preventDefault();
 		}
 	}
-
-	$: projects = $localProjectIds.map((id) => {
-		const project = getGraphFromLocalProject(id);
-		return {
-			id,
-			name: project?.projectName || 'Untitled'
-		};
-	});
 </script>
 
 <svelte:window on:keypress={handleKeydown} />
@@ -124,6 +114,8 @@
 					<DropdownMenu.Label>Cloud</DropdownMenu.Label>
 					<DropdownMenu.Item disabled>No recent files</DropdownMenu.Item>
 					<DropdownMenu.Label class="flex justify-between">Local</DropdownMenu.Label>
+					<!--
+					re-add once we have cloud list of projects
 					{#each projects.slice(0, 5) as project}
 						<DropdownMenu.Item href="/project/{project.id}">
 							{project.name}
@@ -132,10 +124,8 @@
 					{#if projects.length == 0}
 						<DropdownMenu.Item disabled>No recent files</DropdownMenu.Item>
 					{/if}
+					-->
 					<DropdownMenu.Separator />
-					{#if projects.length > 5}
-						<DropdownMenu.Item on:click={openRecentPopup}>See all</DropdownMenu.Item>
-					{/if}
 				</DropdownMenu.SubContent>
 			</DropdownMenu.Sub>
 			{#if usesClerk && (!projectId || projectId.startsWith('local'))}

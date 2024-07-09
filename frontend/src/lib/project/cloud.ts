@@ -2,10 +2,10 @@ import { goto } from '$app/navigation';
 import { clerk } from '@/auth/Clerk';
 import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
-import { getSaveData, loadFromGraph, resetProject } from '.';
+import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, state } from '..';
-import type { CloudSaveFileFormat } from '@/types';
+import type { CloudSaveFileFormat, ProjectType } from '@/types';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -16,10 +16,13 @@ export const socketId = writable<number>(-1);
 export const saveAsCloudProject = async () => {
 	const clerkClient = get(clerk);
 	const token = await clerkClient?.session?.getToken();
+
 	const saveData = getSaveData(true, false);
+
 	const cloudSave: CloudSaveFileFormat = {
 		nonce: get(nonce),
-		...saveData.graph
+		...saveData.graph,
+		projectType: 'CLOUD'
 	};
 
 	const data = await fetch(`${API_HOST.toString()}project/new`, {
@@ -34,13 +37,20 @@ export const saveAsCloudProject = async () => {
 			console.error(err);
 			toast.error('failed to save to cloud');
 		});
-	if (data) goto(`/project/${data.id}`);
+
+	if (data) {
+		state.update((s) => ({
+			...s,
+			projectId: data.id
+		}));
+		goto(`/project/${data.id}`);
+	}
 };
 
 let webSocket: WebSocket | null = null;
 let hasWritePermission = false;
 
-export const disconnectFromCloud = async () => {
+const disconnectFromCloud = async () => {
 	if (webSocket) {
 		webSocket.close();
 		webSocket = null;
@@ -92,7 +102,8 @@ let lastUpdateTime = Date.now();
 
 const UPDATE_DEBOUNCE_TIME = 1000;
 const MAX_UPDATE_INTERVAL = 30000;
-export function saveToCloud() {
+
+export function _saveToCloud() {
 	const now = Date.now();
 	const timeSinceLastUpdate = now - lastUpdateTime;
 	if (updateTimeout) {
@@ -109,8 +120,16 @@ export function saveToCloud() {
 	}
 }
 
-export const connectToCloud = (projectId: string) => {
-	resetProject(false);
+export const _connectToCloud = (
+	projectId: string,
+	resetProject: (projectType: ProjectType) => void
+) => {
+	//reset project, set it to UNINITIALIZED
+	resetProject('UNINITIALIZED');
+	state.update((s) => ({
+		...s,
+		projectId: projectId
+	}));
 	disconnectFromCloud();
 	return new Promise<true>((resolve) => {
 		webSocket = new WebSocket(`${WS_HOST.toString()}project/${projectId}`);
@@ -144,7 +163,12 @@ export const connectToCloud = (projectId: string) => {
 				const graph: CloudSaveFileFormat = data.data;
 				const locallyStoredNonce = get(nonce);
 
-				console.log('loading graph!!!', graph.nonce, locallyStoredNonce);
+				console.log(
+					'loading graph that we received from the cloud',
+					graph.nonce,
+					locallyStoredNonce,
+					graph
+				);
 				loadFromGraph(graph);
 				lastSentData = getSaveData(true, false).stringifiedGraph;
 			} else if (data.type === 'write') {
@@ -161,7 +185,7 @@ export const connectToCloud = (projectId: string) => {
 
 			// auto reconnect
 			setTimeout(() => {
-				connectToCloud(projectId);
+				_connectToCloud(projectId, resetProject);
 			}, 3000);
 		};
 		webSocket.onerror = () => {

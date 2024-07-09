@@ -29,27 +29,27 @@
 	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
 	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
 	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
-	import { anthropic_key, openai_key } from '@/apikeys';
 	import SaveFilePopup from './popups/SaveFilePopup.svelte';
 	import { cn } from '$lib/utils';
-	import { loadProjectByProjectId } from '@/project';
 	import OpenFilePopup from './popups/OpenFilePopup.svelte';
-	import OpenRecentPopup from './popups/OpenRecentPopup.svelte';
 	import VersionChangePopup from './popups/VersionChangePopup.svelte';
 	import CustomEdge from './CustomEdge.svelte';
+	import { createNewProject, loadCloudProject, loadLocalProject } from '@/project';
+	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
 
 	export let projectId: string | undefined = undefined;
 
-	$: loadProjectByProjectId(projectId);
-
 	onMount(async () => {
-		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
-		if (existingOpenaiApiKey) {
-			openai_key.set(existingOpenaiApiKey);
-		}
-		const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
-		if (existingAnthropicApiKey) {
-			anthropic_key.set(existingAnthropicApiKey);
+		if (projectId) {
+			console.log('main on mount: loading cloud project', projectId);
+			loadCloudProject(projectId);
+		} else {
+			console.log('main on mount: loading local project');
+			const result = loadLocalProject();
+			if (!result) {
+				console.log('main on mount: creating new project because no local project found');
+				createNewProject();
+			}
 		}
 	});
 
@@ -94,8 +94,8 @@
 	<ProjectSettings />
 	<NewFilePopup />
 	<VersionChangePopup />
+	<RecentCloudProjects />
 	<OpenFilePopup />
-	<OpenRecentPopup />
 	<SaveFilePopup />
 	<SvelteFlow
 		nodes={$state.nodes}
