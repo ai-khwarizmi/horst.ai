@@ -124,7 +124,10 @@ function validateSaveFile(graph: SaveFileFormat): boolean {
 	return true;
 }
 
-export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
+export const loadFromGraph = (
+	graph: SaveFileFormat | CloudSaveFileFormat,
+	skipViewport: boolean = false
+) => {
 	if (!validateSaveFile(graph)) {
 		console.log('invalid graph', graph);
 		return false;
@@ -144,7 +147,9 @@ export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 	}));
 	get(nodes).set(graph.nodes);
 	get(edges).set(graph.edges);
-	get(viewport).set(graph.viewport);
+	if (!skipViewport) {
+		get(viewport).set(graph.viewport);
+	}
 
 	return true;
 };

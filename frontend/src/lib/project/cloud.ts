@@ -4,7 +4,7 @@ import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
-import { nonce, state } from '..';
+import { nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType } from '@/types';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
@@ -169,7 +169,11 @@ export const _connectToCloud = (
 					locallyStoredNonce,
 					graph
 				);
-				loadFromGraph(graph);
+				const currentProjectType = get(projectType);
+				const currentProjectId = get(state).projectId;
+				const isCurrentLoadedProject =
+					graph.projectType === currentProjectType && graph.projectId === currentProjectId;
+				loadFromGraph(graph, isCurrentLoadedProject);
 				lastSentData = getSaveData(true, false).stringifiedGraph;
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
