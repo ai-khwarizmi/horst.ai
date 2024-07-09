@@ -85,7 +85,7 @@
 							callbacks.setStatus('success');
 						}
 					} else {
-						const data = await response.json();
+						const data = await wrap(response.json());
 						const output = data.choices[0].message.content;
 
 						if (lastExecutedValue === newValue) {
@@ -105,7 +105,10 @@
 				}
 			}
 		} catch (error: any) {
-			callbacks.setErrors(['Error executing Perplexity node', error.toString?.() || 'Unknown error']);
+			callbacks.setErrors([
+				'Error executing Perplexity node',
+				error.toString?.() || 'Unknown error'
+			]);
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
 				temporaryOutput = '';

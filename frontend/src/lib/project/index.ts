@@ -1,13 +1,7 @@
 import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils/validate';
 import { FILE_VERSION } from '@/utils/version';
 import { toast } from 'svelte-sonner';
-import {
-	edges,
-	nodes,
-	projectId,
-	state,
-	viewport
-} from '..';
+import { edges, nodes, projectId, state, viewport } from '..';
 import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import {
@@ -21,7 +15,6 @@ import { connectToCloud } from './cloud';
 import { type CloudSaveFileFormat, type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
-
 
 export function getSaveData(
 	_includeData: boolean,
@@ -41,7 +34,7 @@ export function getSaveData(
 		version: FILE_VERSION,
 		optionalInputsEnabled: _state.optionalInputsEnabled,
 		outputDataPlaceholder: _state.outputDataPlaceholder,
-		inputDataPlaceholder: _state.inputDataPlaceholder,
+		inputDataPlaceholder: _state.inputDataPlaceholder
 	};
 
 	const stringifiedGraph = includeFileData
@@ -86,7 +79,6 @@ export const loadProjectByProjectId = async (_projectId?: string): Promise<void>
 	loading = false;
 };
 
-
 function validateSaveFile(graph: SaveFileFormat): boolean {
 	if (graph.version !== FILE_VERSION) {
 		toast.error('Graph: Version mismatch');
@@ -114,7 +106,6 @@ function validateSaveFile(graph: SaveFileFormat): boolean {
 	}
 
 	return true;
-
 }
 
 export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
@@ -124,7 +115,6 @@ export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 	}
 
 	console.log('loading graph', graph);
-
 
 	state.update((state) => ({
 		...state,
@@ -136,7 +126,7 @@ export const loadFromGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
 		outputDataPlaceholder: graph.outputDataPlaceholder,
 		outputDataDynamic: {},
 		inputData: {},
-		inputDataWithoutPlaceholder: {},
+		inputDataWithoutPlaceholder: {}
 	}));
 	get(nodes).set(graph.nodes);
 	get(edges).set(graph.edges);

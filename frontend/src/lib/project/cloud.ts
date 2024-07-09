@@ -20,7 +20,7 @@ export const saveAsCloudProject = async () => {
 	const cloudSave: CloudSaveFileFormat = {
 		nonce: get(nonce),
 		...saveData.graph
-	}
+	};
 
 	const data = await fetch(`${API_HOST.toString()}project/new`, {
 		method: 'POST',
@@ -66,7 +66,7 @@ async function sendUpdate() {
 	const saveDataCloud: CloudSaveFileFormat = {
 		nonce: get(nonce) + 1,
 		...saveData.graph
-	}
+	};
 
 	state.update((s) => ({
 		...s,
@@ -120,7 +120,7 @@ export const connectToCloud = (projectId: string) => {
 			const c = get(clerk);
 			const token = await c?.session?.getToken();
 			if (token) {
-				console.log('sending auth token...')
+				console.log('sending auth token...');
 				webSocket?.send(
 					JSON.stringify({
 						type: 'auth',
@@ -158,7 +158,6 @@ export const connectToCloud = (projectId: string) => {
 			toast.error('disconnected from server', {
 				duration: 60000
 			});
-
 
 			// auto reconnect
 			setTimeout(() => {

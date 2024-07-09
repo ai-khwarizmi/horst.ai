@@ -1,5 +1,5 @@
 import { fullSuperJSON } from '@/utils/horstfile';
-import { getSaveData, loadFromGraph, } from '.';
+import { getSaveData, loadFromGraph } from '.';
 import { toast } from 'svelte-sonner';
 import type { SaveFileFormat } from '@/types';
 

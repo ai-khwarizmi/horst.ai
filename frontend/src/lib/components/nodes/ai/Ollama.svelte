@@ -91,7 +91,7 @@
 
 					let output = '';
 					while (true) {
-						const { done, value } = await reader.read();
+						const { done, value } = await wrap(reader.read());
 						if (done) break;
 						const chunk = new TextDecoder().decode(value);
 						const lines = chunk.split('\n');

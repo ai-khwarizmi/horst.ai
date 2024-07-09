@@ -39,7 +39,7 @@ export const state: Writable<State> = writable({
 		These are computed based on the waterfall above.
 	*/
 	inputData: {} as Record<string, Record<string, any>>,
-	inputDataWithoutPlaceholder: {} as Record<string, Record<string, any>>,
+	inputDataWithoutPlaceholder: {} as Record<string, Record<string, any>>
 });
 
 export const outputDataDynamic = derived(state, ($state) => {
@@ -79,27 +79,30 @@ export const inputDataWithoutPlaceholder = derived(state, ($state) => {
 	return $state.inputDataWithoutPlaceholder;
 });
 
-export const projectStoreSaveable = derived(state, ({
-	nonce,
-	projectId,
-	projectName,
-	nodes,
-	edges,
-	viewport,
-	optionalInputsEnabled,
-	outputDataPlaceholder,
-	inputDataPlaceholder,
-}) => ({
-	nonce,
-	projectId,
-	projectName,
-	nodes,
-	edges,
-	viewport,
-	optionalInputsEnabled,
-	outputDataPlaceholder,
-	inputDataPlaceholder,
-}));
+export const projectStoreSaveable = derived(
+	state,
+	({
+		nonce,
+		projectId,
+		projectName,
+		nodes,
+		edges,
+		viewport,
+		optionalInputsEnabled,
+		outputDataPlaceholder,
+		inputDataPlaceholder
+	}) => ({
+		nonce,
+		projectId,
+		projectName,
+		nodes,
+		edges,
+		viewport,
+		optionalInputsEnabled,
+		outputDataPlaceholder,
+		inputDataPlaceholder
+	})
+);
 
 export const commandOpen = writable(false);
 export const createNodeParams = writable<{
@@ -120,7 +123,6 @@ outputDataDynamic.subscribe(() => {
 projectStoreSaveable.subscribe(() => {
 	saveToCloud();
 });
-
 
 let subscribedEdgeWritable: Writable<Edge[]> | null = null;
 let unsubscribeEdge: () => void;

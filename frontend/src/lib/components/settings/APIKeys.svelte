@@ -46,13 +46,12 @@
 		return true;
 	}
 
-
 	async function validatePerplexity(key: string) {
 		const response = await fetch('https://api.perplexity.ai/chat/completions', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${key}`
+				Authorization: `Bearer ${key}`
 			},
 			body: JSON.stringify({
 				model: 'mistral-7b-instruct',
@@ -67,8 +66,6 @@
 
 		return true;
 	}
-
-
 </script>
 
 <Sheet.Root bind:open={$open}>

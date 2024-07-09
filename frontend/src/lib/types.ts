@@ -22,19 +22,19 @@ export type NodeValueType = RawNodeValueType | ArrayNodeValueType;
 
 export type NodeValueTypeConverted<T extends NodeValueType> = T extends ArrayNodeValueType
 	? T extends 'text[]'
-	? string[]
-	: T extends 'number[]'
-	? number[]
-	: T extends 'boolean[]'
-	? boolean[]
-	: any[]
+		? string[]
+		: T extends 'number[]'
+			? number[]
+			: T extends 'boolean[]'
+				? boolean[]
+				: any[]
 	: T extends 'text'
-	? string
-	: T extends 'number'
-	? number
-	: T extends 'boolean'
-	? boolean
-	: any;
+		? string
+		: T extends 'number'
+			? number
+			: T extends 'boolean'
+				? boolean
+				: any;
 
 type SuccessValidationResult<T> = {
 	success: true;
@@ -43,9 +43,9 @@ type SuccessValidationResult<T> = {
 type ValidationResult<T> =
 	| SuccessValidationResult<T>
 	| {
-		success: false;
-		error: string;
-	};
+			success: false;
+			error: string;
+	  };
 
 function isString(value: unknown): value is string {
 	return typeof value === 'string';
@@ -124,9 +124,9 @@ export const SPECIAL_ERRORS = {
 export type NodeError =
 	| string
 	| {
-		message: string;
-		resolve?: () => void;
-	};
+			message: string;
+			resolve?: () => void;
+	  };
 export type NodeStatusWithoutError = 'idle' | 'loading' | 'success';
 export type NodeStatus = NodeStatusWithoutError | 'error';
 export type OnExecuteCallbacks = {
@@ -209,12 +209,12 @@ export type SaveableState = {
 
 	outputDataPlaceholder: Record<string, Record<string, any>>;
 	inputDataPlaceholder: Record<string, Record<string, any>>;
-}
+};
 
 export type SaveFileFormat = SaveableState & {
 	version: string;
-}
+};
 
 export type CloudSaveFileFormat = SaveFileFormat & {
 	nonce: number;
-}
+};
