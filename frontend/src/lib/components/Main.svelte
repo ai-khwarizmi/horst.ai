@@ -38,6 +38,7 @@
 	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
+	import { saveAsCloudProject } from '@/project/cloud';
 
 	export let projectId: string | undefined = undefined;
 
@@ -60,7 +61,12 @@
 					recentProjectsOpen.set(true);
 				}
 			} else {
-				console.log('[MAIN onMount] loading local project');
+				if (get(session)) {
+					console.log('[MAIN onMount] saving local project to cloud because user is logged in');
+					saveAsCloudProject();
+				} else {
+					console.log('[MAIN onMount] loading local project');
+				}
 			}
 		}
 	});
