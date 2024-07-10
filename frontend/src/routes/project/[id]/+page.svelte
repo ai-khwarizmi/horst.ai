@@ -1,8 +1,21 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import Main from '@/components/Main.svelte';
+	import { onMount } from 'svelte';
 
-	$: projectId = $page.params.id;
+	let loaded = false;
+	let projectId: string | undefined;
+
+	$: {
+		projectId = $page.params.id;
+	}
+
+	onMount(() => {
+		projectId = $page.params.id;
+		loaded = true;
+	});
 </script>
 
-<Main {projectId}></Main>
+{#if loaded}
+	<Main {projectId} />
+{/if}
