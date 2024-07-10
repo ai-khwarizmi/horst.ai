@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { commandOpen, createNodeParams, recentProjectsOpen, state } from '$lib';
+	import { commandOpen, createNodeParams, nodes, recentProjectsOpen, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -34,7 +34,7 @@
 	import OpenFilePopup from './popups/OpenFilePopup.svelte';
 	import VersionChangePopup from './popups/VersionChangePopup.svelte';
 	import CustomEdge from './CustomEdge.svelte';
-	import { createNewProject, loadCloudProject, loadLocalProject } from '@/project';
+	import { createNewProject, loadCloudProject, loadLocalProject, resetProject } from '@/project';
 	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
@@ -62,8 +62,16 @@
 				}
 			} else {
 				if (get(session)) {
-					console.log('[MAIN onMount] saving local project to cloud because user is logged in');
-					saveAsCloudProject();
+					if (get(get(nodes)).length > 0) {
+						console.log('[MAIN onMount] saving local project to cloud because user is logged in');
+						saveAsCloudProject();
+					} else {
+						console.log(
+							'[MAIN onMount] loading local project. Doesnt have any nodes or edges so will just show recents'
+						);
+						resetProject('UNINITIALIZED');
+						recentProjectsOpen.set(true);
+					}
 				} else {
 					console.log('[MAIN onMount] loading local project');
 				}

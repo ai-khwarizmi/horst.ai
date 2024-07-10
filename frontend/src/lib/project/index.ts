@@ -160,7 +160,7 @@ export function deleteCurrentProject() {
 	*/
 }
 
-const resetProject = (projectType: ProjectType, newNodes: Node[] = []) => {
+export const resetProject = (projectType: ProjectType, newNodes: Node[] = []) => {
 	if (projectType === 'CLOUD') {
 		throw new Error(
 			'Cannot reset to cloud. Use UNINITIALIZED if you are preparing to connect to a cloud project'
