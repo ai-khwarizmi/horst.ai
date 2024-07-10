@@ -1,16 +1,10 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { writable } from 'svelte/store';
 	import Button from '../ui/button/button.svelte';
 	import type { CloudSaveFileFormat } from '@/types';
 	import { onMount } from 'svelte';
 	import { createNewProject } from '@/project';
-
-	let recentProjectsOpen = writable(false);
-
-	export const openRecentProjectsPopup = () => {
-		recentProjectsOpen.set(true);
-	};
+	import { recentProjectsOpen } from '@/index';
 
 	let recentProjects: CloudSaveFileFormat[] = [];
 

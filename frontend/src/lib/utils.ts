@@ -9,6 +9,7 @@ import {
 	optionalInputsEnabled,
 	outputDataDynamic,
 	outputDataPlaceholder,
+	projectType,
 	state
 } from '$lib';
 import { type XYPosition } from '@xyflow/svelte';
@@ -32,6 +33,7 @@ import {
 	Observable,
 	firstValueFrom
 } from 'rxjs';
+import { createNewProject } from './project';
 
 export const getNodeColors = (
 	type: NodeType
@@ -441,7 +443,7 @@ export const flyAndScale = (
 	};
 };
 
-export const addNode = (
+export const addNode = async (
 	type: CustomNodeName,
 	pos: XYPosition,
 	connectWith?: {
@@ -449,6 +451,7 @@ export const addNode = (
 		handle: string;
 	}
 ) => {
+	console.log('adding new node', type);
 	const node = {
 		id: Math.random().toString(36).substr(2, 9),
 		type,
@@ -458,15 +461,19 @@ export const addNode = (
 		selected: true,
 		position: pos
 	};
-
-	get(state).nodes.update((nodes) => {
-		const updatedNodes = nodes.map((prev) => ({
-			...prev,
-			selected: false
-		}));
-		updatedNodes.push(node);
-		return updatedNodes;
-	});
+	if (get(projectType) === 'UNINITIALIZED') {
+		console.log('node being added, but projet is not initialized');
+		await createNewProject([node]);
+	} else {
+		get(state).nodes.update((nodes) => {
+			const updatedNodes = nodes.map((prev) => ({
+				...prev,
+				selected: false
+			}));
+			updatedNodes.push(node);
+			return updatedNodes;
+		});
+	}
 
 	return node;
 };

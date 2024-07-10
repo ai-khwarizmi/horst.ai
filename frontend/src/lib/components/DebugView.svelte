@@ -4,20 +4,19 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import Button from './ui/button/button.svelte';
-	import { addNode } from '@/utils';
 	import Input from './ui/input/input.svelte';
 	import Label from './ui/label/label.svelte';
 	import { edges, nodes, projectId, projectName } from '..';
-	import type { Node } from '@xyflow/svelte';
 	import { get } from 'svelte/store';
 
 	$: open = browser && $page.url.searchParams.has('debug');
 
-	const PER_LAYER = 10;
-	const HEIGHT = 175;
+	//const PER_LAYER = 10;
+	//const HEIGHT = 175;
 	let stressLevel = 0;
 
 	const stressTest = () => {
+		/*
 		const input = addNode('textInput', { x: 0, y: 0 });
 		const transforms: Node[] = [];
 		for (let i = 0; i < stressLevel; i++) {
@@ -64,6 +63,7 @@
 			});
 			return e;
 		});
+		*/
 	};
 </script>
 

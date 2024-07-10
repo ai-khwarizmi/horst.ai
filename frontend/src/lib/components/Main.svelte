@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { commandOpen, createNodeParams, state } from '$lib';
+	import { commandOpen, createNodeParams, recentProjectsOpen, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -36,19 +36,31 @@
 	import CustomEdge from './CustomEdge.svelte';
 	import { createNewProject, loadCloudProject, loadLocalProject } from '@/project';
 	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
+	import { get } from 'svelte/store';
+	import { session } from '@/auth/Clerk';
 
 	export let projectId: string | undefined = undefined;
 
 	onMount(async () => {
 		if (projectId) {
-			console.log('main on mount: loading cloud project', projectId);
+			console.log('[MAIN onMount] loading cloud project', projectId);
 			loadCloudProject(projectId);
 		} else {
-			console.log('main on mount: loading local project');
 			const result = loadLocalProject();
 			if (!result) {
-				console.log('main on mount: creating new project because no local project found');
-				createNewProject();
+				if (!get(session)) {
+					console.log(
+						'[MAIN onMount] we didnt find a local project. User not logged in so creating new project'
+					);
+					createNewProject();
+				} else {
+					console.log(
+						'[MAIN onMount] we didnt find a local project. User logged in so we will show recents'
+					);
+					recentProjectsOpen.set(true);
+				}
+			} else {
+				console.log('[MAIN onMount] loading local project');
 			}
 		}
 	});

@@ -31,3 +31,7 @@ export const _saveToLocalStorage = () => {
 		throw new Error('Not storing project in localstorage: ' + graph.graph.projectType);
 	}
 };
+
+export const resetLocalProject = () => {
+	window.localStorage.removeItem(LOCALSTORAGE_SAVE_KEY);
+};

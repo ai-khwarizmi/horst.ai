@@ -10,6 +10,7 @@ import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
 import { session } from '@/auth/Clerk';
 import { debounce } from 'lodash-es';
+import type { Node } from '@xyflow/svelte';
 
 export function getSaveData(
 	_includeData: boolean,
@@ -46,7 +47,6 @@ export function getSaveData(
 let loading = false;
 
 export const loadCloudProject = async (projectId: string) => {
-	console.log('loading cloud project', projectId);
 	if (loading) return;
 	loading = true;
 	try {
@@ -70,16 +70,13 @@ export const loadLocalProject = () => {
 };
 
 const debouncedSaveProject = debounce(() => {
-	console.log(getSaveData(false, false));
 	const _projectType = get(projectType);
 	if (_projectType === 'LOCAL') {
-		console.log('saveProject: local');
+		console.log('[SAVING] local');
 		_saveToLocalStorage();
 	} else if (_projectType === 'CLOUD') {
-		console.log('saveProject: cloud');
+		console.log('[SAVING] cloud');
 		_saveToCloud();
-	} else {
-		console.log('Not saving. Project type is ', _projectType);
 	}
 }, 50);
 
@@ -93,7 +90,6 @@ export const saveProject = () => {
 
 function validateSaveFile(graph: SaveFileFormat): boolean {
 	if (graph.projectType !== 'LOCAL' && graph.projectType !== 'CLOUD') {
-		toast.error('Graph: Missing project type: ' + graph.projectType);
 		return false;
 	}
 	if (graph.version !== FILE_VERSION) {
@@ -164,7 +160,7 @@ export function deleteCurrentProject() {
 	*/
 }
 
-const resetProject = (projectType: ProjectType) => {
+const resetProject = (projectType: ProjectType, newNodes: Node[] = []) => {
 	if (projectType === 'CLOUD') {
 		throw new Error(
 			'Cannot reset to cloud. Use UNINITIALIZED if you are preparing to connect to a cloud project'
@@ -173,7 +169,7 @@ const resetProject = (projectType: ProjectType) => {
 	const newId = generateProjectId(projectType);
 	state.update((state) => {
 		state.edges.set([]);
-		state.nodes.set([]);
+		state.nodes.set(newNodes);
 		state.viewport.set({ x: 0, y: 0, zoom: 1 });
 		return {
 			projectType: projectType,
@@ -193,15 +189,15 @@ const resetProject = (projectType: ProjectType) => {
 	});
 };
 
-export function createNewProject() {
+export async function createNewProject(newNodes: Node[] = []) {
 	if (get(session)) {
 		console.log('creating new project in cloud');
-		resetProject('CLOUD');
-		saveAsCloudProject();
+		resetProject('UNINITIALIZED', newNodes);
+		await saveAsCloudProject(true);
+		console.log('Done!!!!! creating new project in cloud');
 	} else {
 		console.log('creating new project in local');
-		console.log('creating new project');
-		resetProject('LOCAL');
+		resetProject('LOCAL', newNodes);
 		_saveToLocalStorage();
 	}
 }

@@ -1,4 +1,4 @@
-import { goto } from '$app/navigation';
+import { replaceState } from '$app/navigation';
 import { clerk } from '@/auth/Clerk';
 import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
@@ -6,6 +6,7 @@ import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType } from '@/types';
+import { resetLocalProject } from './local';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -13,7 +14,9 @@ WS_HOST.protocol = WS_HOST.protocol === 'https:' ? 'wss:' : 'ws:';
 
 export const socketId = writable<number>(-1);
 
-export const saveAsCloudProject = async () => {
+let loadCallbacks: Array<{ resolve: () => void; reject: (reason?: any) => void }> = [];
+
+export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 	const clerkClient = get(clerk);
 	const token = await clerkClient?.session?.getToken();
 
@@ -39,11 +42,24 @@ export const saveAsCloudProject = async () => {
 		});
 
 	if (data) {
+		console.log('Created new project with id: ', data.id);
 		state.update((s) => ({
 			...s,
-			projectId: data.id
+			projectId: data.id,
+			nonce: get(nonce) + 1
 		}));
-		goto(`/project/${data.id}`);
+		replaceState(`/project/${data.id}`, { replace: true });
+		resetLocalProject();
+
+		_connectToCloud(data.id, resetLocalProject);
+		if (awaitLoading) {
+			console.log('awaiting loading...');
+			return new Promise<void>((resolve, reject) => {
+				loadCallbacks.push({ resolve, reject });
+			});
+		}
+	} else {
+		throw new Error('failed to save to cloud');
 	}
 };
 
@@ -55,6 +71,10 @@ const disconnectFromCloud = async () => {
 		webSocket.close();
 		webSocket = null;
 	}
+
+	// Reject all pending promises
+	loadCallbacks.forEach(({ reject }) => reject(new Error('Disconnected from websocket')));
+	loadCallbacks = [];
 };
 
 let lastSentData: any | null = null;
@@ -62,15 +82,20 @@ let canSendData: boolean = false;
 
 async function sendUpdate() {
 	if (!canSendData) {
-		console.log('skipping update. Not ready to send');
+		console.log('cannot send data!');
 		return;
+	} else {
+		console.log('can send data!');
 	}
 	const saveData = getSaveData(true, false);
 	const dataString = saveData.stringifiedGraph;
 
 	if (dataString === lastSentData) {
-		console.log('skipping update. Equal to remote');
 		return;
+	} else {
+		console.log('data changed!');
+		console.log(dataString);
+		console.log(lastSentData);
 	}
 
 	const saveDataCloud: CloudSaveFileFormat = {
@@ -83,7 +108,6 @@ async function sendUpdate() {
 		nonce: s.nonce + 1
 	}));
 
-	console.log('sending update', get(nonce));
 	if (webSocket?.readyState === WebSocket.OPEN) {
 		if (hasWritePermission) {
 			webSocket.send(
@@ -125,6 +149,7 @@ export const _connectToCloud = (
 	resetProject: (projectType: ProjectType) => void
 ) => {
 	//reset project, set it to UNINITIALIZED
+	canSendData = false;
 	resetProject('UNINITIALIZED');
 	state.update((s) => ({
 		...s,
@@ -135,11 +160,10 @@ export const _connectToCloud = (
 		webSocket = new WebSocket(`${WS_HOST.toString()}project/${projectId}`);
 		hasWritePermission = false;
 		webSocket.onopen = async () => {
-			toast.info('Loading project from cloud...');
+			//toast.info('Loading project from cloud...');
 			const c = get(clerk);
 			const token = await c?.session?.getToken();
 			if (token) {
-				console.log('sending auth token...');
 				webSocket?.send(
 					JSON.stringify({
 						type: 'auth',
@@ -158,27 +182,26 @@ export const _connectToCloud = (
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
-				canSendData = true;
+				console.log('project', data);
 
 				const graph: CloudSaveFileFormat = data.data;
-				const locallyStoredNonce = get(nonce);
-
-				console.log(
-					'loading graph that we received from the cloud',
-					graph.nonce,
-					locallyStoredNonce,
-					graph
-				);
 				const currentProjectType = get(projectType);
 				const currentProjectId = get(state).projectId;
 				const isCurrentLoadedProject =
 					graph.projectType === currentProjectType && graph.projectId === currentProjectId;
+
 				loadFromGraph(graph, isCurrentLoadedProject);
 				lastSentData = getSaveData(true, false).stringifiedGraph;
+
+				console.log('resolving promises, num: ', loadCallbacks.length);
+				loadCallbacks.forEach(({ resolve }) => resolve());
+				loadCallbacks = [];
+
+				setTimeout(() => {
+					canSendData = true;
+				}, 20);
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
-			} else {
-				console.log(data);
 			}
 		};
 

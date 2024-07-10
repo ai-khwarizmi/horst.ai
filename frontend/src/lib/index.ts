@@ -41,6 +41,8 @@ export const state: Writable<State> = writable({
 	inputDataWithoutPlaceholder: {} as Record<string, Record<string, any>>
 });
 
+export const recentProjectsOpen = writable(false);
+
 export const outputDataDynamic = derived(state, ($state) => {
 	return $state.outputDataDynamic;
 });
