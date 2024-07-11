@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { commandOpen, createNodeParams, nodes, recentProjectsOpen, state } from '$lib';
+	import { commandOpen, createNodeParams, gridSnap, nodes, recentProjectsOpen, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -39,6 +39,7 @@
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
 	import { saveAsCloudProject } from '@/project/cloud';
+	import ContextMenu from './ContextMenu.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -62,7 +63,7 @@
 				}
 			} else {
 				if (get(session)) {
-					if (get(get(nodes)).length > 0) {
+					if ($nodes.length > 0) {
 						console.log('[MAIN onMount] saving local project to cloud because user is logged in');
 						saveAsCloudProject();
 					} else {
@@ -123,6 +124,7 @@
 	<RecentCloudProjects />
 	<OpenFilePopup />
 	<SaveFilePopup />
+	<ContextMenu />
 	<SvelteFlow
 		nodes={$state.nodes}
 		edges={$state.edges}
@@ -131,6 +133,7 @@
 		viewport={$state.viewport}
 		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
+		snapGrid={$gridSnap}
 		onconnect={handleConnect}
 		onconnectstart={handleConnectionStart}
 		onconnectend={handleConnectionEnd}
@@ -141,7 +144,7 @@
 		<DebugView />
 		<FullCommand />
 		<Background />
-		<Controls />
+		<Controls showLock={false} showFitView={false} />
 		<Panel position="top-right">
 			<div class="flex gap-2">
 				<Button

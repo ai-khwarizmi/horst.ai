@@ -12,7 +12,8 @@
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
-	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Circle, LoaderCircle, TriangleAlert, Check, Menu, Copy, Trash } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
@@ -108,7 +109,7 @@
 						const target = connectWith.type === 'input' ? connectWith.id : id;
 						const sourceHandle = connectWith.type === 'input' ? validHandle.id : connectWith.handle;
 						const targetHandle = connectWith.type === 'input' ? connectWith.handle : validHandle.id;
-						get(nodes).update((nodes) => {
+						nodes.update((nodes) => {
 							// remove data.connectWith
 							const node = nodes.find((n) => n.id === id);
 							if (node) {
@@ -116,7 +117,7 @@
 							}
 							return nodes;
 						});
-						get(edges).update((edges) => {
+						edges.update((edges) => {
 							edges.push({
 								id: `xy-edge__${source}${sourceHandle}-${target}${targetHandle}`,
 								source,
@@ -317,6 +318,23 @@
 			</div>
 			<div class="flex-grow text-center">{label}</div>
 			<div class="w-[20px]"></div>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					<Button variant="ghost" size="flat">
+						<Menu class="w-6 h-6" />
+					</Button>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					<DropdownMenu.Item>
+						<Copy class="w-4 h-4 mr-2" />
+						<span>Clone</span>
+					</DropdownMenu.Item>
+					<DropdownMenu.Item>
+						<Trash class="w-4 h-4 mr-2" />
+						<span>Delete</span>
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 
 		<div

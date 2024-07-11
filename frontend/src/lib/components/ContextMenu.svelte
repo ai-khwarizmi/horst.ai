@@ -1,0 +1,160 @@
+<script lang="ts" context="module">
+	export const contextMenuData = writable<
+		| ({
+				type: 'canvas' | 'node';
+				position: {
+					x: number;
+					y: number;
+				};
+		  } & (
+				| {
+						type: 'node';
+						nodeId: string;
+				  }
+				| {
+						type: 'canvas';
+				  }
+		  ))
+		| null
+	>(null);
+</script>
+
+<script lang="ts">
+	import { Plus, Grid2x2, Grid3x3, Square, Magnet, SquareMousePointer, Trash } from 'lucide-svelte';
+	import { removeNode } from '$lib/utils';
+	import * as ContextMenu from '$lib/components/ui/context-menu';
+	import { writable } from 'svelte/store';
+	import { commandOpen, createNodeParams, nodes, state } from '..';
+
+	const ignoreNodeTypes = ['a', 'input', 'button', 'textarea', 'select', 'option', 'label'];
+
+	const handleContextMenu = (e: MouseEvent) => {
+		if ($contextMenuData) {
+			contextMenuData.set(null);
+			return;
+		}
+		const position = { x: e.clientX, y: e.clientY };
+
+		const isPaneElement = (e.target as Element)?.classList?.contains?.('svelte-flow__pane');
+		const nodeElement = (e.target as Element)?.closest?.('.svelte-flow__node');
+		const isToBeIgnored = ignoreNodeTypes.includes(
+			(e.target as Element)?.tagName.toLowerCase() ?? ''
+		);
+
+		if (isPaneElement) {
+			contextMenuData.set({
+				type: 'canvas',
+				position
+			});
+		} else if (nodeElement && !isToBeIgnored) {
+			const id = nodeElement?.getAttribute('data-id');
+			if (!id) {
+				return;
+			}
+			contextMenuData.set({
+				type: 'node',
+				nodeId: id,
+				position
+			});
+		} else {
+			return;
+		}
+		e.preventDefault();
+	};
+
+	const toggleSnapMode = (e: CustomEvent) => {
+		e.preventDefault();
+		const snapModes = [0, 20, 40, 60];
+		const currentIndex = snapModes.indexOf($state.gridSnap ?? 0);
+		const nextIndex = (currentIndex + 1) % snapModes.length;
+		$state.gridSnap = snapModes[nextIndex];
+	};
+
+	const addNode = () => {
+		const position = $contextMenuData?.position;
+		createNodeParams.set(
+			position
+				? {
+						position
+					}
+				: null
+		);
+		commandOpen.set(true);
+	};
+
+	const deleteNode = () => {
+		if ($contextMenuData?.type !== 'node') {
+			console.log('not a node');
+			return;
+		}
+		const nodeId = $contextMenuData.nodeId;
+		removeNode(nodeId);
+	};
+
+	$: allSelected = $nodes.every((node) => node.selected);
+
+	const toggleSelectAll = () => {
+		nodes.update((nodes) => {
+			const newSelectedState = !allSelected;
+			nodes.forEach((node) => {
+				node.selected = newSelectedState;
+			});
+			return nodes;
+		});
+	};
+</script>
+
+<svelte:window on:contextmenu={handleContextMenu} />
+{#if $contextMenuData}
+	<ContextMenu.Root
+		open={true}
+		onOpenChange={(open) => {
+			if (!open) {
+				contextMenuData.set(null);
+			}
+		}}
+	>
+		<ContextMenu.Trigger
+			style="position: fixed; top: {$contextMenuData?.position.y}px; left: {$contextMenuData
+				?.position.x}px;"
+		></ContextMenu.Trigger>
+		<ContextMenu.Content>
+			{#if $contextMenuData.type === 'canvas'}
+				<ContextMenu.Item on:click={addNode}>
+					<Plus class="w-4 h-4 mr-2" />
+					Add Node
+				</ContextMenu.Item>
+				<ContextMenu.Separator />
+				<ContextMenu.Item on:click={toggleSelectAll}>
+					<SquareMousePointer class="w-4 h-4 mr-2" />
+					{allSelected ? 'Unselect All' : 'Select All'}
+				</ContextMenu.Item>
+				<ContextMenu.Separator />
+				<!-- <ContextMenu.Item>
+					<Grip class="w-4 h-4 mr-2" />
+					Toggle Grid
+				</ContextMenu.Item> -->
+				<ContextMenu.Item on:click={toggleSnapMode}>
+					{#if $state.gridSnap === 20}
+						<Square class="w-4 h-4 mr-2" />
+						Grid Snap: Fine
+					{:else if $state.gridSnap === 40}
+						<Grid2x2 class="w-4 h-4 mr-2" />
+						Grid Snap: Medium
+					{:else if $state.gridSnap === 60}
+						<Grid3x3 class="w-4 h-4 mr-2" />
+						Grid Snap: Large
+					{:else}
+						<Magnet class="w-4 h-4 mr-2" />
+						Grid Snap: Off
+					{/if}
+				</ContextMenu.Item>
+			{:else if $contextMenuData.type === 'node'}
+				<ContextMenu.Item on:click={deleteNode}>
+					<Trash class="w-4 h-4 mr-2" />
+					Delete
+				</ContextMenu.Item>
+			{/if}
+		</ContextMenu.Content>
+	</ContextMenu.Root>
+{/if}

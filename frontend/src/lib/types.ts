@@ -192,6 +192,9 @@ export type State = {
 	nodes: Writable<Node[]>;
 	edges: Writable<Edge[]>;
 	viewport: Writable<Viewport>;
+
+	gridSnap?: number;
+
 	optionalInputsEnabled: Record<string, Record<string, boolean>>;
 
 	outputDataDynamic: Record<string, Record<string, any>>;

@@ -3,7 +3,6 @@
 	import { edges, inputDataWithoutPlaceholder, inputDataPlaceholder } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
-	import { get } from 'svelte/store';
 	import { isValidConnection } from '@/utils/validate';
 	import {
 		DropdownMenu,
@@ -32,10 +31,9 @@
 
 	$: isInput = type === 'input';
 
-	$: connections =
-		type === 'output'
-			? get($edges).filter((edge) => edge.source === nodeId)
-			: get($edges).filter((edge) => edge.target === nodeId);
+	$: connections = $edges.filter((edge) =>
+		type === 'output' ? edge.source === nodeId : edge.target === nodeId
+	);
 
 	$: connected = connections.filter((edge) =>
 		type === 'output' ? edge.sourceHandle === base.id : edge.targetHandle === base.id
@@ -47,9 +45,7 @@
 		const edgesToRemove: string[] = [];
 		for (const connection of connections) {
 			const conn: Connection & { edgeId?: string } = connection;
-			const e = get(get(edges));
-			if (!e) return;
-			const edge = e.filter(
+			const edge = $edges.filter(
 				(edge) =>
 					edge.target === conn.target &&
 					edge.targetHandle === conn.targetHandle &&

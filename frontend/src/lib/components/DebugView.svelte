@@ -7,7 +7,6 @@
 	import Input from './ui/input/input.svelte';
 	import Label from './ui/label/label.svelte';
 	import { edges, nodes, projectId, projectName } from '..';
-	import { get } from 'svelte/store';
 
 	$: open = browser && $page.url.searchParams.has('debug');
 
@@ -100,12 +99,12 @@
 					<!-- Node COunt -->
 					<div class="flex gap-2 justify-between">
 						<div>Node Count</div>
-						<div>{get($nodes).length}</div>
+						<div>{$nodes.length}</div>
 					</div>
 					<!-- Edge Count -->
 					<div class="flex gap-2 justify-between">
 						<div>Edge Count</div>
-						<div>{get($edges).length}</div>
+						<div>{$edges.length}</div>
 					</div>
 				</div>
 			</Tabs.Content>
