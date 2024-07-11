@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers } from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers, removeNode } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -13,7 +13,7 @@
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Circle, LoaderCircle, TriangleAlert, Check, Menu, Copy, Trash } from 'lucide-svelte';
+	import { Circle, LoaderCircle, TriangleAlert, Check, Menu, Trash } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
@@ -325,11 +325,11 @@
 					</Button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content>
-					<DropdownMenu.Item>
-						<Copy class="w-4 h-4 mr-2" />
-						<span>Clone</span>
-					</DropdownMenu.Item>
-					<DropdownMenu.Item>
+					<DropdownMenu.Item
+						on:click={() => {
+							removeNode(id);
+						}}
+					>
 						<Trash class="w-4 h-4 mr-2" />
 						<span>Delete</span>
 					</DropdownMenu.Item>

@@ -1,38 +1,27 @@
-<script lang="ts" context="module">
-	export const contextMenuData = writable<
-		| ({
-				type: 'canvas' | 'node';
-				position: {
-					x: number;
-					y: number;
-				};
-		  } & (
-				| {
-						type: 'node';
-						nodeId: string;
-				  }
-				| {
-						type: 'canvas';
-				  }
-		  ))
-		| null
-	>(null);
-</script>
-
 <script lang="ts">
 	import { Plus, Grid2x2, Grid3x3, Square, Magnet, SquareMousePointer, Trash } from 'lucide-svelte';
 	import { removeNode } from '$lib/utils';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
-	import { writable } from 'svelte/store';
 	import { commandOpen, createNodeParams, nodes, state } from '..';
+	import type { XYPosition } from '@xyflow/svelte';
 
 	const ignoreNodeTypes = ['a', 'input', 'button', 'textarea', 'select', 'option', 'label'];
 
+	let contextMenuData:
+		| ({
+				position: XYPosition;
+		  } & (
+				| {
+						type: 'canvas';
+				  }
+				| {
+						type: 'node';
+						nodeId: string;
+				  }
+		  ))
+		| null;
+
 	const handleContextMenu = (e: MouseEvent) => {
-		if ($contextMenuData) {
-			contextMenuData.set(null);
-			return;
-		}
 		const position = { x: e.clientX, y: e.clientY };
 
 		const isPaneElement = (e.target as Element)?.classList?.contains?.('svelte-flow__pane');
@@ -42,20 +31,18 @@
 		);
 
 		if (isPaneElement) {
-			contextMenuData.set({
+			contextMenuData = {
 				type: 'canvas',
 				position
-			});
+			};
 		} else if (nodeElement && !isToBeIgnored) {
 			const id = nodeElement?.getAttribute('data-id');
-			if (!id) {
-				return;
-			}
-			contextMenuData.set({
+			if (!id) return;
+			contextMenuData = {
 				type: 'node',
 				nodeId: id,
 				position
-			});
+			};
 		} else {
 			return;
 		}
@@ -71,7 +58,7 @@
 	};
 
 	const addNode = () => {
-		const position = $contextMenuData?.position;
+		const position = contextMenuData?.position;
 		createNodeParams.set(
 			position
 				? {
@@ -83,11 +70,11 @@
 	};
 
 	const deleteNode = () => {
-		if ($contextMenuData?.type !== 'node') {
+		if (contextMenuData?.type !== 'node') {
 			console.log('not a node');
 			return;
 		}
-		const nodeId = $contextMenuData.nodeId;
+		const nodeId = contextMenuData.nodeId;
 		removeNode(nodeId);
 	};
 
@@ -105,21 +92,24 @@
 </script>
 
 <svelte:window on:contextmenu={handleContextMenu} />
-{#if $contextMenuData}
+{#if contextMenuData}
 	<ContextMenu.Root
 		open={true}
 		onOpenChange={(open) => {
 			if (!open) {
-				contextMenuData.set(null);
+				contextMenuData = null;
 			}
 		}}
 	>
 		<ContextMenu.Trigger
-			style="position: fixed; top: {$contextMenuData?.position.y}px; left: {$contextMenuData
-				?.position.x}px;"
-		></ContextMenu.Trigger>
-		<ContextMenu.Content>
-			{#if $contextMenuData.type === 'canvas'}
+			style="position: fixed; top: {contextMenuData.position.y}px; left: {contextMenuData.position
+				.x}px;"
+		/>
+		<ContextMenu.Content
+			style="position: fixed; top: {contextMenuData.position.y}px; left: {contextMenuData.position
+				.x}px;"
+		>
+			{#if contextMenuData.type === 'canvas'}
 				<ContextMenu.Item on:click={addNode}>
 					<Plus class="w-4 h-4 mr-2" />
 					Add Node
@@ -149,7 +139,7 @@
 						Grid Snap: Off
 					{/if}
 				</ContextMenu.Item>
-			{:else if $contextMenuData.type === 'node'}
+			{:else if contextMenuData.type === 'node'}
 				<ContextMenu.Item on:click={deleteNode}>
 					<Trash class="w-4 h-4 mr-2" />
 					Delete
