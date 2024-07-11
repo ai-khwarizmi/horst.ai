@@ -38,7 +38,7 @@
 	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
-	import { saveAsCloudProject } from '@/project/cloud';
+	import { saveAsCloudProject, sendNodePosition } from '@/project/cloud';
 
 	export let projectId: string | undefined = undefined;
 
@@ -109,6 +109,10 @@
 		}
 	};
 
+	const handleNodeDrag = (e: CustomEvent) => {
+		sendNodePosition(e);
+	};
+
 	const edgeTypes = {
 		custom: CustomEdge
 	};
@@ -134,6 +138,7 @@
 		onconnect={handleConnect}
 		onconnectstart={handleConnectionStart}
 		onconnectend={handleConnectionEnd}
+		on:nodedrag={handleNodeDrag}
 		defaultEdgeOptions={{
 			type: 'custom'
 		}}

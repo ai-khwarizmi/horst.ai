@@ -70,7 +70,6 @@ const disconnectFromCloud = async () => {
 		webSocket = null;
 	}
 
-	// Reject all pending promises
 	loadCallbacks.forEach(({ reject }) => reject(new Error('Disconnected from websocket')));
 	loadCallbacks = [];
 };
@@ -163,6 +162,49 @@ export function _saveToCloud() {
 			lastUpdateTime = Date.now();
 		}, UPDATE_DEBOUNCE_TIME);
 	}
+}
+
+const nodeUpdateTimers: Record<string, NodeJS.Timeout> = {};
+const lastNodePositions: Record<string, { id: string; position: { x: number; y: number } }> = {};
+
+const FPS = 20;
+const UPDATE_INTERVAL = 1000 / FPS;
+
+export function sendNodePosition(event: CustomEvent) {
+	if (!webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
+		return;
+	}
+
+	const { nodes } = event.detail;
+	if (nodes.length !== 1) {
+		return;
+	}
+
+	const node = nodes[0];
+	lastNodePositions[node.id] = { id: node.id, position: node.position };
+
+	if (!nodeUpdateTimers[node.id]) {
+		nodeUpdateTimers[node.id] = setTimeout(() => {
+			sendNodeUpdate(node.id);
+		}, UPDATE_INTERVAL);
+	}
+}
+
+function sendNodeUpdate(nodeId: string) {
+	const nodeData = lastNodePositions[nodeId];
+	if (nodeData) {
+		webSocket?.send(
+			JSON.stringify({
+				type: 'moveNode',
+				data: {
+					nodeId: nodeData.id,
+					newPosition: nodeData.position
+				}
+			})
+		);
+	}
+	delete nodeUpdateTimers[nodeId];
+	delete lastNodePositions[nodeId];
 }
 
 export const _connectToCloud = (
