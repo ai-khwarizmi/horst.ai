@@ -103,7 +103,9 @@
 										/>
 									{/if}
 								</div>
-								<p class="text-sm font-medium truncate">{project.projectName}</p>
+								<p class="text-sm font-medium truncate">
+									{project.projectName || 'Untitled Project'}
+								</p>
 								<p class="text-xs text-gray-500">{formatRelativeTime(project.updatedAt)}</p>
 							</button>
 						{/each}

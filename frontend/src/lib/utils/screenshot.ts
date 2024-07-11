@@ -10,7 +10,7 @@ export async function createGraphScreenshot(): Promise<string | null> {
 	const nodes = JSON.parse(JSON.stringify(get(get(state).nodes)));
 
 	const nodesBounds = getNodesBounds(nodes);
-	const viewport = getViewportForBounds(nodesBounds, imageWidth, imageHeight, 0.5, 2, 0.1);
+	const viewport = getViewportForBounds(nodesBounds, imageWidth, imageHeight, 0.001, 100, 0.1);
 
 	const viewportElement = document.querySelector('.svelte-flow__viewport') as HTMLElement;
 
@@ -21,7 +21,7 @@ export async function createGraphScreenshot(): Promise<string | null> {
 
 	try {
 		const dataUrl = await toPng(viewportElement, {
-			backgroundColor: 'white',
+			backgroundColor: 'transparent',
 			width: imageWidth,
 			height: imageHeight,
 			style: {
