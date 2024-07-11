@@ -478,6 +478,13 @@ export const addNode = async (
 	return node;
 };
 
+export const removeNode = (id: string) => {
+	get(state).nodes.update((nodes) => nodes.filter((node) => node.id !== id));
+	get(state).edges.update((edges) =>
+		edges.filter((edge) => edge.source !== id && edge.target !== id)
+	);
+};
+
 const _setNodeOutputDataDynamic = (id: string, data: Record<string, any>) => {
 	state.update((currentState) => ({
 		...currentState,
@@ -546,7 +553,7 @@ const _getNodeInputDataPlaceholder = (id: string, handle: string) => {
 
 const _getNodeInputDataWithoutPlaceholder = (id: string, handle: string) => {
 	//yikes lol
-	const e = get(get(edges));
+	const e = get(edges);
 	const edge = e.find((e) => e.target === id && e.targetHandle === handle);
 	if (!edge) return;
 	return edge.sourceHandle ? _getNodeOutputData(edge.source, edge.sourceHandle) : undefined;

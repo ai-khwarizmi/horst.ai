@@ -25,6 +25,7 @@ export const state: Writable<State> = writable({
 	nodes: writable([]),
 	edges: writable([]),
 	viewport: writable({ x: 0, y: 0, zoom: 1 }),
+	gridSnap: 0,
 	optionalInputsEnabled: {} as Record<string, Record<string, boolean>>,
 
 	// Type A
@@ -52,21 +53,16 @@ export const outputDataPlaceholder = derived(state, ($state) => {
 export const inputDataPlaceholder = derived(state, ($state) => {
 	return $state.inputDataPlaceholder;
 });
-export const edges = derived(state, ($state) => {
-	return $state.edges;
-});
+export const edges = get(state).edges;
+export const nodes = get(state).nodes;
+
 export const projectId = derived(state, ($state) => {
 	return $state.projectId;
-});
-export const nodes = derived(state, ($state) => {
-	return $state.nodes;
 });
 export const optionalInputsEnabled = derived(state, ($state) => {
 	return $state.optionalInputsEnabled;
 });
-export const viewport = derived(state, ($state) => {
-	return $state.viewport;
-});
+export const viewport = get(state).viewport;
 export const projectName = derived(state, ($state) => {
 	return $state.projectName;
 });
@@ -81,6 +77,11 @@ export const inputDataWithoutPlaceholder = derived(state, ($state) => {
 });
 export const projectType = derived(state, ($state) => {
 	return $state.projectType;
+});
+
+export const gridSnap = derived(state, ($state) => {
+	const snap = $state.gridSnap || 1;
+	return [snap, snap] satisfies [number, number];
 });
 
 export const projectStoreSaveable = derived(
@@ -148,11 +149,11 @@ state.subscribe((state) => {
 	}
 });
 
-get(edges).subscribe(() => {
+edges.subscribe(() => {
 	debouncedHandleChanges();
 	saveProject();
 });
-get(nodes).subscribe(() => {
+nodes.subscribe(() => {
 	debouncedHandleChanges();
 	saveProject();
 });

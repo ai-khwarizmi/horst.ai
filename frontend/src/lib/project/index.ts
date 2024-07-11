@@ -130,6 +130,7 @@ export const loadFromGraph = (
 		console.log('invalid graph', graph);
 		return false;
 	}
+
 	state.update((state) => ({
 		...state,
 		projectType: graph.projectType,
@@ -143,10 +144,12 @@ export const loadFromGraph = (
 		inputData: {},
 		inputDataWithoutPlaceholder: {}
 	}));
-	get(nodes).set(graph.nodes);
-	get(edges).set(graph.edges);
+
+	nodes.set(graph.nodes);
+	edges.set(graph.edges);
+
 	if (!skipViewport) {
-		get(viewport).set(graph.viewport);
+		viewport.set(graph.viewport);
 	}
 
 	return true;
