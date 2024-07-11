@@ -1,6 +1,8 @@
 import { minimalSuperJSON } from '@/utils/horstfile';
 import { getSaveData } from '.';
 import type { SaveFileFormat } from '@/types';
+import { session } from '@/auth/Clerk';
+import { get } from 'svelte/store';
 
 const LOCALSTORAGE_SAVE_KEY = 'horst.ai.local.roject';
 
@@ -21,6 +23,10 @@ export const _getGraphFromLocalStorage = (): SaveFileFormat | undefined => {
 	do not call this from anywhere but project/index.ts or you risk breaking things
 */
 export const _saveToLocalStorage = () => {
+	if (get(session)) {
+		console.log('user is logged in, not saving to localstorage');
+		return;
+	}
 	if (typeof window === 'undefined') return;
 	const graph = getSaveData(true);
 	console.log('saving graph to localstorage', graph);

@@ -34,12 +34,13 @@
 	import OpenFilePopup from './popups/OpenFilePopup.svelte';
 	import VersionChangePopup from './popups/VersionChangePopup.svelte';
 	import CustomEdge from './CustomEdge.svelte';
-	import { createNewProject, loadCloudProject, loadLocalProject, resetProject } from '@/project';
+	import { createNewProject, loadCloudProject, loadLocalProject } from '@/project';
 	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
 	import ContextMenu from './ContextMenu.svelte';
 	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
+	import { resetLocalProject } from '@/project/local';
 
 	export let projectId: string | undefined = undefined;
 
@@ -47,39 +48,45 @@
 		if (projectId) {
 			console.log('[MAIN onMount] loading cloud project', projectId);
 			await loadCloudProject(projectId);
+			return;
+		}
+
+		const result = loadLocalProject();
+		const userLoggedIn = !!get(session);
+
+		if (userLoggedIn) {
+			await handleLoggedInUser(result);
 		} else {
-			const result = loadLocalProject();
-			if (!result) {
-				if (!get(session)) {
-					console.log(
-						'[MAIN onMount] we didnt find a local project. User not logged in so creating new project'
-					);
-					createNewProject();
-				} else {
-					console.log(
-						'[MAIN onMount] we didnt find a local project. User logged in so we will show recents'
-					);
-					recentProjectsOpen.set(true);
-				}
-			} else {
-				if (get(session)) {
-					if ($nodes.length > 0) {
-						console.log('[MAIN onMount] saving local project to cloud because user is logged in');
-						await saveAsCloudProject(true);
-						await takeAndUploadScreenshot();
-					} else {
-						console.log(
-							'[MAIN onMount] loading local project. Doesnt have any nodes or edges so will just show recents'
-						);
-						resetProject('UNINITIALIZED');
-						recentProjectsOpen.set(true);
-					}
-				} else {
-					console.log('[MAIN onMount] loading local project');
-				}
-			}
+			handleNonLoggedInUser(result);
 		}
 	});
+
+	async function handleLoggedInUser(localProjectLoaded: boolean) {
+		if (!localProjectLoaded) {
+			console.log('[MAIN onMount] no local project found. User logged in, showing recents');
+			recentProjectsOpen.set(true);
+			return;
+		}
+
+		if ($nodes.length > 0) {
+			console.log('[MAIN onMount] saving local project to cloud');
+			await saveAsCloudProject(true);
+			await takeAndUploadScreenshot();
+		} else {
+			console.log('[MAIN onMount] local project empty, showing recents');
+			resetLocalProject();
+			recentProjectsOpen.set(true);
+		}
+	}
+
+	function handleNonLoggedInUser(localProjectLoaded: boolean) {
+		if (localProjectLoaded) {
+			console.log('[MAIN onMount] loading local project');
+		} else {
+			console.log('[MAIN onMount] no local project found. Creating new project');
+			createNewProject();
+		}
+	}
 
 	let startNode: ConnectWith | null = null;
 	const handleConnectionStart: OnConnectStart = (e, { nodeId, handleId, handleType }) => {
