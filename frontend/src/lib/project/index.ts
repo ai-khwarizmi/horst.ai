@@ -11,6 +11,7 @@ import { generateProjectId } from '@/utils/projectId';
 import { session } from '@/auth/Clerk';
 import { debounce } from 'lodash-es';
 import type { Node } from '@xyflow/svelte';
+import { replaceState } from '$app/navigation';
 
 export function getSaveData(
 	_includeData: boolean,
@@ -46,11 +47,14 @@ export function getSaveData(
 
 let loading = false;
 
-export const loadCloudProject = async (projectId: string) => {
+export const loadCloudProject = async (projectId: string, changeUrl: boolean = false) => {
 	if (loading) return;
 	loading = true;
 	try {
 		await _connectToCloud(projectId, resetProject);
+		if (changeUrl) {
+			replaceState(`/project/${projectId}`, { replace: true });
+		}
 	} catch (err) {
 		console.error(err);
 		toast.error('Failed to load project');

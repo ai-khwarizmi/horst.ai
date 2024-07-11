@@ -161,6 +161,12 @@
 			url: 'https://github.com/groq-ai/groq-sdk',
 			branch: 'main',
 			license: 'Apache License 2.0'
+		},
+		'html-to-image': {
+			name: 'html-to-image',
+			url: 'https://github.com/bubkoo/html-to-image',
+			branch: 'master',
+			license: 'MIT'
 		}
 	};
 

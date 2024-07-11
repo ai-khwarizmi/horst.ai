@@ -282,3 +282,27 @@ export const _connectToCloud = (
 		return webSocket;
 	});
 };
+
+export const fetchRecentProjects = async () => {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+
+	if (!token) {
+		throw new Error('Not authenticated');
+	}
+
+	const response = await fetch(`${API_HOST.toString()}project/list`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch recent projects');
+	}
+
+	const data = await response.json();
+	return data.projects;
+};
