@@ -165,12 +165,26 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		const ioProxy = new Proxy(this, {
 			get(target, prop, receiver) {
 				if (typeof target[prop as keyof typeof target] === 'function') {
-					return async (...args: any[]) => {
-						console.log('ioProxy', getExecutionCounter(), executionId);
+					return (...args: any[]) => {
 						if (getExecutionCounter() !== executionId) {
 							throwOutdatedExecuteCall();
 						}
-						return await (target[prop as keyof typeof target] as (...args: any[]) => any)(...args);
+						const result = (target[prop as keyof typeof target] as (...args: any[]) => any)(
+							...args
+						);
+						if (result instanceof Promise) {
+							return result.then((res) => {
+								if (getExecutionCounter() !== executionId) {
+									throwOutdatedExecuteCall();
+								}
+								return res;
+							});
+						} else {
+							if (getExecutionCounter() !== executionId) {
+								throwOutdatedExecuteCall();
+							}
+							return result;
+						}
 					};
 				}
 				return Reflect.get(target, prop, receiver);

@@ -95,6 +95,7 @@
 								text: userPrompt
 							}
 						];
+						console.log('files!', files);
 						for (const file of files) {
 							if (file.isImage()) {
 								userMessage.content.push({
@@ -144,6 +145,7 @@
 						callbacks.setStatus('success');
 					}
 				} catch (error) {
+					console.log('error1', error);
 					callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 				}
 			} else {
@@ -154,6 +156,7 @@
 				}
 			}
 		} catch (error: any) {
+			console.log('error2', error);
 			callbacks.setErrors(['Error executing ChatGPT node', error.toString?.() || 'Unknown error']);
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;

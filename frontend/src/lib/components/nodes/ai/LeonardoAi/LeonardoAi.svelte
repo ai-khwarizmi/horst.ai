@@ -15,7 +15,6 @@
 		type Controlnet
 	} from '$lib/utils/leonardoai';
 	import { inputData, optionalInputsEnabled } from '@/index';
-	import { sha256 } from 'js-sha256';
 	import LeonardoAiCustomInputControlnet from './LeonardoAiCustomInputControlnet.svelte';
 
 	export let id: string;
@@ -230,8 +229,6 @@
 				lastOutputValue = null;
 				return;
 			}
-			const hash = sha256(JSON.stringify(controlnets));
-			console.log('controlnets', controlnets, hash);
 			const newValue = JSON.stringify({
 				...requestBody,
 				apiKey,
@@ -267,11 +264,6 @@
 					io.setOutputDataDynamic('image_urls', lastOutputValue);
 					callbacks.setStatus('success');
 				} catch (error: any) {
-					if (error.name === 'AbortError') {
-						console.log('Execution was cancelled');
-						callbacks.setStatus('idle');
-						return;
-					}
 					callbacks.setErrors(['Error calling Leonardo AI', error.message]);
 					console.error('Error calling Leonardo AI: ', error);
 				}
