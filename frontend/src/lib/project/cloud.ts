@@ -7,6 +7,7 @@ import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
+import { createGraphScreenshot } from '@/utils/screenshot';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -15,6 +16,13 @@ WS_HOST.protocol = WS_HOST.protocol === 'https:' ? 'wss:' : 'ws:';
 export const socketId = writable<number>(-1);
 
 let loadCallbacks: Array<{ resolve: () => void; reject: (reason?: any) => void }> = [];
+
+export const previewImageFileNameToUrl = (fileName: string) => {
+	if (fileName.startsWith('/')) {
+		fileName = fileName.substring(1);
+	}
+	return `${API_HOST.toString()}${fileName}`;
+};
 
 export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 	const clerkClient = get(clerk);
@@ -42,6 +50,7 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 		});
 
 	if (data) {
+		console.log('data', data);
 		state.update((s) => ({
 			...s,
 			projectId: data.id,
@@ -77,36 +86,44 @@ const disconnectFromCloud = async () => {
 let lastSentData: SaveFileFormat | null = null;
 let canSendData: boolean = false;
 
-function hasDataChanged(data: SaveFileFormat): boolean {
+type CHANGE_TYPE =
+	| 'NODES'
+	| 'NODE_INPUT_PLACEHOLDER'
+	| 'NODE_OUTPUT_PLACEHOLDER'
+	| 'EDGES'
+	| 'PROJECT_NAME'
+	| 'NONE';
+
+function hasDataChanged(data: SaveFileFormat): CHANGE_TYPE {
 	if (lastSentData?.projectId !== data.projectId) {
 		throw new Error('Project id mismatch (hasDataChanged)');
 	}
 
 	if (data.edges.length !== lastSentData?.edges.length) {
-		return true;
+		return 'EDGES';
 	}
 	if (data.nodes.length !== lastSentData?.nodes.length) {
-		return true;
+		return 'NODES';
 	}
 
 	if (
 		JSON.stringify(data.inputDataPlaceholder) !== JSON.stringify(lastSentData?.inputDataPlaceholder)
 	) {
-		return true;
+		return 'NODE_INPUT_PLACEHOLDER';
 	}
 
 	if (
 		JSON.stringify(data.outputDataPlaceholder) !==
 		JSON.stringify(lastSentData?.outputDataPlaceholder)
 	) {
-		return true;
+		return 'NODE_OUTPUT_PLACEHOLDER';
 	}
 
 	if (data.projectName !== lastSentData?.projectName) {
-		return true;
+		return 'PROJECT_NAME';
 	}
 
-	return false;
+	return 'NONE';
 }
 
 async function sendUpdate() {
@@ -114,7 +131,8 @@ async function sendUpdate() {
 
 	if (!canSendData) return;
 
-	if (!hasDataChanged(saveData.graph)) {
+	const changeType = hasDataChanged(saveData.graph);
+	if (changeType === 'NONE') {
 		return;
 	}
 
@@ -139,6 +157,60 @@ async function sendUpdate() {
 			lastSentData = JSON.parse(JSON.stringify(saveDataCloud));
 		}
 	}
+
+	if (changeType === 'NODES' || changeType === 'EDGES') {
+		console.log('Sending screenshot');
+		try {
+			const screenshot = await createGraphScreenshot();
+			if (screenshot) {
+				await uploadScreenshot(screenshot);
+			}
+		} catch (error) {
+			console.error('Error creating screenshot:', error);
+		}
+	}
+}
+
+async function uploadScreenshot(screenshot: string) {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+	const projectId = get(state).projectId;
+
+	if (!token || !projectId) {
+		console.error('Failed to upload screenshot: missing token or project ID');
+		return;
+	}
+
+	try {
+		const response = await fetch(`${API_HOST.toString()}project/uploadImage/${projectId}`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'image/png'
+			},
+			body: dataURItoBlob(screenshot)
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		console.log('Screenshot uploaded successfully');
+	} catch (error) {
+		console.error('Error uploading screenshot:', error);
+	}
+}
+
+// Helper function to convert data URI to Blob
+function dataURItoBlob(dataURI: string) {
+	const byteString = atob(dataURI.split(',')[1]);
+	const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+	const ab = new ArrayBuffer(byteString.length);
+	const ia = new Uint8Array(ab);
+	for (let i = 0; i < byteString.length; i++) {
+		ia[i] = byteString.charCodeAt(i);
+	}
+	return new Blob([ab], { type: mimeString });
 }
 
 let updateTimeout: NodeJS.Timeout | null = null;

@@ -4,13 +4,14 @@
 	import { onMount } from 'svelte';
 	import { createNewProject, loadCloudProject } from '@/project';
 	import { recentProjectsOpen } from '@/index';
-	import { fetchRecentProjects } from '@/project/cloud';
+	import { fetchRecentProjects, previewImageFileNameToUrl } from '@/project/cloud';
 
 	let recentProjects: {
 		projectId: string;
 		projectName: string;
 		updatedAt: number;
 		createdAt: number;
+		previewImage: string;
 	}[] = [];
 	let loaded = false;
 
@@ -95,7 +96,12 @@
 								on:click={() => openProject(project.projectId)}
 							>
 								<div class="aspect-video bg-gray-200 rounded-md mb-2">
-									<!-- Placeholder for project image -->
+									{#if project.previewImage}
+										<img
+											src={previewImageFileNameToUrl(project.previewImage)}
+											alt="Project Preview"
+										/>
+									{/if}
 								</div>
 								<p class="text-sm font-medium truncate">{project.projectName}</p>
 								<p class="text-xs text-gray-500">{formatRelativeTime(project.updatedAt)}</p>
