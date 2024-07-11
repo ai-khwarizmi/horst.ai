@@ -240,7 +240,7 @@
 	</div>
 {/if}
 <div
-	class={cn('flex flex-col h-full gap-1')}
+	class={cn('flex flex-col h-full gap-1 p-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1}; max-height: 100%;"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}

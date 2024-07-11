@@ -1,9 +1,19 @@
 <script lang="ts">
-	import { Plus, Grid2x2, Grid3x3, Square, Magnet, SquareMousePointer, Trash } from 'lucide-svelte';
-	import { removeNode } from '$lib/utils';
+	import {
+		Plus,
+		Grid2x2,
+		Grid3x3,
+		Square,
+		Magnet,
+		SquareMousePointer,
+		Trash,
+		Copy
+	} from 'lucide-svelte';
+	import { addNode, removeNode } from '$lib/utils';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
 	import { commandOpen, createNodeParams, nodes, state } from '..';
 	import type { XYPosition } from '@xyflow/svelte';
+	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
 	const ignoreNodeTypes = ['a', 'input', 'button', 'textarea', 'select', 'option', 'label'];
 
@@ -57,7 +67,7 @@
 		$state.gridSnap = snapModes[nextIndex];
 	};
 
-	const addNode = () => {
+	const openAddNodeMenu = () => {
 		const position = contextMenuData?.position;
 		createNodeParams.set(
 			position
@@ -89,9 +99,31 @@
 			return nodes;
 		});
 	};
+
+	const cloneNode = () => {
+		if (!contextMenuData || contextMenuData?.type !== 'node') return;
+		const nodeId = contextMenuData.nodeId;
+		const node = $nodes.find((node) => node.id === nodeId);
+		if (!node) return;
+		createNodeParams.set({
+			position: {
+				x: node.position.x + 100,
+				y: node.position.y + 100
+			}
+		});
+		if (!node.type) return;
+		if (registeredNodes[node.type]) {
+			const nodeType = node.type as CustomNodeName;
+			addNode(nodeType, {
+				x: node.position.x + 100,
+				y: node.position.y + 100
+			});
+		}
+	};
 </script>
 
 <svelte:window on:contextmenu={handleContextMenu} />
+
 {#if contextMenuData}
 	<ContextMenu.Root
 		open={true}
@@ -110,7 +142,7 @@
 				.x}px;"
 		>
 			{#if contextMenuData.type === 'canvas'}
-				<ContextMenu.Item on:click={addNode}>
+				<ContextMenu.Item on:click={openAddNodeMenu}>
 					<Plus class="w-4 h-4 mr-2" />
 					Add Node
 				</ContextMenu.Item>
@@ -140,6 +172,11 @@
 					{/if}
 				</ContextMenu.Item>
 			{:else if contextMenuData.type === 'node'}
+				<!-- clone -->
+				<ContextMenu.Item on:click={cloneNode}>
+					<Copy class="w-4 h-4 mr-2" />
+					Clone
+				</ContextMenu.Item>
 				<ContextMenu.Item on:click={deleteNode}>
 					<Trash class="w-4 h-4 mr-2" />
 					Delete
