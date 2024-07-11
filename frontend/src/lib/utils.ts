@@ -24,6 +24,7 @@ import {
 } from './types';
 import { HorstFile } from './utils/horstfile';
 import { createNewProject } from './project';
+import { debounce } from 'lodash-es';
 
 export const getNodeColors = (
 	type: NodeType
@@ -92,6 +93,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		io: NodeIOHandler<TInput, TOutput>
 	) => Promise<void>;
 
+	private debouncedExecute = debounce((callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		this._runOnExecute(callbacks, forceExecute);
+	}, 500);
+
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
@@ -124,6 +129,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}
 
 	onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		this.debouncedExecute(callbacks, forceExecute);
+	};
+
+	_runOnExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		this.executionCounter++;
 		this.runningExecutions++;
 		const executionId = this.executionCounter;
@@ -291,7 +300,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 						...node,
 						data: {
 							...node.data,
-							inputs: inputs.filter((i) => !ids.includes(i.id))
+							inputs: inputs.filter((i: any) => !ids.includes(i.id))
 						}
 					};
 				}
@@ -311,7 +320,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 						...node,
 						data: {
 							...node.data,
-							outputs: outputs.filter((o) => !ids.includes(o.id))
+							outputs: outputs.filter((o: any) => !ids.includes(o.id))
 						}
 					};
 				}
