@@ -71,7 +71,7 @@
 {#if loaded}
 	<Dialog.Root bind:open={$recentProjectsOpen}>
 		<Dialog.Portal>
-			<Dialog.Overlay />
+			<Dialog.Overlay class="transparent-overlay" />
 			<Dialog.Content class="w-full max-w-3xl max-h-[95vh] flex flex-col">
 				<Dialog.Header>
 					<Dialog.Title>Recent Projects</Dialog.Title>
@@ -118,3 +118,19 @@
 		</Dialog.Portal>
 	</Dialog.Root>
 {/if}
+
+<style>
+	:global(.transparent-overlay) {
+		background-color: transparent !important;
+		backdrop-filter: none !important;
+		--tw-backdrop-blur: none !important;
+		--tw-backdrop-brightness: none !important;
+		--tw-backdrop-contrast: none !important;
+		--tw-backdrop-grayscale: none !important;
+		--tw-backdrop-hue-rotate: none !important;
+		--tw-backdrop-invert: none !important;
+		--tw-backdrop-opacity: none !important;
+		--tw-backdrop-saturate: none !important;
+		--tw-backdrop-sepia: none !important;
+	}
+</style>

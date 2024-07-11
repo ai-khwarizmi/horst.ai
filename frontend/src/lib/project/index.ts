@@ -4,7 +4,12 @@ import { toast } from 'svelte-sonner';
 import { edges, nodes, projectType, state, viewport } from '..';
 import { get } from 'svelte/store';
 import { _getGraphFromLocalStorage, _saveToLocalStorage } from './local';
-import { _connectToCloud, _saveToCloud, saveAsCloudProject } from './cloud';
+import {
+	_connectToCloud,
+	_saveToCloud,
+	saveAsCloudProject,
+	takeAndUploadScreenshot
+} from './cloud';
 import { type CloudSaveFileFormat, type ProjectType, type SaveFileFormat } from '@/types';
 import { fullSuperJSON, minimalSuperJSON } from '@/utils/horstfile';
 import { generateProjectId } from '@/utils/projectId';
@@ -51,10 +56,13 @@ export const loadCloudProject = async (projectId: string, changeUrl: boolean = f
 	if (loading) return;
 	loading = true;
 	try {
-		await _connectToCloud(projectId, resetProject);
+		await _connectToCloud(projectId, resetProject, true);
 		if (changeUrl) {
 			replaceState(`/project/${projectId}`, { replace: true });
 		}
+		takeAndUploadScreenshot().then(() => {
+			console.log('updated preview image');
+		});
 	} catch (err) {
 		console.error(err);
 		toast.error('Failed to load project');

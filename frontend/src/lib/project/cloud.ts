@@ -4,7 +4,7 @@ import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
-import { nonce, projectType, state } from '..';
+import { edges, nodes, nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
 import { createGraphScreenshot } from '@/utils/screenshot';
@@ -157,17 +157,18 @@ async function sendUpdate() {
 			lastSentData = JSON.parse(JSON.stringify(saveDataCloud));
 		}
 	}
-
-	if (changeType === 'NODES' || changeType === 'EDGES') {
-		console.log('Sending screenshot');
-		try {
-			const screenshot = await createGraphScreenshot();
-			if (screenshot) {
-				await uploadScreenshot(screenshot);
-			}
-		} catch (error) {
-			console.error('Error creating screenshot:', error);
+}
+export async function takeAndUploadScreenshot() {
+	if (get(nodes).length === 0 && get(edges).length === 0) {
+		return;
+	}
+	try {
+		const screenshot = await createGraphScreenshot();
+		if (screenshot) {
+			await uploadScreenshot(screenshot);
 		}
+	} catch (error) {
+		console.error('Error creating preview image:', error);
 	}
 }
 
@@ -194,8 +195,6 @@ async function uploadScreenshot(screenshot: string) {
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
-
-		console.log('Screenshot uploaded successfully');
 	} catch (error) {
 		console.error('Error uploading screenshot:', error);
 	}
@@ -281,7 +280,8 @@ function sendNodeUpdate(nodeId: string) {
 
 export const _connectToCloud = (
 	projectId: string,
-	resetProject: (projectType: ProjectType) => void
+	resetProject: (projectType: ProjectType) => void,
+	awaitLoading: boolean = false
 ) => {
 	//reset project, set it to UNINITIALIZED
 	canSendData = false;
@@ -291,7 +291,7 @@ export const _connectToCloud = (
 		projectId: projectId
 	}));
 	disconnectFromCloud();
-	return new Promise<true>((resolve) => {
+	return new Promise<true>((resolve, reject) => {
 		webSocket = new WebSocket(`${WS_HOST.toString()}project/${projectId}`);
 		hasWritePermission = false;
 		webSocket.onopen = async () => {
@@ -309,9 +309,11 @@ export const _connectToCloud = (
 				);
 			} else {
 				toast.error('failed to authenticate with server');
+				reject();
+			}
+			if (!awaitLoading) {
 				resolve(true);
 			}
-			resolve(true);
 		};
 
 		webSocket.onmessage = (ev) => {
@@ -326,6 +328,7 @@ export const _connectToCloud = (
 				loadFromGraph(graph, isCurrentLoadedProject);
 				lastSentData = JSON.parse(JSON.stringify(getSaveData(true, false).graph));
 
+				resolve(true);
 				loadCallbacks.forEach(({ resolve }) => resolve());
 				loadCallbacks = [];
 

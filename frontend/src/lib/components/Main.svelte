@@ -39,14 +39,14 @@
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
 	import ContextMenu from './ContextMenu.svelte';
-	import { saveAsCloudProject, sendNodePosition } from '@/project/cloud';
+	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
 
 	export let projectId: string | undefined = undefined;
 
 	onMount(async () => {
 		if (projectId) {
 			console.log('[MAIN onMount] loading cloud project', projectId);
-			loadCloudProject(projectId);
+			await loadCloudProject(projectId);
 		} else {
 			const result = loadLocalProject();
 			if (!result) {
@@ -65,7 +65,8 @@
 				if (get(session)) {
 					if ($nodes.length > 0) {
 						console.log('[MAIN onMount] saving local project to cloud because user is logged in');
-						saveAsCloudProject();
+						await saveAsCloudProject(true);
+						await takeAndUploadScreenshot();
 					} else {
 						console.log(
 							'[MAIN onMount] loading local project. Doesnt have any nodes or edges so will just show recents'
