@@ -33,5 +33,6 @@ export const _saveToLocalStorage = () => {
 };
 
 export const resetLocalProject = () => {
+	console.log('resetting local project');
 	window.localStorage.removeItem(LOCALSTORAGE_SAVE_KEY);
 };
