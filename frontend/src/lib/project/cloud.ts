@@ -5,7 +5,7 @@ import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, projectType, state } from '..';
-import type { CloudSaveFileFormat, ProjectType } from '@/types';
+import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
@@ -42,7 +42,6 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 		});
 
 	if (data) {
-		console.log('Created new project with id: ', data.id);
 		state.update((s) => ({
 			...s,
 			projectId: data.id,
@@ -53,7 +52,6 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 
 		_connectToCloud(data.id, resetLocalProject);
 		if (awaitLoading) {
-			console.log('awaiting loading...');
 			return new Promise<void>((resolve, reject) => {
 				loadCallbacks.push({ resolve, reject });
 			});
@@ -77,25 +75,48 @@ const disconnectFromCloud = async () => {
 	loadCallbacks = [];
 };
 
-let lastSentData: any | null = null;
+let lastSentData: SaveFileFormat | null = null;
 let canSendData: boolean = false;
 
-async function sendUpdate() {
-	if (!canSendData) {
-		console.log('cannot send data!');
-		return;
-	} else {
-		console.log('can send data!');
+function hasDataChanged(data: SaveFileFormat): boolean {
+	if (lastSentData?.projectId !== data.projectId) {
+		throw new Error('Project id mismatch (hasDataChanged)');
 	}
-	const saveData = getSaveData(true, false);
-	const dataString = saveData.stringifiedGraph;
 
-	if (dataString === lastSentData) {
+	if (data.edges.length !== lastSentData?.edges.length) {
+		return true;
+	}
+	if (data.nodes.length !== lastSentData?.nodes.length) {
+		return true;
+	}
+
+	if (
+		JSON.stringify(data.inputDataPlaceholder) !== JSON.stringify(lastSentData?.inputDataPlaceholder)
+	) {
+		return true;
+	}
+
+	if (
+		JSON.stringify(data.outputDataPlaceholder) !==
+		JSON.stringify(lastSentData?.outputDataPlaceholder)
+	) {
+		return true;
+	}
+
+	if (data.projectName !== lastSentData?.projectName) {
+		return true;
+	}
+
+	return false;
+}
+
+async function sendUpdate() {
+	const saveData = getSaveData(true, false);
+
+	if (!canSendData) return;
+
+	if (!hasDataChanged(saveData.graph)) {
 		return;
-	} else {
-		console.log('data changed!');
-		console.log(dataString);
-		console.log(lastSentData);
 	}
 
 	const saveDataCloud: CloudSaveFileFormat = {
@@ -116,7 +137,7 @@ async function sendUpdate() {
 					data: saveDataCloud
 				})
 			);
-			lastSentData = dataString;
+			lastSentData = JSON.parse(JSON.stringify(saveDataCloud));
 		}
 	}
 }
@@ -182,8 +203,6 @@ export const _connectToCloud = (
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
-				console.log('project', data);
-
 				const graph: CloudSaveFileFormat = data.data;
 				const currentProjectType = get(projectType);
 				const currentProjectId = get(state).projectId;
@@ -191,9 +210,8 @@ export const _connectToCloud = (
 					graph.projectType === currentProjectType && graph.projectId === currentProjectId;
 
 				loadFromGraph(graph, isCurrentLoadedProject);
-				lastSentData = getSaveData(true, false).stringifiedGraph;
+				lastSentData = JSON.parse(JSON.stringify(getSaveData(true, false).graph));
 
-				console.log('resolving promises, num: ', loadCallbacks.length);
 				loadCallbacks.forEach(({ resolve }) => resolve());
 				loadCallbacks = [];
 

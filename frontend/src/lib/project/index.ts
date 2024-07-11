@@ -72,10 +72,8 @@ export const loadLocalProject = () => {
 const debouncedSaveProject = debounce(() => {
 	const _projectType = get(projectType);
 	if (_projectType === 'LOCAL') {
-		console.log('[SAVING] local');
 		_saveToLocalStorage();
 	} else if (_projectType === 'CLOUD') {
-		console.log('[SAVING] cloud');
 		_saveToCloud();
 	}
 }, 50);
