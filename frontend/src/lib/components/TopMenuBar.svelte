@@ -1,5 +1,4 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import {
 		Download,
@@ -7,7 +6,6 @@
 		Folder,
 		Key,
 		Info,
-		GithubIcon,
 		Workflow,
 		LifeBuoy,
 		Save,
@@ -45,37 +43,12 @@
 <svelte:window on:keypress={handleKeydown} />
 
 <div class="flex items-center gap-2">
-	<Dialog.Root>
-		<Dialog.Trigger>
-			<div class="h-10 flex gap-2 shadow-2xl aspect-square rounded-lg border pointer-events-auto">
-				<img src="/logo.png" alt="Logo" class="h-full select-none" />
-			</div>
-		</Dialog.Trigger>
-		<Dialog.Content>
-			<Dialog.Header>
-				<Dialog.Title>
-					About {PackageJson.name}
-					<span class="text-xs gray-300">
-						(v{PackageJson.version})
-					</span>
-					<div class="text-sm text-gray-500">AI Workflow Editor</div>
-				</Dialog.Title>
-				<Dialog.Description>
-					{PackageJson.description}
-				</Dialog.Description>
-			</Dialog.Header>
-			<Dialog.Footer>
-				<Button variant="link" size="sm" target="_blank" href={PackageJson.repository.url}>
-					<GithubIcon class="mr-2 size-3.5" />
-					View on GitHub
-				</Button>
-				<Button variant="outline" size="sm" target="_blank" href="/how-to-use">
-					<Info class="mr-2 size-3.5" />
-					How to Use
-				</Button>
-			</Dialog.Footer>
-		</Dialog.Content>
-	</Dialog.Root>
+	<a
+		href="/"
+		class="h-10 flex gap-2 shadow-2xl aspect-square rounded-lg border pointer-events-auto"
+	>
+		<img src="/logo.png" alt="Logo" class="h-full select-none" />
+	</a>
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
 			<Button class="flex gap-2 items-center pointer-events-auto flex-shrink-0">

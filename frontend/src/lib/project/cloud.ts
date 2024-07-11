@@ -5,8 +5,9 @@ import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
 import { nonce, projectType, state } from '..';
-import type { CloudSaveFileFormat, ProjectType } from '@/types';
+import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
+import { createGraphScreenshot } from '@/utils/screenshot';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -15,6 +16,13 @@ WS_HOST.protocol = WS_HOST.protocol === 'https:' ? 'wss:' : 'ws:';
 export const socketId = writable<number>(-1);
 
 let loadCallbacks: Array<{ resolve: () => void; reject: (reason?: any) => void }> = [];
+
+export const previewImageFileNameToUrl = (fileName: string) => {
+	if (fileName.startsWith('/')) {
+		fileName = fileName.substring(1);
+	}
+	return `${API_HOST.toString()}${fileName}`;
+};
 
 export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 	const clerkClient = get(clerk);
@@ -42,7 +50,7 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 		});
 
 	if (data) {
-		console.log('Created new project with id: ', data.id);
+		console.log('data', data);
 		state.update((s) => ({
 			...s,
 			projectId: data.id,
@@ -53,7 +61,6 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 
 		_connectToCloud(data.id, resetLocalProject);
 		if (awaitLoading) {
-			console.log('awaiting loading...');
 			return new Promise<void>((resolve, reject) => {
 				loadCallbacks.push({ resolve, reject });
 			});
@@ -72,30 +79,61 @@ const disconnectFromCloud = async () => {
 		webSocket = null;
 	}
 
-	// Reject all pending promises
 	loadCallbacks.forEach(({ reject }) => reject(new Error('Disconnected from websocket')));
 	loadCallbacks = [];
 };
 
-let lastSentData: any | null = null;
+let lastSentData: SaveFileFormat | null = null;
 let canSendData: boolean = false;
 
-async function sendUpdate() {
-	if (!canSendData) {
-		console.log('cannot send data!');
-		return;
-	} else {
-		console.log('can send data!');
-	}
-	const saveData = getSaveData(true, false);
-	const dataString = saveData.stringifiedGraph;
+type CHANGE_TYPE =
+	| 'NODES'
+	| 'NODE_INPUT_PLACEHOLDER'
+	| 'NODE_OUTPUT_PLACEHOLDER'
+	| 'EDGES'
+	| 'PROJECT_NAME'
+	| 'NONE';
 
-	if (dataString === lastSentData) {
+function hasDataChanged(data: SaveFileFormat): CHANGE_TYPE {
+	if (lastSentData?.projectId !== data.projectId) {
+		throw new Error('Project id mismatch (hasDataChanged)');
+	}
+
+	if (data.edges.length !== lastSentData?.edges.length) {
+		return 'EDGES';
+	}
+	if (data.nodes.length !== lastSentData?.nodes.length) {
+		return 'NODES';
+	}
+
+	if (
+		JSON.stringify(data.inputDataPlaceholder) !== JSON.stringify(lastSentData?.inputDataPlaceholder)
+	) {
+		return 'NODE_INPUT_PLACEHOLDER';
+	}
+
+	if (
+		JSON.stringify(data.outputDataPlaceholder) !==
+		JSON.stringify(lastSentData?.outputDataPlaceholder)
+	) {
+		return 'NODE_OUTPUT_PLACEHOLDER';
+	}
+
+	if (data.projectName !== lastSentData?.projectName) {
+		return 'PROJECT_NAME';
+	}
+
+	return 'NONE';
+}
+
+async function sendUpdate() {
+	const saveData = getSaveData(true, false);
+
+	if (!canSendData) return;
+
+	const changeType = hasDataChanged(saveData.graph);
+	if (changeType === 'NONE') {
 		return;
-	} else {
-		console.log('data changed!');
-		console.log(dataString);
-		console.log(lastSentData);
 	}
 
 	const saveDataCloud: CloudSaveFileFormat = {
@@ -116,9 +154,63 @@ async function sendUpdate() {
 					data: saveDataCloud
 				})
 			);
-			lastSentData = dataString;
+			lastSentData = JSON.parse(JSON.stringify(saveDataCloud));
 		}
 	}
+
+	if (changeType === 'NODES' || changeType === 'EDGES') {
+		console.log('Sending screenshot');
+		try {
+			const screenshot = await createGraphScreenshot();
+			if (screenshot) {
+				await uploadScreenshot(screenshot);
+			}
+		} catch (error) {
+			console.error('Error creating screenshot:', error);
+		}
+	}
+}
+
+async function uploadScreenshot(screenshot: string) {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+	const projectId = get(state).projectId;
+
+	if (!token || !projectId) {
+		console.error('Failed to upload screenshot: missing token or project ID');
+		return;
+	}
+
+	try {
+		const response = await fetch(`${API_HOST.toString()}project/uploadImage/${projectId}`, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'image/png'
+			},
+			body: dataURItoBlob(screenshot)
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		console.log('Screenshot uploaded successfully');
+	} catch (error) {
+		console.error('Error uploading screenshot:', error);
+	}
+}
+
+// Helper function to convert data URI to Blob
+function dataURItoBlob(dataURI: string) {
+	const byteString = atob(dataURI.split(',')[1]);
+	const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+	const ab = new ArrayBuffer(byteString.length);
+	const ia = new Uint8Array(ab);
+	for (let i = 0; i < byteString.length; i++) {
+		ia[i] = byteString.charCodeAt(i);
+	}
+	return new Blob([ab], { type: mimeString });
 }
 
 let updateTimeout: NodeJS.Timeout | null = null;
@@ -142,6 +234,49 @@ export function _saveToCloud() {
 			lastUpdateTime = Date.now();
 		}, UPDATE_DEBOUNCE_TIME);
 	}
+}
+
+const nodeUpdateTimers: Record<string, NodeJS.Timeout> = {};
+const lastNodePositions: Record<string, { id: string; position: { x: number; y: number } }> = {};
+
+const FPS = 20;
+const UPDATE_INTERVAL = 1000 / FPS;
+
+export function sendNodePosition(event: CustomEvent) {
+	if (!webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
+		return;
+	}
+
+	const { nodes } = event.detail;
+	if (nodes.length !== 1) {
+		return;
+	}
+
+	const node = nodes[0];
+	lastNodePositions[node.id] = { id: node.id, position: node.position };
+
+	if (!nodeUpdateTimers[node.id]) {
+		nodeUpdateTimers[node.id] = setTimeout(() => {
+			sendNodeUpdate(node.id);
+		}, UPDATE_INTERVAL);
+	}
+}
+
+function sendNodeUpdate(nodeId: string) {
+	const nodeData = lastNodePositions[nodeId];
+	if (nodeData) {
+		webSocket?.send(
+			JSON.stringify({
+				type: 'moveNode',
+				data: {
+					nodeId: nodeData.id,
+					newPosition: nodeData.position
+				}
+			})
+		);
+	}
+	delete nodeUpdateTimers[nodeId];
+	delete lastNodePositions[nodeId];
 }
 
 export const _connectToCloud = (
@@ -182,8 +317,6 @@ export const _connectToCloud = (
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
 			if (data.type === 'project') {
-				console.log('project', data);
-
 				const graph: CloudSaveFileFormat = data.data;
 				const currentProjectType = get(projectType);
 				const currentProjectId = get(state).projectId;
@@ -191,9 +324,8 @@ export const _connectToCloud = (
 					graph.projectType === currentProjectType && graph.projectId === currentProjectId;
 
 				loadFromGraph(graph, isCurrentLoadedProject);
-				lastSentData = getSaveData(true, false).stringifiedGraph;
+				lastSentData = JSON.parse(JSON.stringify(getSaveData(true, false).graph));
 
-				console.log('resolving promises, num: ', loadCallbacks.length);
 				loadCallbacks.forEach(({ resolve }) => resolve());
 				loadCallbacks = [];
 
@@ -221,4 +353,28 @@ export const _connectToCloud = (
 
 		return webSocket;
 	});
+};
+
+export const fetchRecentProjects = async () => {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+
+	if (!token) {
+		throw new Error('Not authenticated');
+	}
+
+	const response = await fetch(`${API_HOST.toString()}project/list`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch recent projects');
+	}
+
+	const data = await response.json();
+	return data.projects;
 };
