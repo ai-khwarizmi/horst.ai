@@ -60,9 +60,7 @@ export const loadCloudProject = async (projectId: string, changeUrl: boolean = f
 		if (changeUrl) {
 			replaceState(`/project/${projectId}`, { replace: true });
 		}
-		takeAndUploadScreenshot().then(() => {
-			console.log('updated preview image');
-		});
+		takeAndUploadScreenshot().then(() => {});
 	} catch (err) {
 		console.error(err);
 		toast.error('Failed to load project');

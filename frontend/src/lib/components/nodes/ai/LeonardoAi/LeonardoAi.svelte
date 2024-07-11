@@ -196,7 +196,8 @@
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
 		forceExecute: boolean,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<any, any>
 	) => {
 		const apiKey = get(leonardo_key) as string;
 		if (!apiKey) {
@@ -216,7 +217,7 @@
 
 		Object.entries(INPUT_IDS_OPTIONAL).forEach(([_key, inputId]) => {
 			const value = currentInputs[inputId];
-			if (value !== undefined) {
+			if (value !== undefined && value !== '') {
 				requestBody[inputId] = value;
 			}
 		});
@@ -342,7 +343,7 @@
 		};
 	};
 
-	const io = new NodeIOHandler({
+	const _io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
 			{ id: INPUT_IDS.PROMPT, type: 'text', label: 'Prompt' },
@@ -826,7 +827,7 @@
 	}
 </script>
 
-<CustomNode {io} {...$$props}>
+<CustomNode io={_io} {...$$props}>
 	{#if lastOutputValue && lastOutputValue.length > 0}
 		<div class={`grid ${lastOutputValue.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
 			{#each lastOutputValue as file, index}

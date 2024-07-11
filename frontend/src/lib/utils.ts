@@ -23,16 +23,6 @@ import {
 	type OnExecuteCallbacks
 } from './types';
 import { HorstFile } from './utils/horstfile';
-import {
-	Subject,
-	switchMap,
-	catchError,
-	EMPTY,
-	takeUntil,
-	from,
-	Observable,
-	firstValueFrom
-} from 'rxjs';
 import { createNewProject } from './project';
 
 export const getNodeColors = (
@@ -84,8 +74,8 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	readonly inputs = writable<Input<TInput>[]>([]);
 	readonly outputs = writable<Output<TOutput>[]>([]);
 
-	private executeSubject = new Subject<{ callbacks: OnExecuteCallbacks; forceExecute: boolean }>();
-	private cancelExecutionSubject = new Subject<void>();
+	executionCounter: number = 1;
+	runningExecutions: number = 0;
 
 	onExecuteCallbacks: OnExecuteCallbacks | null = null;
 	isInputUnsupported: (
@@ -98,10 +88,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	_onExecute: (
 		callbacks: OnExecuteCallbacks,
 		forceExecute: boolean,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<TInput, TOutput>
 	) => Promise<void>;
-
-	private currentContext: ReturnType<typeof createCancellableContext> | null = null;
 
 	constructor(args: {
 		nodeId: string;
@@ -110,7 +99,8 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		onExecute: (
 			callbacks: OnExecuteCallbacks,
 			forceExecute: boolean,
-			wrap: <T>(promise: Promise<T>) => Promise<T>
+			wrap: <T>(promise: Promise<T>) => Promise<T>,
+			io: NodeIOHandler<TInput, TOutput>
 		) => Promise<void>;
 		isInputUnsupported: (
 			inputId: string,
@@ -123,25 +113,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.isInputUnsupported = args.isInputUnsupported;
 		this._onExecute = args.onExecute;
 
-		this.executeSubject
-			.pipe(
-				switchMap(({ callbacks, forceExecute }) => {
-					if (this.currentContext) {
-						this.currentContext.cancel();
-					}
-					this.currentContext = createCancellableContext();
-
-					return from(args.onExecute(callbacks, forceExecute, this.currentContext.wrap)).pipe(
-						takeUntil(this.cancelExecutionSubject)
-					);
-				}),
-				catchError((error: Error) => {
-					this.onExecuteCallbacks?.setErrors([error.toString()]);
-					return EMPTY;
-				})
-			)
-			.subscribe();
-
 		this.nodeId = args.nodeId;
 		this.inputs.set(args.inputs);
 		this.outputs.set(args.outputs);
@@ -152,8 +123,76 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		}, 1);
 	}
 
-	onExecute = (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		this.executeSubject.next({ callbacks, forceExecute });
+	onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		this.executionCounter++;
+		this.runningExecutions++;
+		const executionId = this.executionCounter;
+
+		const throwOutdatedExecuteCall = () => {
+			throw new Error(
+				'Outdated onExecute call.' +
+					' Expected: ' +
+					executionId +
+					' Actual: ' +
+					this.executionCounter
+			);
+		};
+
+		const wrap = async <T>(promise: Promise<T>): Promise<T> => {
+			if (this.executionCounter !== executionId) {
+				throwOutdatedExecuteCall();
+			}
+			const result = await promise;
+			if (this.executionCounter !== executionId) {
+				throwOutdatedExecuteCall();
+			}
+			return result;
+		};
+
+		const getExecutionCounter = () => {
+			return this.executionCounter;
+		};
+
+		const ioProxy = new Proxy(this, {
+			get(target, prop, receiver) {
+				if (typeof target[prop as keyof typeof target] === 'function') {
+					return async (...args: any[]) => {
+						console.log('ioProxy', getExecutionCounter(), executionId);
+						if (getExecutionCounter() !== executionId) {
+							throwOutdatedExecuteCall();
+						}
+						return await (target[prop as keyof typeof target] as (...args: any[]) => any)(...args);
+					};
+				}
+				return Reflect.get(target, prop, receiver);
+			}
+		});
+
+		const callbacksProxy = new Proxy(callbacks, {
+			get(target, prop, receiver) {
+				if (typeof target[prop as keyof typeof target] === 'function') {
+					return async (...args: any[]) => {
+						if (getExecutionCounter() !== executionId) {
+							throwOutdatedExecuteCall();
+						}
+						return await (target[prop as keyof typeof target] as (...args: any[]) => any)(...args);
+					};
+				}
+				return Reflect.get(target, prop, receiver);
+			}
+		});
+
+		try {
+			//if we're killing the previous  execution we need to forceExecute to ensure it's executed
+			if (this.runningExecutions > 1) {
+				forceExecute = true;
+			}
+			const result = await this._onExecute(callbacksProxy, forceExecute, wrap, ioProxy);
+			return result;
+		} catch (e) {
+			console.error('Error in onExecute', e);
+		}
+		this.runningExecutions--;
 	};
 
 	async updateUnsupportedInputs() {
@@ -377,14 +416,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		_setNodeOutputDataPlaceholder(this.nodeId, { [handleId]: value });
 		this.onOutputsChanged();
 	}
-
-	cancelExecution = () => {
-		if (this.currentContext) {
-			this.currentContext.cancel();
-			this.currentContext = null;
-		}
-		this.cancelExecutionSubject.next();
-	};
 }
 
 export const removeEdgeByIds = (...ids: string[]) => {
@@ -567,29 +598,3 @@ const _getNodeInputData = (id: string, handle: string, ignorePlaceholder: boolea
 		_getNodeInputDataWithoutPlaceholder(id, handle) || _getNodeInputDataPlaceholder(id, handle)
 	);
 };
-
-export function createCancellableContext() {
-	const abortController = new AbortController();
-	const signal = abortController.signal;
-
-	const cancel$ = new Observable<void>((observer) => {
-		const onAbort = () => {
-			observer.next();
-			observer.complete(); // Complete the observable to clean up
-		};
-		signal.addEventListener('abort', onAbort, { once: true });
-		return () => {
-			signal.removeEventListener('abort', onAbort);
-		};
-	});
-
-	return {
-		signal,
-		cancel: () => abortController.abort(),
-		wrap: <T>(promise: Promise<T>): Promise<T> => {
-			return firstValueFrom(from(promise).pipe(takeUntil(cancel$)));
-		}
-	};
-}
-
-export type WrappedPromise = <T>(promise: Promise<T>) => Promise<T>;

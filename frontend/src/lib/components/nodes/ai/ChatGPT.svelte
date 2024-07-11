@@ -28,7 +28,8 @@
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
 		forceExecute: boolean,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<any, any>
 	) => {
 		try {
 			const apiKey = get(openai_key) as string;
