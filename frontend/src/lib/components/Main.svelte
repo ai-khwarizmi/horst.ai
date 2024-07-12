@@ -41,6 +41,7 @@
 	import ContextMenu from './ContextMenu.svelte';
 	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
 	import { resetLocalProject } from '@/project/local';
+	import HotkeysPopup from './popups/HotkeysPopup.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -154,6 +155,7 @@
 			type: 'custom'
 		}}
 	>
+		<HotkeysPopup />
 		<DebugView />
 		<FullCommand />
 		<Background />

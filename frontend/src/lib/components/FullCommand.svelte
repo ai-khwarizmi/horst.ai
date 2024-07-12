@@ -5,29 +5,6 @@
 	import { useSvelteFlow } from '@xyflow/svelte';
 	import { commandOpen, createNodeParams } from '..';
 
-	function handleKeydown(e: KeyboardEvent) {
-		// if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-		// 	e.preventDefault();
-		// 	commandOpen.update((prev) => !prev);
-		// }
-		const { activeElement } = document;
-		if (activeElement) {
-			if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
-				return;
-			}
-		}
-		if (e.code === 'Space' && (e.metaKey || e.ctrlKey)) {
-			if (!$commandOpen) {
-				e.preventDefault();
-				commandOpen.set(true);
-			}
-		}
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			commandOpen.set(false);
-		}
-	}
-
 	const { screenToFlowPosition } = useSvelteFlow();
 
 	const onSelect = (nodeType: CustomNodeName) => {
@@ -59,8 +36,6 @@
 		return acc;
 	}, {});
 </script>
-
-<svelte:document on:keydown={handleKeydown} />
 
 <Command.Dialog bind:open={$commandOpen}>
 	<Command.Input placeholder="Search" />
