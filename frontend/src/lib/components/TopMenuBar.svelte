@@ -29,6 +29,7 @@
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/project/file';
 	import { openProjectSettings } from './ProjectSettings.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
+	import { openHotkeysPopup } from './popups/HotkeysPopup.svelte';
 
 	export let projectId: string | undefined;
 
@@ -137,7 +138,7 @@
 					{/if} + Space
 				</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
-			<DropdownMenu.Item>
+			<DropdownMenu.Item on:click={openHotkeysPopup}>
 				<Keyboard class="mr-2 size-3.5" />
 				Hotkeys
 			</DropdownMenu.Item>
