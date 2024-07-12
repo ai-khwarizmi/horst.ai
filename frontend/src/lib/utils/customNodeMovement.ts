@@ -1,8 +1,8 @@
 import { get } from 'svelte/store';
 import { nodes } from '..';
 
-export const NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL = 50;
-const LERP_STEPS = 10;
+export const NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL = 100;
+const LERP_STEPS = 20;
 const MS_PER_STEP = NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL / LERP_STEPS;
 
 const nodeMoveResizedLerpIntervals: any = {};
