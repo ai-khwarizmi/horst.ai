@@ -16,10 +16,11 @@
 	import { nodes, edges } from '$lib';
 	import type { Edge, Node } from '@xyflow/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { browser } from '$app/environment';
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
-	const isMac = navigator.userAgent.match('Mac');
+	const isMac = browser && navigator.userAgent.match('Mac');
 	const cmdKey = isMac ? '⌘' : 'Ctrl';
 
 	const hotkeys = {
