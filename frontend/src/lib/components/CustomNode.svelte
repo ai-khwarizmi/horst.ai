@@ -22,6 +22,7 @@
 	import { get } from 'svelte/store';
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
+	import { sendNodeMoveResize } from '@/project/cloud';
 
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
@@ -296,6 +297,7 @@
 		onResizeStart={() => (isResizing = true)}
 		onResize={() => {
 			isResizing = true;
+			sendNodeMoveResize(id);
 		}}
 		onResizeEnd={() => {
 			isResizing = false;

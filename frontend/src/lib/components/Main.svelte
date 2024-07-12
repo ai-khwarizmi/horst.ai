@@ -2,7 +2,6 @@
 	import {
 		SvelteFlow,
 		Background,
-		Controls,
 		Panel,
 		type OnConnectStart,
 		type Connection
@@ -39,9 +38,10 @@
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
 	import ContextMenu from './ContextMenu.svelte';
-	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
+	import { saveAsCloudProject, sendNodeMoveResize, takeAndUploadScreenshot } from '@/project/cloud';
 	import { resetLocalProject } from '@/project/local';
 	import HotkeysPopup from './popups/HotkeysPopup.svelte';
+	import WebsocketStatus from './WebsocketStatus.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -120,7 +120,10 @@
 	};
 
 	const handleNodeDrag = (e: CustomEvent) => {
-		sendNodePosition(e);
+		const nodeId = e.detail.nodes[0]?.id;
+		if (nodeId) {
+			sendNodeMoveResize(nodeId);
+		}
 	};
 
 	const edgeTypes = {
@@ -159,7 +162,9 @@
 		<DebugView />
 		<FullCommand />
 		<Background />
-		<Controls showLock={false} showFitView={false} />
+		<Panel position="bottom-left">
+			<WebsocketStatus />
+		</Panel>
 		<Panel position="top-right">
 			<div class="flex gap-2">
 				<Button

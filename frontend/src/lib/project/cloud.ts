@@ -1,6 +1,5 @@
 import { replaceState } from '$app/navigation';
 import { clerk } from '@/auth/Clerk';
-import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
@@ -8,6 +7,10 @@ import { edges, nodes, nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
 import { createGraphScreenshot } from '@/utils/screenshot';
+import {
+	NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL,
+	moveAndResizeNode
+} from '@/utils/customNodeMovement';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -46,7 +49,6 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(err);
-			toast.error('failed to save to cloud');
 		});
 
 	if (data) {
@@ -235,48 +237,40 @@ export function _saveToCloud() {
 	}
 }
 
-const nodeUpdateTimers: Record<string, NodeJS.Timeout> = {};
-const lastNodePositions: Record<string, { id: string; position: { x: number; y: number } }> = {};
+const nodeMoveResizeUpdateTimer: Record<string, NodeJS.Timeout> = {};
+const nodeMoveResizeData: Record<
+	string,
+	{ position?: { x: number; y: number }; size?: { width: number; height: number } }
+> = {};
 
-const FPS = 20;
-const UPDATE_INTERVAL = 1000 / FPS;
-
-export function sendNodePosition(event: CustomEvent) {
-	if (!webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
+export function sendNodeMoveResize(nodeId: string) {
+	const node = get(nodes).find((node) => node.id === nodeId);
+	if (!node || !webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
 		return;
 	}
 
-	const { nodes } = event.detail;
-	if (nodes.length !== 1) {
-		return;
-	}
-
-	const node = nodes[0];
-	lastNodePositions[node.id] = { id: node.id, position: node.position };
-
-	if (!nodeUpdateTimers[node.id]) {
-		nodeUpdateTimers[node.id] = setTimeout(() => {
-			sendNodeUpdate(node.id);
-		}, UPDATE_INTERVAL);
+	const updateData = {
+		nodeId: node.id,
+		position: node.position,
+		size: { width: node.width || 0, height: node.height || 0 }
+	};
+	nodeMoveResizeData[nodeId] = updateData;
+	if (!nodeMoveResizeUpdateTimer[nodeId]) {
+		nodeMoveResizeUpdateTimer[nodeId] = setTimeout(() => {
+			webSocket?.send(
+				JSON.stringify({
+					type: 'moveResizeNode',
+					data: nodeMoveResizeData[nodeId]
+				})
+			);
+			delete nodeMoveResizeUpdateTimer[nodeId];
+		}, NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL);
 	}
 }
 
-function sendNodeUpdate(nodeId: string) {
-	const nodeData = lastNodePositions[nodeId];
-	if (nodeData) {
-		webSocket?.send(
-			JSON.stringify({
-				type: 'moveNode',
-				data: {
-					nodeId: nodeData.id,
-					newPosition: nodeData.position
-				}
-			})
-		);
-	}
-	delete nodeUpdateTimers[nodeId];
-	delete lastNodePositions[nodeId];
-}
+export const websocketStatus = writable<'disconnected' | 'error' | 'connecting' | 'connected'>(
+	'disconnected'
+);
 
 export const _connectToCloud = (
 	projectId: string,
@@ -292,10 +286,12 @@ export const _connectToCloud = (
 	}));
 	disconnectFromCloud();
 	return new Promise<true>((resolve, reject) => {
+		websocketStatus.set('connecting');
 		webSocket = new WebSocket(`${WS_HOST.toString()}project/${projectId}`);
 		hasWritePermission = false;
 		webSocket.onopen = async () => {
-			//toast.info('Loading project from cloud...');
+			console.log('WebSocket connection opened');
+			websocketStatus.set('connected');
 			const c = get(clerk);
 			const token = await c?.session?.getToken();
 			if (token) {
@@ -308,7 +304,7 @@ export const _connectToCloud = (
 					})
 				);
 			} else {
-				toast.error('failed to authenticate with server');
+				websocketStatus.set('error');
 				reject();
 			}
 			if (!awaitLoading) {
@@ -337,21 +333,24 @@ export const _connectToCloud = (
 				}, 20);
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
+				websocketStatus.set('connected');
+			} else if (data.type === 'nodeMoveResized') {
+				moveAndResizeNode(data.data);
 			}
 		};
 
 		webSocket.onclose = () => {
-			toast.error('disconnected from server', {
-				duration: 60000
-			});
+			console.log('WebSocket connection closed');
+			websocketStatus.set('disconnected');
 
 			// auto reconnect
 			setTimeout(() => {
 				_connectToCloud(projectId, resetProject);
 			}, 3000);
 		};
-		webSocket.onerror = () => {
-			// toast.error('error connecting to server');
+		webSocket.onerror = (error) => {
+			console.error('WebSocket error:', error);
+			websocketStatus.set('error');
 		};
 
 		return webSocket;
