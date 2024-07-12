@@ -92,6 +92,14 @@
 	};
 
 	const handleCopyPaste = (e: KeyboardEvent) => {
+		const { activeElement } = document;
+		if (
+			activeElement &&
+			(activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')
+		) {
+			return;
+		}
+
 		const nodeList = get(nodes);
 		const edgeList = get(edges);
 		const placeholderInputData = get(inputDataPlaceholder);
