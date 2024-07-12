@@ -37,7 +37,10 @@
 		<!-- <meta property="twitter:image" content="" /> -->
 
 		<script>
-			if (window.location.hostname.endsWith('.horst.ai')) {
+			if (
+				window.location.hostname === 'horst.ai' ||
+				window.location.hostname.endsWith('.horst.ai')
+			) {
 				document.addEventListener('DOMContentLoaded', function () {
 					const script = document.createElement('script');
 					script.defer = true;
