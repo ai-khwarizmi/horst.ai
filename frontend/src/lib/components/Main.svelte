@@ -2,7 +2,6 @@
 	import {
 		SvelteFlow,
 		Background,
-		Controls,
 		Panel,
 		type OnConnectStart,
 		type Connection
@@ -42,6 +41,7 @@
 	import { saveAsCloudProject, sendNodeMoveResize, takeAndUploadScreenshot } from '@/project/cloud';
 	import { resetLocalProject } from '@/project/local';
 	import HotkeysPopup from './popups/HotkeysPopup.svelte';
+	import WebsocketStatus from './WebsocketStatus.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -162,7 +162,9 @@
 		<DebugView />
 		<FullCommand />
 		<Background />
-		<Controls showLock={false} showFitView={false} />
+		<Panel position="bottom-left">
+			<WebsocketStatus />
+		</Panel>
 		<Panel position="top-right">
 			<div class="flex gap-2">
 				<Button

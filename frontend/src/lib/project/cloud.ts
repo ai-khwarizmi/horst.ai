@@ -1,6 +1,5 @@
 import { replaceState } from '$app/navigation';
 import { clerk } from '@/auth/Clerk';
-import { toast } from 'svelte-sonner';
 import { get, writable } from 'svelte/store';
 import { getSaveData, loadFromGraph } from '.';
 import { PUBLIC_API_HOST } from '$env/static/public';
@@ -46,7 +45,6 @@ export const saveAsCloudProject = async (awaitLoading: boolean = false) => {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(err);
-			toast.error('failed to save to cloud');
 		});
 
 	if (data) {
@@ -288,6 +286,10 @@ function handleNodeMoveResized(data: {
 	});
 }
 
+export const websocketStatus = writable<'disconnected' | 'error' | 'connecting' | 'connected'>(
+	'disconnected'
+);
+
 export const _connectToCloud = (
 	projectId: string,
 	resetProject: (projectType: ProjectType) => void,
@@ -302,10 +304,12 @@ export const _connectToCloud = (
 	}));
 	disconnectFromCloud();
 	return new Promise<true>((resolve, reject) => {
+		websocketStatus.set('connecting');
 		webSocket = new WebSocket(`${WS_HOST.toString()}project/${projectId}`);
 		hasWritePermission = false;
 		webSocket.onopen = async () => {
-			//toast.info('Loading project from cloud...');
+			console.log('WebSocket connection opened');
+			websocketStatus.set('connected');
 			const c = get(clerk);
 			const token = await c?.session?.getToken();
 			if (token) {
@@ -318,7 +322,7 @@ export const _connectToCloud = (
 					})
 				);
 			} else {
-				toast.error('failed to authenticate with server');
+				websocketStatus.set('error');
 				reject();
 			}
 			if (!awaitLoading) {
@@ -328,6 +332,7 @@ export const _connectToCloud = (
 
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
+			console.log('Received WebSocket message:', data);
 			if (data.type === 'project') {
 				const graph: CloudSaveFileFormat = data.data;
 				const currentProjectType = get(projectType);
@@ -346,24 +351,26 @@ export const _connectToCloud = (
 					canSendData = true;
 				}, 20);
 			} else if (data.type === 'write') {
+				console.log('Received write permissions');
 				hasWritePermission = true;
+				websocketStatus.set('connected');
 			} else if (data.type === 'nodeMoveResized') {
 				handleNodeMoveResized(data.data);
 			}
 		};
 
 		webSocket.onclose = () => {
-			toast.error('disconnected from server', {
-				duration: 60000
-			});
+			console.log('WebSocket connection closed');
+			websocketStatus.set('disconnected');
 
 			// auto reconnect
 			setTimeout(() => {
 				_connectToCloud(projectId, resetProject);
 			}, 3000);
 		};
-		webSocket.onerror = () => {
-			// toast.error('error connecting to server');
+		webSocket.onerror = (error) => {
+			console.error('WebSocket error:', error);
+			websocketStatus.set('error');
 		};
 
 		return webSocket;
