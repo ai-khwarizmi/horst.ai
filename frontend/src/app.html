@@ -36,6 +36,23 @@
 		/>
 		<!-- <meta property="twitter:image" content="" /> -->
 
+		<script>
+			if (window.location.hostname.endsWith('.horst.ai')) {
+				document.addEventListener('DOMContentLoaded', function () {
+					const script = document.createElement('script');
+					script.defer = true;
+					script.id = 'plausible';
+					script.dataset.domain = window.location.hostname;
+					script.dataset.api = '/plausible/api/event';
+					script.src = '/plausible/js/script.js';
+					if (document.getElementById('plausible')) {
+						return;
+					}
+					document.head.appendChild(script);
+				});
+			}
+		</script>
+
 		%sveltekit.head%
 	</head>
 
