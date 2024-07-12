@@ -249,10 +249,14 @@ export function sendNodeMoveResize(nodeId: string) {
 		return;
 	}
 
+	if (!node.width || !node.height) {
+		return;
+	}
+
 	const updateData = {
 		nodeId: node.id,
 		position: node.position,
-		size: node.width && node.height ? { width: node.width, height: node.height } : undefined
+		size: { width: node.width, height: node.height }
 	};
 	nodeMoveResizeData[nodeId] = updateData;
 	if (!nodeMoveResizeUpdateTimer[nodeId]) {
