@@ -1,42 +1,90 @@
 <script lang="ts" context="module">
-	let open = false;
+	import { writable } from 'svelte/store';
+
+	let open = writable(false);
 
 	export function openHotkeysPopup() {
-		open = true;
+		open.set(true);
 	}
 </script>
 
 <script lang="ts">
 	import { useSvelteFlow } from '@xyflow/svelte';
-
+	import * as Dialog from '$lib/components/ui/dialog';
 	import { get } from 'svelte/store';
 	import { commandOpen, inputDataPlaceholder, outputDataPlaceholder, state } from '$lib';
 	import { nodes, edges } from '$lib';
 	import type { Edge, Node } from '@xyflow/svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
+	const isMac = navigator.userAgent.match('Mac');
+	const cmdKey = isMac ? '⌘' : 'Ctrl';
+
+	const hotkeys = {
+		openHotkeysMenu: {
+			key: '.',
+			modifier: 'ctrlOrCmd',
+			description: 'Open hotkeys menu'
+		},
+		openCommandPalette: {
+			key: ['Space', '/'],
+			modifier: 'ctrlOrCmd',
+			description: 'Open node palette'
+		},
+		closeCommandPalette: { key: 'Escape', description: 'Close node palette' },
+		selectAllNodes: { key: 'a', modifier: 'ctrlOrCmd', description: 'Select all nodes' },
+		copySelectedNodes: { key: 'c', modifier: 'ctrlOrCmd', description: 'Copy selected nodes' },
+		pasteNodes: { key: 'v', modifier: 'ctrlOrCmd', description: 'Paste copied nodes' }
+	} as Record<string, { key: string | string[]; modifier?: string; description: string }>;
+
+	const hotkeyCategories = [
+		{
+			name: 'General',
+			keys: ['openHotkeysMenu', 'openCommandPalette', 'closeCommandPalette', 'selectAllNodes']
+		},
+		{
+			name: 'Clipboard',
+			keys: ['copySelectedNodes', 'pasteNodes']
+		}
+	];
+
 	export const handleKeyDown = (e: KeyboardEvent) => {
+		handleHotkeysMenu(e);
 		handleCommandOpen(e);
 		handleCopyPaste(e);
 		handleSelectAll(e);
 	};
 
+	const handleHotkeysMenu = (e: KeyboardEvent) => {
+		if (e.key === hotkeys.openHotkeysMenu.key && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			open.set(true);
+		}
+	};
+
 	const handleCommandOpen = (e: KeyboardEvent) => {
 		const { activeElement } = document;
-		if (activeElement) {
-			if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
-				return;
-			}
+		if (
+			activeElement &&
+			(activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')
+		) {
+			return;
 		}
-		if (e.code === 'Space' && (e.metaKey || e.ctrlKey)) {
+
+		const openCommandKeys = Array.isArray(hotkeys.openCommandPalette.key)
+			? hotkeys.openCommandPalette.key
+			: [hotkeys.openCommandPalette.key];
+
+		if (openCommandKeys.includes(e.key) && (e.metaKey || e.ctrlKey)) {
 			const open = get(commandOpen);
 			if (!open) {
 				e.preventDefault();
 				commandOpen.set(true);
 			}
 		}
-		if (e.key === 'Escape') {
+		if (e.key === hotkeys.closeCommandPalette.key) {
 			e.preventDefault();
 			commandOpen.set(false);
 		}
@@ -48,7 +96,7 @@
 		const placeholderInputData = get(inputDataPlaceholder);
 		const placeholderOutputData = get(outputDataPlaceholder);
 
-		if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+		if ((e.ctrlKey || e.metaKey) && e.key === hotkeys.copySelectedNodes.key) {
 			e.preventDefault();
 			const selectedNodes = nodeList.filter((node) => node.selected);
 			const selectedNodeIds = selectedNodes.map((node) => node.id);
@@ -97,7 +145,7 @@
 			navigator.clipboard.writeText(JSON.stringify(clipboardData));
 		}
 
-		if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+		if ((e.ctrlKey || e.metaKey) && e.key === hotkeys.pasteNodes.key) {
 			e.preventDefault();
 			navigator.clipboard.readText().then((text) => {
 				try {
@@ -174,7 +222,7 @@
 	};
 
 	const handleSelectAll = (e: KeyboardEvent) => {
-		if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+		if ((e.ctrlKey || e.metaKey) && e.key === hotkeys.selectAllNodes.key) {
 			const { activeElement } = document;
 			if (
 				activeElement &&
@@ -190,6 +238,37 @@
 
 <svelte:document on:keydown={handleKeyDown} />
 
-{#if open}
-	<!-- TODO: Add hotkeys popup -->
-{/if}
+<Dialog.Root bind:open={$open}>
+	<Dialog.Content class="w-[900px]">
+		<Dialog.Header>
+			<Dialog.Title>Keyboard Shortcuts</Dialog.Title>
+		</Dialog.Header>
+		<div class="grid grid-cols-2 gap-8">
+			{#each hotkeyCategories as category}
+				<div>
+					<h3 class="font-semibold mb-2 text-sm text-muted-foreground">{category.name}</h3>
+					<div class="space-y-2">
+						{#each category.keys as key}
+							<div class="flex justify-between items-center">
+								<span>{hotkeys[key].description}</span>
+								<kbd
+									class="px-2 py-1 rounded bg-secondary text-secondary-foreground text-xs whitespace-nowrap"
+								>
+									{#if hotkeys[key].modifier}
+										{cmdKey} +
+									{/if}
+									{[hotkeys[key].key].flat()[0]}
+								</kbd>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+		<Dialog.Footer>
+			<Dialog.Close>
+				<Button class="bg-primary text-primary-foreground hover:bg-primary/90">Close</Button>
+			</Dialog.Close>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
