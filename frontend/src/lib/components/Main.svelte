@@ -39,7 +39,7 @@
 	import { get } from 'svelte/store';
 	import { session } from '@/auth/Clerk';
 	import ContextMenu from './ContextMenu.svelte';
-	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
+	import { saveAsCloudProject, sendNodeMoveResize, takeAndUploadScreenshot } from '@/project/cloud';
 	import { resetLocalProject } from '@/project/local';
 	import HotkeysPopup from './popups/HotkeysPopup.svelte';
 
@@ -120,7 +120,10 @@
 	};
 
 	const handleNodeDrag = (e: CustomEvent) => {
-		sendNodePosition(e);
+		const nodeId = e.detail.nodes[0]?.id;
+		if (nodeId) {
+			sendNodeMoveResize(nodeId);
+		}
 	};
 
 	const edgeTypes = {

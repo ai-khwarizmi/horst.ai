@@ -235,47 +235,57 @@ export function _saveToCloud() {
 	}
 }
 
-const nodeUpdateTimers: Record<string, NodeJS.Timeout> = {};
-const lastNodePositions: Record<string, { id: string; position: { x: number; y: number } }> = {};
+const nodeMoveResizeUpdateTimer: Record<string, NodeJS.Timeout> = {};
+const UPDATE_INTERVAL = 50;
+const nodeMoveResizeData: Record<
+	string,
+	{ position?: { x: number; y: number }; size?: { width: number; height: number } }
+> = {};
 
-const FPS = 20;
-const UPDATE_INTERVAL = 1000 / FPS;
-
-export function sendNodePosition(event: CustomEvent) {
-	if (!webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
+export function sendNodeMoveResize(nodeId: string) {
+	const node = get(nodes).find((node) => node.id === nodeId);
+	if (!node || !webSocket || webSocket.readyState !== WebSocket.OPEN || !hasWritePermission) {
 		return;
 	}
 
-	const { nodes } = event.detail;
-	if (nodes.length !== 1) {
-		return;
-	}
-
-	const node = nodes[0];
-	lastNodePositions[node.id] = { id: node.id, position: node.position };
-
-	if (!nodeUpdateTimers[node.id]) {
-		nodeUpdateTimers[node.id] = setTimeout(() => {
-			sendNodeUpdate(node.id);
+	const updateData = {
+		nodeId: node.id,
+		position: node.position,
+		size: node.width && node.height ? { width: node.width, height: node.height } : undefined
+	};
+	nodeMoveResizeData[nodeId] = updateData;
+	if (!nodeMoveResizeUpdateTimer[nodeId]) {
+		nodeMoveResizeUpdateTimer[nodeId] = setTimeout(() => {
+			webSocket?.send(
+				JSON.stringify({
+					type: 'moveResizeNode',
+					data: nodeMoveResizeData[nodeId]
+				})
+			);
+			delete nodeMoveResizeUpdateTimer[nodeId];
 		}, UPDATE_INTERVAL);
 	}
 }
 
-function sendNodeUpdate(nodeId: string) {
-	const nodeData = lastNodePositions[nodeId];
-	if (nodeData) {
-		webSocket?.send(
-			JSON.stringify({
-				type: 'moveNode',
-				data: {
-					nodeId: nodeData.id,
-					newPosition: nodeData.position
-				}
-			})
-		);
-	}
-	delete nodeUpdateTimers[nodeId];
-	delete lastNodePositions[nodeId];
+function handleNodeMoveResized(data: {
+	nodeId: string;
+	position?: { x: number; y: number };
+	size?: { width: number; height: number };
+	nonce: number;
+}) {
+	nodes.update((currentNodes) => {
+		const nodeIndex = currentNodes.findIndex((node) => node.id === data.nodeId);
+		if (nodeIndex !== -1) {
+			if (data.position) {
+				currentNodes[nodeIndex].position = data.position;
+			}
+			if (data.size) {
+				currentNodes[nodeIndex].width = data.size.width;
+				currentNodes[nodeIndex].height = data.size.height;
+			}
+		}
+		return currentNodes;
+	});
 }
 
 export const _connectToCloud = (
@@ -337,6 +347,8 @@ export const _connectToCloud = (
 				}, 20);
 			} else if (data.type === 'write') {
 				hasWritePermission = true;
+			} else if (data.type === 'nodeMoveResized') {
+				handleNodeMoveResized(data.data);
 			}
 		};
 
