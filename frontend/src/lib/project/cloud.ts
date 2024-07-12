@@ -7,6 +7,10 @@ import { edges, nodes, nonce, projectType, state } from '..';
 import type { CloudSaveFileFormat, ProjectType, SaveFileFormat } from '@/types';
 import { resetLocalProject } from './local';
 import { createGraphScreenshot } from '@/utils/screenshot';
+import {
+	NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL,
+	moveAndResizeNode
+} from '@/utils/customNodeMovement';
 
 const API_HOST = new URL(PUBLIC_API_HOST);
 const WS_HOST = new URL(API_HOST);
@@ -234,7 +238,6 @@ export function _saveToCloud() {
 }
 
 const nodeMoveResizeUpdateTimer: Record<string, NodeJS.Timeout> = {};
-const UPDATE_INTERVAL = 50;
 const nodeMoveResizeData: Record<
 	string,
 	{ position?: { x: number; y: number }; size?: { width: number; height: number } }
@@ -261,29 +264,8 @@ export function sendNodeMoveResize(nodeId: string) {
 				})
 			);
 			delete nodeMoveResizeUpdateTimer[nodeId];
-		}, UPDATE_INTERVAL);
+		}, NODE_MOVEMENTS_SERVER_UPDATE_INTERVAL);
 	}
-}
-
-function handleNodeMoveResized(data: {
-	nodeId: string;
-	position?: { x: number; y: number };
-	size?: { width: number; height: number };
-	nonce: number;
-}) {
-	nodes.update((currentNodes) => {
-		const nodeIndex = currentNodes.findIndex((node) => node.id === data.nodeId);
-		if (nodeIndex !== -1) {
-			if (data.position) {
-				currentNodes[nodeIndex].position = data.position;
-			}
-			if (data.size) {
-				currentNodes[nodeIndex].width = data.size.width;
-				currentNodes[nodeIndex].height = data.size.height;
-			}
-		}
-		return currentNodes;
-	});
 }
 
 export const websocketStatus = writable<'disconnected' | 'error' | 'connecting' | 'connected'>(
@@ -332,7 +314,6 @@ export const _connectToCloud = (
 
 		webSocket.onmessage = (ev) => {
 			const data = JSON.parse(ev.data);
-			console.log('Received WebSocket message:', data);
 			if (data.type === 'project') {
 				const graph: CloudSaveFileFormat = data.data;
 				const currentProjectType = get(projectType);
@@ -351,11 +332,10 @@ export const _connectToCloud = (
 					canSendData = true;
 				}, 20);
 			} else if (data.type === 'write') {
-				console.log('Received write permissions');
 				hasWritePermission = true;
 				websocketStatus.set('connected');
 			} else if (data.type === 'nodeMoveResized') {
-				handleNodeMoveResized(data.data);
+				moveAndResizeNode(data.data);
 			}
 		};
 
