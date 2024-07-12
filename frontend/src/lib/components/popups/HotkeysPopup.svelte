@@ -30,7 +30,7 @@
 			description: 'Open hotkeys menu'
 		},
 		openCommandPalette: {
-			key: ['Space', '/'],
+			key: ['Space', '/', 'k'],
 			modifier: 'ctrlOrCmd',
 			description: 'Open node palette'
 		},

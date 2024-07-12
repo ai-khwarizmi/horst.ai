@@ -15,7 +15,7 @@
 					Ctrl
 				{/if}
 			</kbd>
-			+ <kbd>Space</kbd> to add a node -
+			+ <kbd>k</kbd> to add a node -
 		</div>
 	{/if}
 	<Button size="lg" on:click={() => commandOpen.set(true)}>
