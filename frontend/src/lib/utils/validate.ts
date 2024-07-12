@@ -3,6 +3,7 @@ import type { NodeValueType } from '@/types';
 import { NodeIOHandler, nodeIOHandlers } from '@/utils';
 import type { Connection, Edge, Node } from '@xyflow/svelte';
 import { get } from 'svelte/store';
+import { edges } from '@/index';
 
 export const canConnectTypes = (obj: { output: NodeValueType; input: NodeValueType }) => {
 	if (obj.input === 'any') return true;
@@ -10,6 +11,19 @@ export const canConnectTypes = (obj: { output: NodeValueType; input: NodeValueTy
 	if (obj.input === 'file' && obj.output === 'file[]') return true;
 	if (obj.input === 'file[]' && obj.output === 'file') return true;
 	return obj.output === obj.input;
+};
+
+const detectLoop = (source: string, target: string, visited: Set<string> = new Set()): boolean => {
+	if (source === target) return true;
+	if (visited.has(source)) return false;
+	visited.add(source);
+
+	const outgoingEdges = get(edges).filter((edge) => edge.source === source);
+	for (const edge of outgoingEdges) {
+		if (detectLoop(edge.target, target, visited)) return true;
+	}
+
+	return false;
 };
 
 export const isValidConnection = (
@@ -20,6 +34,10 @@ export const isValidConnection = (
 		return false;
 	}
 	if (connection.source === connection.target) {
+		return false;
+	}
+	// Check for loops
+	if (detectLoop(connection.target, connection.source)) {
 		return false;
 	}
 	// Dont check this for now, to allow checking if the node is connectable
