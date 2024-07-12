@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { cn, removeEdgeByIds } from '@/utils';
-	import { edges, inputDataWithoutPlaceholder, inputPlaceholderData } from '..';
+	import { cn, nodeIOHandlers, removeEdgeByIds } from '@/utils';
+	import { edges, inputDataWithoutPlaceholder, inputDataPlaceholder } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
-	import { get } from 'svelte/store';
 	import { isValidConnection } from '@/utils/validate';
 	import {
 		DropdownMenu,
@@ -22,8 +21,6 @@
 	export let nodeId: string;
 	export let type: 'input' | 'output';
 	export let base: Input<string> | Output<string>;
-	export let setInputPlaceholderData: (handleId: string, value: any) => void;
-	export let getCurrentInputPlaceholderData: (handleId: string) => any;
 
 	let selectedOption = 'Select option';
 	let searchTerm = '';
@@ -34,24 +31,21 @@
 
 	$: isInput = type === 'input';
 
-	$: connections =
-		type === 'output'
-			? $edges.filter((edge) => edge.source === nodeId)
-			: $edges.filter((edge) => edge.target === nodeId);
+	$: connections = $edges.filter((edge) =>
+		type === 'output' ? edge.source === nodeId : edge.target === nodeId
+	);
 
 	$: connected = connections.filter((edge) =>
 		type === 'output' ? edge.sourceHandle === base.id : edge.targetHandle === base.id
 	);
 
-	$: currentValue = $inputPlaceholderData[nodeId]?.[base.id];
+	$: currentValue = $inputDataPlaceholder[nodeId]?.[base.id];
 
 	const onconnect = (connections: Connection[]) => {
 		const edgesToRemove: string[] = [];
 		for (const connection of connections) {
 			const conn: Connection & { edgeId?: string } = connection;
-			const e = get(edges);
-			if (!e) return;
-			const edge = e.filter(
+			const edge = $edges.filter(
 				(edge) =>
 					edge.target === conn.target &&
 					edge.targetHandle === conn.targetHandle &&
@@ -91,7 +85,7 @@
 		}
 	`;
 
-	if ('input' in base && base.input?.default) {
+	if ('input' in base && base.input && 'default' in base.input) {
 		if (base.input.inputOptionType === 'dropdown') {
 			selectedOption = base.input.default;
 		} else if (base.input.inputOptionType === 'input-field') {
@@ -115,10 +109,10 @@
 		searchTerm = '';
 		selectedIndex = -1;
 		isOpen = false;
-		setInputPlaceholderData!(base.id, option);
+		nodeIOHandlers[nodeId].setInputDataPlaceholder(base.id, option);
 	}
 
-	function handleKeyDown(event: KeyboardEvent) {
+	function handleKeyDown(event: any) {
 		if (event.key === 'Escape') {
 			event.preventDefault();
 			isOpen = false;
@@ -184,12 +178,12 @@
 	}
 
 	function saveInputValue() {
-		setInputPlaceholderData(base.id, tempInputValue);
+		nodeIOHandlers[nodeId].setInputDataPlaceholder(base.id, tempInputValue);
 	}
 
 	onMount(() => {
 		//set defaults depending on type
-		const currentValue = getCurrentInputPlaceholderData(base.id);
+		const currentValue = nodeIOHandlers[nodeId].getInputPlaceholderData(base.id);
 		if ('input' in base && base.input?.inputOptionType === 'dropdown' && currentValue) {
 			selectedOption = currentValue;
 		}
@@ -300,7 +294,7 @@
 			<div class="flex flex-col w-full justify-center nodrag">
 				<span class="text-xs text-muted-foreground whitespace-nowrap">{base.label || ''}</span>
 				<div class="flex flex-col w-full justify-center nodrag">
-					<svelte:component this={base.input.component} data={base.input.data} {base} {nodeId} />
+					<svelte:component this={base.input.component} {base} {nodeId} />
 				</div>
 			</div>
 		{:else}

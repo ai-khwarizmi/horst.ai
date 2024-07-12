@@ -15,7 +15,6 @@
 		type Controlnet
 	} from '$lib/utils/leonardoai';
 	import { inputData, optionalInputsEnabled } from '@/index';
-	import { sha256 } from 'js-sha256';
 	import LeonardoAiCustomInputControlnet from './LeonardoAiCustomInputControlnet.svelte';
 
 	export let id: string;
@@ -122,7 +121,13 @@
 		return MODEL_VERSION_MAP[modelVersion];
 	};
 
-	const prepareControlnets = async (modelId: string): Promise<Controlnet[] | false> => {
+	type ControlnetWithInitImageId = Controlnet & {
+		initImageId: HorstFile;
+	};
+
+	const prepareControlnets = async (
+		modelId: string
+	): Promise<ControlnetWithInitImageId[] | false> => {
 		const currentInputs = get(inputData)[id];
 		const _optionalInputsEnabled = get(optionalInputsEnabled)[id];
 		if (!_optionalInputsEnabled) return [];
@@ -177,7 +182,7 @@
 	};
 
 	const uploadControlnetImages = async (
-		controlnets: (Controlnet & { initImageId: HorstFile })[]
+		controlnets: ControlnetWithInitImageId[]
 	): Promise<Controlnet[]> => {
 		return Promise.all(
 			controlnets.map(async (controlnet) => ({
@@ -190,7 +195,8 @@
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
 		forceExecute: boolean,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<any, any>
 	) => {
 		const apiKey = get(leonardo_key) as string;
 		if (!apiKey) {
@@ -210,7 +216,7 @@
 
 		Object.entries(INPUT_IDS_OPTIONAL).forEach(([_key, inputId]) => {
 			const value = currentInputs[inputId];
-			if (value !== undefined) {
+			if (value !== undefined && value !== '') {
 				requestBody[inputId] = value;
 			}
 		});
@@ -219,12 +225,10 @@
 			const controlnets = await wrap(prepareControlnets(requestBody[INPUT_IDS.MODEL_ID]));
 			if (!controlnets) {
 				callbacks.setStatus('idle');
-				io.setOutputData('image_urls', null);
+				io.setOutputDataDynamic('image_urls', null);
 				lastOutputValue = null;
 				return;
 			}
-			const hash = sha256(JSON.stringify(controlnets));
-			console.log('controlnets', controlnets, hash);
 			const newValue = JSON.stringify({
 				...requestBody,
 				apiKey,
@@ -241,7 +245,7 @@
 					return;
 				}
 				lastOutputValue = null;
-				io.setOutputData('image_urls', null);
+				io.setOutputDataDynamic('image_urls', null);
 				try {
 					callbacks.setStatus('loading');
 
@@ -257,20 +261,15 @@
 
 					const values = await wrap(Promise.all(imageUrls.map(HorstFile.fromUrl)));
 					lastOutputValue = values;
-					io.setOutputData('image_urls', lastOutputValue);
+					io.setOutputDataDynamic('image_urls', lastOutputValue);
 					callbacks.setStatus('success');
 				} catch (error: any) {
-					if (error.name === 'AbortError') {
-						console.log('Execution was cancelled');
-						callbacks.setStatus('idle');
-						return;
-					}
 					callbacks.setErrors(['Error calling Leonardo AI', error.message]);
 					console.error('Error calling Leonardo AI: ', error);
 				}
 			} else {
 				callbacks.setStatus('idle');
-				io.setOutputData('image_urls', null);
+				io.setOutputDataDynamic('image_urls', null);
 				lastOutputValue = null;
 			}
 		} catch (error: any) {
@@ -336,7 +335,7 @@
 		};
 	};
 
-	const io = new NodeIOHandler({
+	const _io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
 			{ id: INPUT_IDS.PROMPT, type: 'text', label: 'Prompt' },
@@ -820,7 +819,7 @@
 	}
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode io={_io} {...$$props}>
 	{#if lastOutputValue && lastOutputValue.length > 0}
 		<div class={`grid ${lastOutputValue.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
 			{#each lastOutputValue as file, index}

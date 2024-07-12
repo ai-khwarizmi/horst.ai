@@ -28,7 +28,8 @@
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
 		forceExecute: boolean,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<any, any>
 	) => {
 		try {
 			const apiKey = get(openai_key) as string;
@@ -76,7 +77,7 @@
 				}
 				lastOutputValue = null;
 				temporaryOutput = '';
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 
 				const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
 					{ role: 'system', content: systemPrompt }
@@ -94,6 +95,7 @@
 								text: userPrompt
 							}
 						];
+						console.log('files!', files);
 						for (const file of files) {
 							if (file.isImage()) {
 								userMessage.content.push({
@@ -139,25 +141,27 @@
 
 					if (lastExecutedValue === newValue) {
 						lastOutputValue = output;
-						io.setOutputData('response', lastOutputValue);
+						io.setOutputDataDynamic('response', lastOutputValue);
 						callbacks.setStatus('success');
 					}
 				} catch (error) {
+					console.log('error1', error);
 					callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
 				}
 			} else {
 				if (lastOutputValue !== null) {
 					temporaryOutput = '';
 					lastOutputValue = null;
-					io.setOutputData('response', null);
+					io.setOutputDataDynamic('response', null);
 				}
 			}
 		} catch (error: any) {
+			console.log('error2', error);
 			callbacks.setErrors(['Error executing ChatGPT node', error.toString?.() || 'Unknown error']);
 			if (lastOutputValue !== null) {
 				lastOutputValue = null;
 				temporaryOutput = '';
-				io.setOutputData('response', null);
+				io.setOutputDataDynamic('response', null);
 			}
 		}
 	};
@@ -299,6 +303,6 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	<p style="user-select: text; white-space: pre-wrap;">{temporaryOutput}</p>
 </CustomNode>

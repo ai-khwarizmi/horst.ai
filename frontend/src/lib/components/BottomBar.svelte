@@ -8,7 +8,14 @@
 <div class="flex flex-col items-center gap-2">
 	{#if !$isMobile}
 		<div class="text-gray-500 text-xs select-none">
-			- Press <kbd>Space</kbd> to add a node -
+			- Press <kbd>
+				{#if navigator.userAgent.match('Mac')}
+					⌘
+				{:else}
+					Ctrl
+				{/if}
+			</kbd>
+			+ <kbd>Space</kbd> to add a node -
 		</div>
 	{/if}
 	<Button size="lg" on:click={() => commandOpen.set(true)}>

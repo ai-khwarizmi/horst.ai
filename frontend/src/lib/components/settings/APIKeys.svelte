@@ -13,6 +13,7 @@
 	import Anthropic from '@anthropic-ai/sdk';
 	import { Groq } from 'groq-sdk';
 	import { ANTHROPIC_PROXY_BASE_URL } from '@/config';
+	import { perplexity_key } from '$lib/apikeys';
 
 	async function validateOpenAI(key: string) {
 		const openai = new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true });
@@ -42,6 +43,27 @@
 			max_tokens: 1,
 			messages: [{ role: 'user', content: 'Hello' }]
 		});
+		return true;
+	}
+
+	async function validatePerplexity(key: string) {
+		const response = await fetch('https://api.perplexity.ai/chat/completions', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${key}`
+			},
+			body: JSON.stringify({
+				model: 'mistral-7b-instruct',
+				messages: [{ role: 'user', content: 'Hello' }],
+				max_tokens: 1
+			})
+		});
+
+		if (!response.ok) {
+			throw new Error('Invalid Perplexity API key');
+		}
+
 		return true;
 	}
 </script>
@@ -90,6 +112,15 @@
 					bind:value={$groq_key}
 					errorMessage="Invalid Groq API key."
 					validateKey={validateGroq}
+				/>
+
+				<APIKeySetter
+					label="Perplexity API Key"
+					id="perplexity_key"
+					placeholder="Perplexity API Key"
+					bind:value={$perplexity_key}
+					errorMessage="Invalid Perplexity API key."
+					validateKey={validatePerplexity}
 				/>
 
 				<p class="text-gray-500 text-sm mt-2">

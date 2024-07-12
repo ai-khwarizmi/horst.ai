@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		cn,
-		getNodeColors,
-		NodeIOHandler,
-		nodeIOHandlers,
-		type WrappedPromise
-	} from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers, removeNode } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -18,17 +12,17 @@
 	import { NodeType, SPECIAL_ERRORS } from '@/types';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 	import * as HoverCard from '$lib/components/ui/hover-card';
-	import { Circle, LoaderCircle, TriangleAlert, Check } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Circle, LoaderCircle, TriangleAlert, Check, Menu, Trash } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
-	import { edges, nodes } from '..';
+	import { edges, nodes, state } from '..';
 	import { get } from 'svelte/store';
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 
-	/* eslint-disable */
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
 	export let sourcePosition: string | undefined = undefined;
@@ -43,7 +37,24 @@
 	export let positionAbsoluteY: number | undefined = undefined;
 	export let width: number | undefined = undefined;
 	export let height: number | undefined = undefined;
-	/* eslint-enable */
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const otherProps = {
+		selectable,
+		deletable,
+		sourcePosition,
+		targetPosition,
+		zIndex,
+		dragging,
+		draggable,
+		dragHandle,
+		parentId,
+		isConnectable,
+		positionAbsoluteX,
+		positionAbsoluteY,
+		width,
+		height
+	};
 
 	export let id: string = '';
 	export let type: string = '';
@@ -73,21 +84,7 @@
 		}
 	};
 
-	export let onExecute: (
-		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
-		wrap: WrappedPromise
-	) => void = () => {};
-
-	const setInputPlaceholderData = (handleId: string, value: any) => {
-		io.setInputPlaceholderData(handleId, value);
-	};
-
-	const getCurrentInputPlaceholderData = (handleId: string) => {
-		return io.getInputPlaceholderData(handleId);
-	};
-
-	const forceExecute = () => {
+	export const forceExecute = () => {
 		io.onExecute(onExecuteCallbacks, true);
 	};
 
@@ -143,10 +140,10 @@
 
 			switch (input.input?.inputOptionType) {
 				case 'input-field':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				case 'dropdown':
-					io.setInputPlaceholderData(input.id, input.input.default ?? undefined);
+					io.setInputDataPlaceholder(input.id, input.input.default ?? undefined);
 					break;
 				default:
 					break;
@@ -170,8 +167,6 @@
 
 		connectToNodeOnMount();
 		setInputPlaceholderDataOnMount();
-
-		io.setHandler(() => onExecute(onExecuteCallbacks, false));
 	});
 
 	onDestroy(() => {
@@ -205,16 +200,20 @@
 
 	let checked = get(optionalInputsEnabled)[id] || ({} as any);
 
-	function handleCheckboxChange(inputId: string, isChecked: boolean) {
-		optionalInputsEnabled.update((current) => {
-			console.log('current', current, 'id', id);
+	function handleCheckboxChange(inputId: string, event: any) {
+		const isChecked = event.target.checked;
+		state.update((state) => {
+			const current = state.optionalInputsEnabled;
 			if (!current[id]) {
 				current[id] = {};
 			}
 			current[id][inputId] = isChecked;
-			updateNodeInternals(id);
-			return current;
+			return {
+				...state,
+				optionalInputsEnabled: current
+			};
 		});
+		updateNodeInternals(id);
 	}
 </script>
 
@@ -241,7 +240,7 @@
 	</div>
 {/if}
 <div
-	class={cn('flex flex-col h-full gap-1')}
+	class={cn('flex flex-col h-full gap-1 p-1')}
 	style="min-width: 200px; opacity: {hide ? 0.5 : 1}; max-height: 100%;"
 	on:mouseenter={() => (hovered = true)}
 	on:mouseleave={() => (hovered = false)}
@@ -319,6 +318,23 @@
 			</div>
 			<div class="flex-grow text-center">{label}</div>
 			<div class="w-[20px]"></div>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					<Button variant="ghost" size="flat">
+						<Menu class="w-6 h-6" />
+					</Button>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					<DropdownMenu.Item
+						on:click={() => {
+							removeNode(id);
+						}}
+					>
+						<Trash class="w-4 h-4 mr-2" />
+						<span>Delete</span>
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 
 		<div
@@ -343,26 +359,14 @@
 					{#if $inputs.length > 0}
 						<div class={cn('flex flex-col', $outputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $inputs as input}
-								<CustomHandle
-									nodeId={id}
-									type="input"
-									base={input}
-									{setInputPlaceholderData}
-									{getCurrentInputPlaceholderData}
-								/>
+								<CustomHandle nodeId={id} type="input" base={input} />
 							{/each}
 						</div>
 					{/if}
 					{#if $outputs.length > 0}
 						<div class={cn('flex flex-col text-end ', $inputs.length > 0 ? 'w-1/2' : 'w-full')}>
 							{#each $outputs as output}
-								<CustomHandle
-									nodeId={id}
-									type="output"
-									base={output}
-									setInputPlaceholderData={() => {}}
-									getCurrentInputPlaceholderData={() => {}}
-								/>
+								<CustomHandle nodeId={id} type="output" base={output} />
 							{/each}
 						</div>
 					{/if}
@@ -391,7 +395,7 @@
 													<input
 														type="checkbox"
 														bind:checked={checked[input.id]}
-														on:change={(e) => handleCheckboxChange(input.id, e.target?.checked)}
+														on:change={(e) => handleCheckboxChange(input.id, e)}
 														disabled={input.unsupported?.unsupported}
 														class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition duration-150 ease-in-out
 															disabled:opacity-50 disabled:cursor-not-allowed"

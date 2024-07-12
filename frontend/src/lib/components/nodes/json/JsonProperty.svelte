@@ -43,25 +43,25 @@
 			if (!jsonInput || !path) {
 				callbacks.setStatus('idle');
 				currentOutput = null;
-				io.setOutputData(OUTPUT_IDS.PARSED_VALUE, null);
+				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
 				return;
 			}
 
 			try {
 				const jsonObject = typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput;
 				const parsedValue = parseJsonPath(jsonObject, path);
-				io.setOutputData(OUTPUT_IDS.PARSED_VALUE, parsedValue);
+				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, parsedValue);
 				currentOutput = parsedValue;
 				callbacks.setStatus('success');
-			} catch (error) {
+			} catch (error: any) {
 				callbacks.setErrors(['Error parsing JSON or extracting value', error.message]);
-				io.setOutputData(OUTPUT_IDS.PARSED_VALUE, null);
+				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
 			}
-		} catch (error) {
+		} catch (error: any) {
 			currentOutput = null;
 			console.error('error', error);
 			callbacks.setErrors(['Error parsing JSON or extracting value', error.message]);
-			io.setOutputData(OUTPUT_IDS.PARSED_VALUE, null);
+			io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
 		}
 	};
 
@@ -87,7 +87,7 @@
 	});
 </script>
 
-<CustomNode {io} {onExecute} {...$$props}>
+<CustomNode {io} {...$$props}>
 	{#if currentOutput}
 		<p>Output:</p>
 		<div class="p-4 relative nodrag bg-gray-100">

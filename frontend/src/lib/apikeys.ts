@@ -1,16 +1,18 @@
-import { writable } from "svelte/store";
-import { browser } from "$app/environment";
+import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 export const openai_key = writable('');
 export const anthropic_key = writable('');
 export const leonardo_key = writable('');
 export const groq_key = writable('');
+export const perplexity_key = writable('');
 
 export const apiKeys = [
 	{ name: 'openai', key: openai_key },
 	{ name: 'anthropic', key: anthropic_key },
 	{ name: 'leonardo', key: leonardo_key },
 	{ name: 'groq', key: groq_key },
+	{ name: 'perplexity', key: perplexity_key }
 ];
 
 if (browser) {

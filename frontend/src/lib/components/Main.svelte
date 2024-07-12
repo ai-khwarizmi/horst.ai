@@ -9,7 +9,7 @@
 	} from '@xyflow/svelte';
 
 	import '@xyflow/svelte/dist/style.css';
-	import { nodes, edges, viewport, commandOpen, createNodeParams, resetProject } from '$lib';
+	import { commandOpen, createNodeParams, gridSnap, nodes, recentProjectsOpen, state } from '$lib';
 	import { nodeTypes } from '@/nodes';
 	import BottomBar from '@/components/BottomBar.svelte';
 	import TopMenuBar from '@/components/TopMenuBar.svelte';
@@ -18,48 +18,75 @@
 	import Apikeys from '@/components/settings/APIKeys.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
-	import HashLoader from '@/components/file/HashLoader.svelte';
 	import { isMobile } from '@/components/Mobile.svelte';
 	import { Info } from 'lucide-svelte';
-	import MobileMenu from '@/components/MobileMenu.svelte';
 	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	import PackageJson from '../../../package.json';
 	import DebugView from '@/components/DebugView.svelte';
 	import type { ConnectWith } from '@/types';
 	import ProjectSettings from '@/components/ProjectSettings.svelte';
-	import { loadFromLocalStorage, loadFromProjectId } from '@/utils/file';
 	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
 	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
 	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
-	import { anthropic_key, openai_key } from '@/apikeys';
+	import SaveFilePopup from './popups/SaveFilePopup.svelte';
+	import { cn } from '$lib/utils';
+	import OpenFilePopup from './popups/OpenFilePopup.svelte';
+	import VersionChangePopup from './popups/VersionChangePopup.svelte';
+	import CustomEdge from './CustomEdge.svelte';
+	import { createNewProject, loadCloudProject, loadLocalProject } from '@/project';
+	import RecentCloudProjects from './popups/RecentCloudProjects.svelte';
+	import { get } from 'svelte/store';
+	import { session } from '@/auth/Clerk';
+	import ContextMenu from './ContextMenu.svelte';
+	import { saveAsCloudProject, sendNodePosition, takeAndUploadScreenshot } from '@/project/cloud';
+	import { resetLocalProject } from '@/project/local';
 
 	export let projectId: string | undefined = undefined;
 
 	onMount(async () => {
-		const existingOpenaiApiKey = window.localStorage.getItem('openai_api_key');
-		if (existingOpenaiApiKey) {
-			openai_key.set(existingOpenaiApiKey);
-		}
-		const existingAnthropicApiKey = window.localStorage.getItem('anthropic_api_key');
-		if (existingAnthropicApiKey) {
-			anthropic_key.set(existingAnthropicApiKey);
-		}
-
-		//loading logic
-		let loaded = false;
 		if (projectId) {
-			loaded = await loadFromProjectId(projectId);
-		}
-		if (!loaded) {
-			console.log('Loading from local storage');
-			loaded = await loadFromLocalStorage();
+			console.log('[MAIN onMount] loading cloud project', projectId);
+			await loadCloudProject(projectId);
+			return;
 		}
 
-		if (!loaded) {
-			resetProject();
+		const result = loadLocalProject();
+		const userLoggedIn = !!get(session);
+
+		if (userLoggedIn) {
+			await handleLoggedInUser(result);
+		} else {
+			handleNonLoggedInUser(result);
 		}
 	});
+
+	async function handleLoggedInUser(localProjectLoaded: boolean) {
+		if (!localProjectLoaded) {
+			console.log('[MAIN onMount] no local project found. User logged in, showing recents');
+			recentProjectsOpen.set(true);
+			return;
+		}
+
+		if ($nodes.length > 0) {
+			console.log('[MAIN onMount] saving local project to cloud');
+			await saveAsCloudProject(true);
+			await takeAndUploadScreenshot();
+		} else {
+			console.log('[MAIN onMount] local project empty, showing recents');
+			resetLocalProject();
+			recentProjectsOpen.set(true);
+		}
+	}
+
+	function handleNonLoggedInUser(localProjectLoaded: boolean) {
+		if (localProjectLoaded) {
+			console.log('[MAIN onMount] loading local project');
+		} else {
+			console.log('[MAIN onMount] no local project found. Creating new project');
+			createNewProject();
+		}
+	}
 
 	let startNode: ConnectWith | null = null;
 	const handleConnectionStart: OnConnectStart = (e, { nodeId, handleId, handleType }) => {
@@ -83,12 +110,20 @@
 			const position =
 				e instanceof MouseEvent
 					? { x: e.clientX, y: e.clientY }
-					: { x: e.touches[0].clientX, y: e.touches[0].clientY };
+					: { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY };
 			createNodeParams.set({
 				position,
 				node: startNode ?? undefined
 			});
 		}
+	};
+
+	const handleNodeDrag = (e: CustomEvent) => {
+		sendNodePosition(e);
+	};
+
+	const edgeTypes = {
+		custom: CustomEdge
 	};
 </script>
 
@@ -97,42 +132,52 @@
 	<FileDropper />
 	<ProjectSettings />
 	<NewFilePopup />
+	<VersionChangePopup />
+	<RecentCloudProjects />
+	<OpenFilePopup />
+	<SaveFilePopup />
+	<ContextMenu />
 	<SvelteFlow
-		{nodes}
-		{edges}
+		nodes={$state.nodes}
+		edges={$state.edges}
 		{nodeTypes}
-		{viewport}
+		{edgeTypes}
+		viewport={$state.viewport}
 		minZoom={0.25}
 		deleteKey={['Delete', 'Backspace']}
+		snapGrid={$gridSnap}
 		onconnect={handleConnect}
 		onconnectstart={handleConnectionStart}
 		onconnectend={handleConnectionEnd}
+		on:nodedrag={handleNodeDrag}
+		defaultEdgeOptions={{
+			type: 'custom'
+		}}
 	>
 		<DebugView />
-		<HashLoader />
 		<FullCommand />
 		<Background />
-		<Controls />
+		<Controls showLock={false} showFitView={false} />
 		<Panel position="top-right">
-			{#if $isMobile}
-				<MobileMenu />
-			{:else}
+			<div class="flex gap-2">
 				<Button
 					variant={$isMobile ? 'outline' : 'ghost'}
-					size="sm"
+					size={$isMobile ? 'icon' : undefined}
 					target="_blank"
 					href="/how-to-use"
 				>
-					<Info class="mr-2 size-3.5" />
-					How to Use
+					<Info class={cn('size-3.5', !$isMobile && 'mr-2')} />
+					{#if !$isMobile}
+						How to Use
+					{/if}
 				</Button>
-			{/if}
-			<ClerkSigninButton />
-			<ClerkProfileButton />
-			<ClerkSignoutButton />
+				<ClerkSigninButton />
+				<ClerkProfileButton />
+				<ClerkSignoutButton />
+			</div>
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
-			<TopMenuBar />
+			<TopMenuBar {projectId} />
 		</Panel>
 		<Panel position="bottom-center">
 			<BottomBar />
@@ -151,7 +196,7 @@
 						alt="Github"
 						style="margin-right: 10px; width: 1.5rem; height: 1.5rem;"
 					/>
-					Github
+					Github (v{PackageJson.version})
 				</Button>
 				<Button variant="link" class="text-xs" target="_blank" href="/credits">Credits</Button>
 			{/if}

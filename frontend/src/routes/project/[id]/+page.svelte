@@ -1,8 +1,21 @@
 <script lang="ts">
-	import Main from "@/components/Main.svelte";
+	import { page } from '$app/stores';
+	import Main from '@/components/Main.svelte';
+	import { beforeUpdate } from 'svelte';
 
-	export let data: { projectId: string };
-	const { projectId } = data;
+	let loaded = false;
+	let projectId: string | undefined;
+
+	$: {
+		projectId = $page.params.id;
+	}
+
+	beforeUpdate(() => {
+		projectId = $page.params.id;
+		loaded = true;
+	});
 </script>
 
-<Main {projectId}></Main>
+{#if loaded}
+	<Main {projectId} />
+{/if}

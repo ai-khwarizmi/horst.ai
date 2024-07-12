@@ -4,20 +4,20 @@
 
 	export let id: string;
 
-	const onExecute = () => {
+	const onExecute = async () => {
 		const input = io.getInputData('encoded');
 		if (!input) {
 			return;
 		}
-		io.setOutputData('data', atob(input));
+		io.setOutputDataDynamic('data', atob(input));
 	};
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [{ id: 'encoded', type: 'text', label: 'Base64' }],
 		outputs: [{ id: 'data', type: 'text' }],
-		onExecute: onExecute
+		onExecute: onExecute,
+		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
-
 </script>
 
-<CustomNode {io} {onExecute} {...$$props} />
+<CustomNode {io} {...$$props} />

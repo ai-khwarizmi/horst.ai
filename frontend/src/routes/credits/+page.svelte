@@ -137,13 +137,6 @@
 			licenseFile: 'LICENSE.txt',
 			license: 'MIT'
 		},
-		rxjs: {
-			name: 'rxjs',
-			url: 'https://github.com/ReactiveX/rxjs',
-			branch: 'master',
-			licenseFile: 'LICENSE.txt',
-			license: 'Apache-2.0'
-		},
 		superjson: {
 			name: 'superjson',
 			url: 'https://github.com/blitz-js/superjson',
@@ -161,6 +154,12 @@
 			url: 'https://github.com/groq-ai/groq-sdk',
 			branch: 'main',
 			license: 'Apache License 2.0'
+		},
+		'html-to-image': {
+			name: 'html-to-image',
+			url: 'https://github.com/bubkoo/html-to-image',
+			branch: 'master',
+			license: 'MIT'
 		}
 	};
 
