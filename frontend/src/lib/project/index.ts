@@ -44,8 +44,12 @@ export function getSaveData(
 		? fullSuperJSON.stringify(object)
 		: minimalSuperJSON.stringify(object);
 
+	const parsedGraph: SaveFileFormat = includeFileData
+		? fullSuperJSON.parse(stringifiedGraph)
+		: minimalSuperJSON.parse(stringifiedGraph);
+
 	return {
-		graph: object,
+		graph: parsedGraph, // object
 		stringifiedGraph
 	};
 }

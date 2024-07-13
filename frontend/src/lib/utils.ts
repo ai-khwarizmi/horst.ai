@@ -238,7 +238,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this.onExecuteCallbacks = callbacks;
 	}
 
-	setOutputDataDynamic = (id: string, data: any) => {
+	setOutputDataDynamic = <T extends TInput>(id: keyof T | string, data: any) => {
 		_setNodeOutputDataDynamic(this.nodeId, {
 			[id]: data
 		});
@@ -415,7 +415,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			case 'boolean':
 				return typeof data === 'boolean' || data === 'true' || data === 'false';
 			case 'file[]':
-				return Array.isArray(data);
+				return (
+					Array.isArray(data) &&
+					data.every((item) => item instanceof HorstFile || HorstFile.isHorstFile(item))
+				);
 			case 'file':
 				return data instanceof HorstFile || Array.isArray(data);
 			case 'any':
