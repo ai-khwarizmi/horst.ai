@@ -106,7 +106,13 @@
 		const placeholderOutputData = get(outputDataPlaceholder);
 
 		if ((e.ctrlKey || e.metaKey) && e.key === hotkeys.copySelectedNodes.key) {
+			const selection = window.getSelection();
+			if (selection && selection.toString().trim() !== '') {
+				// If there's text selected, don't copy nodes
+				return;
+			}
 			e.preventDefault();
+
 			const selectedNodes = nodeList.filter((node) => node.selected);
 			const selectedNodeIds = selectedNodes.map((node) => node.id);
 			const selectedEdges = edgeList.filter(

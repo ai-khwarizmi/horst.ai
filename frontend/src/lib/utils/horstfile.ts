@@ -2,6 +2,21 @@ import { sha256 } from 'js-sha256';
 import { v4 as uuidv4 } from 'uuid';
 import SuperJSON from 'superjson';
 import localforage from 'localforage';
+import type * as PDFJS from 'pdfjs-dist';
+
+/**
+ * PDF recognition
+ */
+let pdfjsLib: typeof PDFJS;
+const initPdfJs = async () => {
+	if ('initPdfJS' in window && typeof window.initPdfJS === 'function') await window.initPdfJS();
+	if ('pdfjsLib' in window) {
+		pdfjsLib = window.pdfjsLib as any;
+		pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+	} else {
+		console.error('PDF.js not loaded!');
+	}
+};
 
 if (typeof window !== 'undefined') {
 	localforage.config({
@@ -10,9 +25,11 @@ if (typeof window !== 'undefined') {
 		version: 1.0,
 		storeName: 'horst.ai'
 	});
+	initPdfJs();
 }
 
 export class HorstFile {
+	static readonly type = 'HorstFile';
 	id: string;
 	fileName: string;
 	fileSize: number;
@@ -93,6 +110,35 @@ export class HorstFile {
 		});
 	}
 
+	private async extractTextFromPDF(): Promise<string> {
+		try {
+			if (!this.fileArrayBuffer) {
+				throw new Error('File data not initialized');
+			}
+
+			if (!pdfjsLib) {
+				await initPdfJs();
+			}
+
+			const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(this.fileArrayBuffer) });
+			const pdf = await loadingTask.promise;
+			let text = '';
+
+			for (let i = 1; i <= pdf.numPages; i++) {
+				const page = await pdf.getPage(i);
+				const content = await page.getTextContent();
+				console.log(content);
+				text += content.items.map((item: any) => item.str).join(' ') + '\n';
+				// Image doesn't properly load the image
+			}
+
+			return text;
+		} catch (err: unknown) {
+			console.error('Error extracting text from PDF', err);
+			return '';
+		}
+	}
+
 	private arrayBufferToBinaryString(buffer: ArrayBuffer): string {
 		let binary = '';
 		const bytes = new Uint8Array(buffer);
@@ -114,24 +160,35 @@ export class HorstFile {
 		return `data:${this.fileType};base64,${this.fileDataBase64}`;
 	}
 
-	getAsFileAttachment(): string {
+	async getAsFileAttachment(): Promise<string> {
+		const fileContent = await this.getAsText();
+		return [
+			'<FILE_ATTACHMENT>',
+			'<FILE_NAME>',
+			this.fileName,
+			'</FILE_NAME>',
+			'<FILE_CONTENT>',
+			fileContent,
+			'</FILE_CONTENT>',
+			'</FILE_ATTACHMENT>'
+		].join('\n');
+	}
+
+	async getAsText(): Promise<string> {
 		if (!this.fileArrayBuffer) {
 			throw new Error('File data not initialized');
 		}
-		const fileContent = new TextDecoder().decode(this.fileArrayBuffer);
-		return `
-<FILE_ATTACHMENT>
-<FILE_NAME>
-${this.fileName}
-</FILE_NAME>
-<FILE_CONTENT>
-${fileContent}
-</FILE_CONTENT>
-</FILE_ATTACHMENT>
-`;
+
+		let fileContent: string;
+		if (this.fileType === 'application/pdf') {
+			fileContent = await this.extractTextFromPDF();
+		} else {
+			fileContent = new TextDecoder().decode(this.fileArrayBuffer);
+		}
+		return fileContent;
 	}
 
-	getFileText(): string {
+	getFileContent(): string {
 		if (!this.fileDataBase64) {
 			throw new Error('File data not initialized');
 		}
@@ -164,6 +221,7 @@ ${fileContent}
 		}
 
 		const fileData = {
+			type: HorstFile.type,
 			id: this.id,
 			fileName: this.fileName,
 			fileSize: this.fileSize,
@@ -217,6 +275,7 @@ ${fileContent}
 
 	toJSON() {
 		return {
+			type: HorstFile.type,
 			id: this.id,
 			fileName: this.fileName,
 			fileSize: this.fileSize,
@@ -229,11 +288,25 @@ ${fileContent}
 
 	toSimpleJson() {
 		return {
+			type: HorstFile.type,
 			id: this.id
 		};
 	}
 
+	static isHorstFile(obj: any): obj is HorstFile {
+		if (typeof obj !== 'object' || obj === null) {
+			return false;
+		}
+		if (!('type' in obj)) {
+			return false;
+		}
+		return obj.type === HorstFile.type;
+	}
+
 	static async fromJSON(obj: any): Promise<HorstFile> {
+		if (obj.type !== HorstFile.type) {
+			throw new Error('Invalid file type');
+		}
 		if (obj.fileDataBase64) {
 			// Full data is included, create HorstFile directly
 			const file = new HorstFile(obj.id);
@@ -243,7 +316,6 @@ ${fileContent}
 		} else {
 			// Only ID is included, load from IndexedDB
 			const file = new HorstFile(obj.id);
-			await file.loadFromStorage();
 			return file;
 		}
 	}
