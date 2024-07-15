@@ -1,28 +1,29 @@
 <script lang="ts">
 	import { Play, Square, RotateCcw } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
-	import { writable } from 'svelte/store';
+	import { get} from 'svelte/store';
 	import { cn } from '$lib/utils.js';
-
-	const isPlaying = writable(false);
-	const autoPlay = writable(false);
+	import { state } from '$lib';
 
 	function startPlay() {
-		isPlaying.set(true);
+		get(state).isPlaying.set(true);
 	}
 
 	function stopPlay() {
-		isPlaying.set(false);
-		autoPlay.set(false);
+		get(state).isPlaying.set(false);
+		get(state).autoPlay.set(false);
 	}
 
 	function restart() {
-		isPlaying.set(false);
+		get(state).isPlaying.set(false);
 		setTimeout(startPlay, 0);
 	}
 
+	$: autoPlay = $state.autoPlay;
+	$: isPlaying = $state.isPlaying;
 	$: if ($autoPlay) {
 		console.log('Auto-play enabled');
+		get(state).isPlaying.set(false);
 	} else {
 		console.log('Auto-play disabled');
 	}

@@ -3,9 +3,11 @@ import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
 import {
+	autoPlay,
 	edges,
 	inputData,
 	inputDataPlaceholder,
+	isPlaying,
 	optionalInputsEnabled,
 	outputDataDynamic,
 	outputDataPlaceholder,
@@ -78,6 +80,11 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	executionCounter: number = 1;
 	runningExecutions: number = 0;
 
+	unsubscribeAutoPlay: () => void;
+	unsubscribeIsPlaying: () => void;
+	executePending: boolean = false;
+	playsRemaining: number = 0;
+
 	onExecuteCallbacks: OnExecuteCallbacks | null = null;
 	isInputUnsupported: (
 		inputId: string,
@@ -126,13 +133,59 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		setTimeout(() => {
 			this.onOutputsChanged();
 		}, 1);
+
+		this.unsubscribeAutoPlay = get(state).autoPlay.subscribe((value) =>
+			this.onToggleAutoPlay(value)
+		);
+		this.unsubscribeIsPlaying = get(state).isPlaying.subscribe((value) =>
+			this.onToggleIsPlaying(value)
+		);
 	}
+
+	onToggleAutoPlay = (value: boolean) => {
+		if (value && this.executePending) {
+			this.onExecute(this.onExecuteCallbacks!, false);
+		}
+	};
+
+	onToggleIsPlaying = (value: boolean) => {
+		console.log('onToggleIsPlaying', this.nodeId, value);
+		if (value) {
+			this.playsRemaining = 1;
+			if (this.executePending) {
+				this.onExecute(this.onExecuteCallbacks!, false);
+			}
+		} else {
+			this.playsRemaining = 0;
+		}
+	};
 
 	onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
 		this.debouncedExecute(callbacks, forceExecute);
 	};
 
-	_runOnExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	private _runOnExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+		const _isPlaying = get(get(isPlaying));
+		const _autoPlay = get(get(autoPlay));
+		if (!_autoPlay && !_isPlaying) {
+			this.executePending = true;
+			console.log('not executing. will execute when autoPlay or isPlaying is true ', this.nodeId);
+			return;
+		} else if (_autoPlay === true) {
+			console.log('autoPlay is true, executing node ', this.nodeId);
+		} else if (_isPlaying && this.playsRemaining > 0) {
+			console.log(
+				'isPlaying is true, but playsRemaining is greater than 0, executing node ',
+				this.nodeId
+			);
+			this.playsRemaining--;
+		} else if (isPlaying && this.playsRemaining <= 0) {
+			console.log('isPlaying is true, but playsRemaining is 0, NOT executing node ', this.nodeId);
+			this.executePending = true;
+			return;
+		}
+
+		this.executePending = false;
 		this.executionCounter++;
 		this.runningExecutions++;
 		const executionId = this.executionCounter;
