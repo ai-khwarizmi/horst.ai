@@ -5,15 +5,17 @@ import type { TransitionConfig } from 'svelte/transition';
 import {
 	autoPlay,
 	edges,
+	executionsRunning,
 	inputData,
 	inputDataPlaceholder,
-	isPlaying,
+	nodeIOHandlers,
 	optionalInputsEnabled,
 	outputDataDynamic,
 	outputDataPlaceholder,
 	projectType,
-	state
-} from '$lib';
+	state,
+	waitingForChangedOutputs
+} from '@/index';
 import { type XYPosition } from '@xyflow/svelte';
 import { get, writable } from 'svelte/store';
 import { type CustomNodeName } from './nodes';
@@ -70,8 +72,6 @@ export const getNodeColors = (
 	}
 };
 
-export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
-
 export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	public nodeId: string;
 	readonly inputs = writable<Input<TInput>[]>([]);
@@ -100,9 +100,17 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		io: NodeIOHandler<TInput, TOutput>
 	) => Promise<void>;
 
-	private debouncedExecute = debounce((callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		this._runOnExecute(callbacks, forceExecute);
-	}, 500);
+	private _debouncedExecute = debounce(
+		async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+			await this._runOnExecute(callbacks, forceExecute);
+			console.log('debounced execute done', this.nodeId);
+			executionsRunning.update((n) => {
+				n.set(this.nodeId, false);
+				return n;
+			});
+		},
+		500
+	);
 
 	constructor(args: {
 		nodeId: string;
@@ -149,7 +157,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	};
 
 	onToggleIsPlaying = (value: boolean) => {
-		console.log('onToggleIsPlaying', this.nodeId, value);
+		//console.log('onToggleIsPlaying', this.nodeId, value);
 		if (value) {
 			this.playsRemaining = 1;
 			if (this.executePending) {
@@ -160,27 +168,35 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		}
 	};
 
-	onExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		this.debouncedExecute(callbacks, forceExecute);
-	};
+	runDebounceExecute(callbacks: OnExecuteCallbacks, forceExecute: boolean) {
+		executionsRunning.update((n) => {
+			n.set(this.nodeId, true);
+			return n;
+		});
+		this._debouncedExecute(callbacks, forceExecute);
+	}
+
+	onExecute(callbacks: OnExecuteCallbacks, forceExecute: boolean) {
+		this.runDebounceExecute(callbacks, forceExecute);
+	}
 
 	private _runOnExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-		const _isPlaying = get(get(isPlaying));
+		const _isPlaying = get(get(state).isPlaying);
 		const _autoPlay = get(get(autoPlay));
 		if (!_autoPlay && !_isPlaying) {
 			this.executePending = true;
-			console.log('not executing. will execute when autoPlay or isPlaying is true ', this.nodeId);
+			//console.log('not executing. will execute when autoPlay or isPlaying is true ', this.nodeId);
 			return;
 		} else if (_autoPlay === true) {
-			console.log('autoPlay is true, executing node ', this.nodeId);
+			//console.log('autoPlay is true, executing node ', this.nodeId);
 		} else if (_isPlaying && this.playsRemaining > 0) {
-			console.log(
-				'isPlaying is true, but playsRemaining is greater than 0, executing node ',
-				this.nodeId
-			);
+			//console.log(
+			//	'isPlaying is true, but playsRemaining is greater than 0, executing node ',
+			//	this.nodeId
+			//);
 			this.playsRemaining--;
-		} else if (isPlaying && this.playsRemaining <= 0) {
-			console.log('isPlaying is true, but playsRemaining is 0, NOT executing node ', this.nodeId);
+		} else if (_isPlaying && this.playsRemaining <= 0) {
+			//console.log('isPlaying is true, but playsRemaining is 0, NOT executing node ', this.nodeId);
 			this.executePending = true;
 			return;
 		}
@@ -312,7 +328,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		});
 	};
 
-	onOutputsChanged = () => {
+	_onOutputsChanged = () => {
 		try {
 			let changed = false;
 
@@ -348,7 +364,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 					inputData: _inputData,
 					inputDataWithoutPlaceholder: _inputDataWithoutPlaceholders
 				}));
-				if (isPlaying) {
+				if (get(state).isPlaying) {
 					this.playsRemaining = 1;
 				}
 				this.onExecute(this.onExecuteCallbacks!, false);
@@ -356,9 +372,18 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			}
 			return changed;
 		} catch (e: any) {
+			console.error('Error in _onOutputsChanged', e);
 			this.onExecuteCallbacks?.setErrors([e.toString()]);
 			return false;
 		}
+	};
+
+	onOutputsChanged = () => {
+		waitingForChangedOutputs.update((n) => {
+			n.set(this.nodeId, false);
+			return n;
+		});
+		this._onOutputsChanged();
 	};
 
 	removeInput = (...ids: string[]) => {
@@ -598,7 +623,18 @@ export const removeNode = (id: string) => {
 	);
 };
 
+const setAllNodesWaitingForOutputs = (value: boolean) => {
+	const allNodes = get(get(state).nodes);
+	waitingForChangedOutputs.update((n) => {
+		allNodes.forEach((node) => {
+			n.set(node.id, value);
+		});
+		return n;
+	});
+};
+
 const _setNodeOutputDataDynamic = (id: string, data: Record<string, any>) => {
+	setAllNodesWaitingForOutputs(true);
 	state.update((currentState) => ({
 		...currentState,
 		outputDataDynamic: {
@@ -612,6 +648,7 @@ const _setNodeOutputDataDynamic = (id: string, data: Record<string, any>) => {
 };
 
 const _setNodeOutputDataPlaceholder = (id: string, data: Record<string, any>) => {
+	setAllNodesWaitingForOutputs(true);
 	state.update((currentState) => ({
 		...currentState,
 		outputDataPlaceholder: {
@@ -625,6 +662,7 @@ const _setNodeOutputDataPlaceholder = (id: string, data: Record<string, any>) =>
 };
 
 const _setNodeInputDataPlaceholder = (id: string, data: Record<string, any>) => {
+	setAllNodesWaitingForOutputs(true);
 	state.update((currentState) => {
 		if (!currentState.inputDataPlaceholder[id]) {
 			currentState.inputDataPlaceholder[id] = {

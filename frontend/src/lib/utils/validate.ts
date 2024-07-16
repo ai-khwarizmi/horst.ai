@@ -1,9 +1,9 @@
 import { registeredNodes } from '@/nodes';
 import type { NodeValueType } from '@/types';
-import { NodeIOHandler, nodeIOHandlers } from '@/utils';
+import { NodeIOHandler } from '@/utils';
 import type { Connection, Edge, Node } from '@xyflow/svelte';
 import { get } from 'svelte/store';
-import { edges } from '@/index';
+import { edges, nodeIOHandlers } from '@/index';
 
 export const canConnectTypes = (obj: { output: NodeValueType; input: NodeValueType }) => {
 	if (obj.input === 'any') return true;

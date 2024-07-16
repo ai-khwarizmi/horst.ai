@@ -1,9 +1,9 @@
 import { type XYPosition } from '@xyflow/svelte';
 import { derived, get, writable, type Writable } from 'svelte/store';
 import { type ConnectWith, type State } from './types';
-import { nodeIOHandlers } from './utils';
 import { debounce } from 'lodash-es';
 import { saveProject } from './project';
+import type { NodeIOHandler } from './utils';
 
 /*
 	There are 3 types of data:
@@ -123,6 +123,37 @@ export const createNodeParams = writable<{
 	position: XYPosition;
 	node?: ConnectWith;
 } | null>(null);
+
+export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
+export const executionsRunning = writable<Map<string, boolean>>(new Map());
+export const waitingForChangedOutputs = writable<Map<string, boolean>>(new Map());
+
+function processNodeStatuses() {
+	const waitingNodes = get(waitingForChangedOutputs);
+	const runningNodes = get(executionsRunning);
+
+	const areAnyNodesRunning = Array.from(runningNodes.values()).some((value) => value);
+	const areAnyNodesWaiting = Array.from(waitingNodes.values()).some((value) => value);
+	if (!areAnyNodesRunning && !areAnyNodesWaiting) {
+		console.log('!!!!No nodes are running or waiting');
+		if (get(state).isPlaying) {
+			console.log('!!!!Setting isPlaying to false');
+			get(state).isPlaying.set(false);
+		}
+	}
+
+	const nodeStatuses = Array.from(new Set([...waitingNodes.keys(), ...runningNodes.keys()])).map(
+		(id) => ({
+			id,
+			isWaiting: waitingNodes.get(id) || false ? 'TRUE' : 'false',
+			isRunning: runningNodes.get(id) || false ? 'TRUE' : 'false'
+		})
+	);
+	console.table(nodeStatuses);
+}
+
+waitingForChangedOutputs.subscribe(() => processNodeStatuses());
+executionsRunning.subscribe(() => processNodeStatuses());
 
 const debouncedHandleChanges = debounce(() => {
 	Object.values(nodeIOHandlers).forEach((ioHandler) => {

@@ -5,7 +5,7 @@
 	import { afterUpdate } from 'svelte';
 	import { HorstFile } from '@/utils/horstfile';
 	import { Upload, XCircle } from 'lucide-svelte';
-	import { nodeIOHandlers } from '@/utils';
+	import { nodeIOHandlers } from '@/index';
 	import * as Dialog from '$lib/components/ui/dialog';
 
 	export let base: InputType<string> | OutputType<string>;

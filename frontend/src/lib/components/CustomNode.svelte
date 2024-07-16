@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler, nodeIOHandlers, removeNode } from '$lib/utils';
+	import { cn, getNodeColors, NodeIOHandler, removeNode } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -18,7 +18,7 @@
 	import CustomHandle from './CustomHandle.svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import { canConnectTypes, isValidConnection } from '@/utils/validate';
-	import { edges, nodes, state } from '..';
+	import { edges, nodeIOHandlers, nodes, state } from '..';
 	import { get } from 'svelte/store';
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';

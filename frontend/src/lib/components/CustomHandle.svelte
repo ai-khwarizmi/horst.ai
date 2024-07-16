@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, nodeIOHandlers, removeEdgeByIds } from '@/utils';
+	import { cn, removeEdgeByIds } from '@/utils';
 	import { edges, inputDataWithoutPlaceholder, inputDataPlaceholder } from '..';
 	import type { Input, Output } from '@/types';
 	import { Handle, Position, useConnection, type Connection } from '@xyflow/svelte';
@@ -13,7 +13,7 @@
 	import { ChevronDown } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { onMount } from 'svelte';
-	import { optionalInputsEnabled } from '@/index';
+	import { optionalInputsEnabled, nodeIOHandlers } from '@/index';
 	import { HorstFile } from '@/utils/horstfile';
 
 	const HANDLE_WIDTH = 12;
