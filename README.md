@@ -68,11 +68,9 @@ npm run preview
 
 ## License
 
-This project is licensed under the MIT License with an additional Commons Clause License Condition. See the [LICENSE](./LICENSE) file for more details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See the [LICENSE](./LICENSE) file for more details.
 
-The Commons Clause restricts the right to "Sell" the software. This includes providing the software to third parties for a fee, or incorporating it into a paid service or product.
-
-For licensing that includes monetization or any commercial usage not covered by the Commons Clause, please contact us at [support@horst.ai](mailto:support@horst.ai).
+The AGPL-3.0 is a copyleft license that requires anyone who distributes your code or a derivative work to make the source available under the same terms. It also requires that if you run a modified program on a server and let other users communicate with it there, your server must also allow them to download the source code corresponding to the modified version running there.
 
 ### Credits and Third-Party Licenses
 
