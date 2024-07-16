@@ -1,6 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 
-export const prerender = false;
+export const prerender = true;
 export const ssr = false;
 
 // so that the /a/index.html file is generated instead of /a.html
