@@ -35,7 +35,14 @@
 		if (!_files) {
 			return;
 		}
-		_files = await Promise.all(_files.map((file: HorstFile) => file.waitForLoad()));
+		_files = await Promise.all(
+			_files.map(async (file: HorstFile) => {
+				if (!(file instanceof HorstFile)) {
+					file = await HorstFile.fromJSON(file);
+				}
+				return await file.waitForLoad();
+			})
+		);
 		files = _files;
 	};
 

@@ -44,8 +44,12 @@ export function getSaveData(
 		? fullSuperJSON.stringify(object)
 		: minimalSuperJSON.stringify(object);
 
+	const parsedGraph: SaveFileFormat = includeFileData
+		? fullSuperJSON.parse(stringifiedGraph)
+		: minimalSuperJSON.parse(stringifiedGraph);
+
 	return {
-		graph: object,
+		graph: parsedGraph, // object
 		stringifiedGraph
 	};
 }
@@ -182,7 +186,11 @@ export const resetProject = (projectType: ProjectType, newNodes: Node[] = []) =>
 		state.edges.set([]);
 		state.nodes.set(newNodes);
 		state.viewport.set({ x: 0, y: 0, zoom: 1 });
+		state.isPlaying.set(false);
+		state.autoPlay.set(false);
 		return {
+			isPlaying: state.isPlaying,
+			autoPlay: state.autoPlay,
 			projectType: projectType,
 			projectId: newId,
 			projectName: '',

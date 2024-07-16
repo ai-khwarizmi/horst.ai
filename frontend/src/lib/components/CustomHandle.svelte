@@ -14,6 +14,7 @@
 	import Button from './ui/button/button.svelte';
 	import { onMount } from 'svelte';
 	import { optionalInputsEnabled } from '@/index';
+	import { HorstFile } from '@/utils/horstfile';
 
 	const HANDLE_WIDTH = 12;
 	const c = useConnection();
@@ -308,11 +309,18 @@
 					{#if connected.length === 0 && isInput}
 						<span class="truncate block">...connect [{base.type}]</span>
 					{:else if isInput}
+						{@const dataWithoutPlaceholder = [
+							$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]
+						].flat()[0]}
 						<span
-							class="truncate block whitespace-nowrap text-gray-700 text-sm"
+							class="truncate block whitespace-nowrap text-gray-7000 text-sm"
 							title={$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]}
 						>
-							{$inputDataWithoutPlaceholder?.[nodeId]?.[base.id]?.toString().substring(0, 50)}
+							{#if HorstFile.isHorstFile(dataWithoutPlaceholder)}
+								{dataWithoutPlaceholder.fileName}
+							{:else}
+								{dataWithoutPlaceholder?.toString().substring(0, 50)}
+							{/if}
 						</span>
 					{:else}
 						<span class="truncate block">[{base.type}]</span>

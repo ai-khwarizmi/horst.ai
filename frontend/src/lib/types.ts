@@ -185,6 +185,9 @@ import type { Writable } from 'svelte/store';
 export type ProjectType = 'LOCAL' | 'CLOUD' | 'UNINITIALIZED';
 
 export type State = {
+	isPlaying: Writable<boolean>;
+	autoPlay: Writable<boolean>;
+
 	projectType: ProjectType;
 	nonce: number;
 	projectId: string;

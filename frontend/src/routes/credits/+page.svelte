@@ -160,6 +160,12 @@
 			url: 'https://github.com/bubkoo/html-to-image',
 			branch: 'master',
 			license: 'MIT'
+		},
+		'pdfjs-dist': {
+			name: 'pdfjs-dist',
+			url: 'https://github.com/mozilla/pdfjs-dist',
+			branch: 'master',
+			license: 'Apache License 2.0'
 		}
 	};
 

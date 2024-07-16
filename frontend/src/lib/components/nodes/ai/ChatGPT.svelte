@@ -104,7 +104,7 @@
 								} as OpenAI.Chat.ChatCompletionContentPartImage);
 							} else {
 								userMessage.content.push({
-									text: file.getAsFileAttachment(),
+									text: await wrap(file.getAsFileAttachment()),
 									type: 'text'
 								});
 							}

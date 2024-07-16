@@ -42,6 +42,7 @@
 	import { resetLocalProject } from '@/project/local';
 	import HotkeysPopup from './popups/HotkeysPopup.svelte';
 	import WebsocketStatus from './WebsocketStatus.svelte';
+	import PlayPause from './PlayPause.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -164,6 +165,9 @@
 		<Background />
 		<Panel position="bottom-left">
 			<WebsocketStatus />
+		</Panel>
+		<Panel position="top-center">
+			<PlayPause />
 		</Panel>
 		<Panel position="top-right">
 			<div class="flex gap-2">

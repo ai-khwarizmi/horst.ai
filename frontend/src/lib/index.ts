@@ -18,6 +18,9 @@ import { saveProject } from './project';
 	4. null
 */
 export const state: Writable<State> = writable({
+	isPlaying: writable(false),
+	autoPlay: writable(false),
+
 	projectType: 'UNINITIALIZED',
 	nonce: 0,
 	projectId: '',
@@ -44,6 +47,12 @@ export const state: Writable<State> = writable({
 
 export const recentProjectsOpen = writable(false);
 
+export const isPlaying = derived(state, ($state) => {
+	return $state.isPlaying;
+});
+export const autoPlay = derived(state, ($state) => {
+	return $state.autoPlay;
+});
 export const outputDataDynamic = derived(state, ($state) => {
 	return $state.outputDataDynamic;
 });
