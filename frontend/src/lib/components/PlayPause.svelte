@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Play, Square, RotateCcw } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
-	import { get} from 'svelte/store';
+	import { get } from 'svelte/store';
 	import { cn } from '$lib/utils.js';
 	import { state } from '$lib';
 

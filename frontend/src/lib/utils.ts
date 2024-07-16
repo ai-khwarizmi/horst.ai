@@ -348,6 +348,9 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 					inputData: _inputData,
 					inputDataWithoutPlaceholder: _inputDataWithoutPlaceholders
 				}));
+				if (isPlaying) {
+					this.playsRemaining = 1;
+				}
 				this.onExecute(this.onExecuteCallbacks!, false);
 				this.updateUnsupportedInputs().catch(console.error);
 			}
