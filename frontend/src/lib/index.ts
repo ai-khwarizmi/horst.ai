@@ -3,7 +3,7 @@ import { derived, get, writable, type Writable } from 'svelte/store';
 import { type ConnectWith, type State } from './types';
 import { debounce } from 'lodash-es';
 import { saveProject } from './project';
-import type { NodeIOHandler } from './utils';
+import type { NodeIOHandler } from './nodeIoHandler';
 
 /*
 	There are 3 types of data:
