@@ -8,6 +8,7 @@ import { get } from 'svelte/store';
 import { type CustomNodeName } from './nodes';
 import { NodeType } from './types';
 import { createNewProject } from './project';
+export { NodeIOHandler } from './nodeIoHandler';
 
 export const getNodeColors = (
 	type: NodeType

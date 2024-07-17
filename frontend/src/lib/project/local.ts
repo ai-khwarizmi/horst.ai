@@ -4,7 +4,7 @@ import type { SaveFileFormat } from '@/types';
 import { session } from '@/auth/Clerk';
 import { get } from 'svelte/store';
 
-const LOCALSTORAGE_SAVE_KEY = 'horst.ai.local.roject';
+const LOCALSTORAGE_SAVE_KEY = 'horst.ai.local.project';
 
 /*
 	do not call this from anywhere but project/index.ts or you risk breaking things
