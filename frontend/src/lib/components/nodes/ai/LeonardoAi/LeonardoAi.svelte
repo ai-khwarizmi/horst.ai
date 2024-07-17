@@ -194,7 +194,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>,
 		io: NodeIOHandler<any, any>
 	) => {
@@ -229,17 +228,8 @@
 				lastOutputValue = null;
 				return;
 			}
-			const newValue = JSON.stringify({
-				...requestBody,
-				apiKey,
-				controlnets
-			});
 
 			if (requestBody[INPUT_IDS.PROMPT]) {
-				if (!forceExecute && newValue === lastExecutedValue) {
-					return;
-				}
-				lastExecutedValue = newValue;
 				if (!apiKey) {
 					callbacks.setErrors([SPECIAL_ERRORS.LEONARDO_API_KEY_MISSING]);
 					return;
@@ -794,7 +784,6 @@
 		isInputUnsupported: isInputUnsupported
 	});
 
-	let lastExecutedValue: null | string = null;
 	let lastOutputValue: HorstFile[] | null = null;
 
 	function openInNewTab(file: HorstFile) {

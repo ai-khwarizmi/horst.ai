@@ -95,22 +95,18 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	}>;
 	_onExecute: (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>,
 		io: NodeIOHandler<TInput, TOutput>
 	) => Promise<void>;
 
-	private _debouncedExecute = debounce(
-		async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
-			await this._runOnExecute(callbacks, forceExecute);
-			console.log('debounced execute done', this.nodeId);
-			executionsRunning.update((n) => {
-				n.set(this.nodeId, false);
-				return n;
-			});
-		},
-		500
-	);
+	private _debouncedExecute = debounce(async (callbacks: OnExecuteCallbacks) => {
+		await this._runOnExecute(callbacks);
+		console.log('debounced execute done', this.nodeId);
+		executionsRunning.update((n) => {
+			n.set(this.nodeId, false);
+			return n;
+		});
+	}, 500);
 
 	constructor(args: {
 		nodeId: string;
@@ -118,7 +114,6 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		outputs: Output<TOutput>[];
 		onExecute: (
 			callbacks: OnExecuteCallbacks,
-			forceExecute: boolean,
 			wrap: <T>(promise: Promise<T>) => Promise<T>,
 			io: NodeIOHandler<TInput, TOutput>
 		) => Promise<void>;
@@ -152,7 +147,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 
 	onToggleAutoPlay = (value: boolean) => {
 		if (value && this.executePending) {
-			this.onExecute(this.onExecuteCallbacks!, false);
+			this.onExecute(this.onExecuteCallbacks!);
 		}
 	};
 
@@ -161,26 +156,26 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		if (value) {
 			this.playsRemaining = 1;
 			if (this.executePending) {
-				this.onExecute(this.onExecuteCallbacks!, false);
+				this.onExecute(this.onExecuteCallbacks!);
 			}
 		} else {
 			this.playsRemaining = 0;
 		}
 	};
 
-	runDebounceExecute(callbacks: OnExecuteCallbacks, forceExecute: boolean) {
+	runDebounceExecute(callbacks: OnExecuteCallbacks) {
 		executionsRunning.update((n) => {
 			n.set(this.nodeId, true);
 			return n;
 		});
-		this._debouncedExecute(callbacks, forceExecute);
+		this._debouncedExecute(callbacks);
 	}
 
-	onExecute(callbacks: OnExecuteCallbacks, forceExecute: boolean) {
-		this.runDebounceExecute(callbacks, forceExecute);
+	onExecute(callbacks: OnExecuteCallbacks) {
+		this.runDebounceExecute(callbacks);
 	}
 
-	private _runOnExecute = async (callbacks: OnExecuteCallbacks, forceExecute: boolean) => {
+	private _runOnExecute = async (callbacks: OnExecuteCallbacks) => {
 		const _isPlaying = get(get(state).isPlaying);
 		const _autoPlay = get(get(autoPlay));
 		if (!_autoPlay && !_isPlaying) {
@@ -275,11 +270,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		});
 
 		try {
-			//if we're killing the previous  execution we need to forceExecute to ensure it's executed
-			if (this.runningExecutions > 1) {
-				forceExecute = true;
-			}
-			const result = await this._onExecute(callbacksProxy, forceExecute, wrap, ioProxy);
+			const result = await this._onExecute(callbacksProxy, wrap, ioProxy);
 			return result;
 		} catch (e) {
 			console.error('Error in onExecute', e);
@@ -367,7 +358,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				if (get(state).isPlaying) {
 					this.playsRemaining = 1;
 				}
-				this.onExecute(this.onExecuteCallbacks!, false);
+				this.onExecute(this.onExecuteCallbacks!);
 				this.updateUnsupportedInputs().catch(console.error);
 			}
 			return changed;

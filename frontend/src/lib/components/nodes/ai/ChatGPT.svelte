@@ -27,7 +27,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>,
 		io: NodeIOHandler<any, any>
 	) => {
@@ -40,7 +39,6 @@
 			const temperature = io.getInputData('temperature') as number;
 			const topP = io.getInputData('top_p') as number;
 			const n = io.getInputData('n') as number;
-			const stream = io.getInputData('stream') as boolean;
 			const stop = io.getInputData('stop') as string;
 			const presencePenalty = io.getInputData('presence_penalty') as number;
 			const frequencyPenalty = io.getInputData('frequency_penalty') as number;
@@ -48,29 +46,7 @@
 			const user = io.getInputData('user') as string;
 			const files = io.getInputData('files') as HorstFile[];
 
-			const newValue = JSON.stringify({
-				systemPrompt,
-				userPrompt,
-				apiKey: apiKey,
-				model,
-				maxTokens,
-				temperature,
-				topP,
-				n,
-				stream,
-				stop,
-				presencePenalty,
-				frequencyPenalty,
-				logitBias,
-				user,
-				files
-			});
-
 			if (systemPrompt && userPrompt) {
-				if (!forceExecute && newValue === lastExecutedValue) {
-					return;
-				}
-				lastExecutedValue = newValue;
 				if (!apiKey) {
 					callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
 					return;
@@ -134,16 +110,12 @@
 					let output = '';
 					for await (const chunk of stream) {
 						output += chunk.choices[0]?.delta?.content || '';
-						if (lastExecutedValue === newValue) {
-							temporaryOutput = output;
-						}
+						temporaryOutput = output;
 					}
 
-					if (lastExecutedValue === newValue) {
-						lastOutputValue = output;
-						io.setOutputDataDynamic('response', lastOutputValue);
-						callbacks.setStatus('success');
-					}
+					lastOutputValue = output;
+					io.setOutputDataDynamic('response', lastOutputValue);
+					callbacks.setStatus('success');
 				} catch (error) {
 					console.log('error1', error);
 					callbacks.setErrors(['Error calling GPT-4', JSON.stringify(error)]);
@@ -295,7 +267,6 @@
 		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
-	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	onMount(() => {

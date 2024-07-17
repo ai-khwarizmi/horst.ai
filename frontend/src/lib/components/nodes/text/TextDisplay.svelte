@@ -12,7 +12,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		const input = [io.getInputData('data') ?? null].flat()[0];

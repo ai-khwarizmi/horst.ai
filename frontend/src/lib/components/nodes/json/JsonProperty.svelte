@@ -33,7 +33,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		_forceExecute: boolean,
 		_wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		try {

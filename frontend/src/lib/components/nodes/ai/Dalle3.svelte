@@ -29,7 +29,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		const apiKey = get(openai_key) as string;
@@ -41,21 +40,7 @@
 		const style = io.getInputData('style') as string;
 		const user = io.getInputData('user') as string;
 
-		const newValue = JSON.stringify({
-			prompt,
-			model,
-			quality,
-			size,
-			style,
-			user,
-			apiKey
-		});
-
 		if (prompt) {
-			if (!forceExecute && newValue === lastExecutedValue) {
-				return;
-			}
-			lastExecutedValue = newValue;
 			if (!apiKey) {
 				callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
 				return;
@@ -150,7 +135,6 @@
 		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
-	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	function openInNewTab(imageUrl: string | null) {

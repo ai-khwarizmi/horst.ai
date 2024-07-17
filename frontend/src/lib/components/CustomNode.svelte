@@ -85,8 +85,8 @@
 		}
 	};
 
-	export const forceExecute = () => {
-		io.onExecute(onExecuteCallbacks, true);
+	export const manuallyExecuteNode = () => {
+		io.onExecute(onExecuteCallbacks);
 	};
 
 	const connectToNodeOnMount = () => {
@@ -283,7 +283,7 @@
 			</div>
 
 			{#if nodeType === NodeType.FUNCTION && (status === 'success' || status === 'error')}
-				<Button size="flat" on:click={forceExecute}>Re-run</Button>
+				<Button size="flat" on:click={manuallyExecuteNode}>Re-run</Button>
 			{/if}
 		</div>
 	</NodeToolbar>

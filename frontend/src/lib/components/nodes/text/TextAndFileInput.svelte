@@ -16,7 +16,7 @@
 			{ id: 'text', type: 'text' },
 			{ id: 'files', type: 'file[]' }
 		],
-		onExecute: async (_callbacks, _forceExecute, _wrap) => {},
+		onExecute: async (_callbacks, _wrap) => {},
 		isInputUnsupported: async (_inputId, _data) => {
 			return { unsupported: false };
 		}

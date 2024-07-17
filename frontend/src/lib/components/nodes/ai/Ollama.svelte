@@ -23,12 +23,10 @@
 	const DEFAULT_ENDPOINT = 'http://localhost:11434/api/generate';
 
 	let temporaryOutput: string | null = null;
-	let lastExecutedValue: string | null = null;
 	let lastOutputValue: string | null = null;
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		try {
@@ -46,21 +44,7 @@
 				stop: io.getInputData(INPUT_IDS.STOP) as string[]
 			};
 
-			const newValue = JSON.stringify({
-				model,
-				endpoint,
-				prompt,
-				system,
-				template,
-				context,
-				options
-			});
-
 			if (model && prompt && system && endpoint) {
-				if (!forceExecute && newValue === lastExecutedValue) {
-					return;
-				}
-				lastExecutedValue = newValue;
 				lastOutputValue = null;
 				temporaryOutput = '';
 				io.setOutputDataDynamic('response', null);
@@ -99,17 +83,13 @@
 							if (line.trim() === '') continue;
 							const data = JSON.parse(line);
 							output += data.response;
-							if (lastExecutedValue === newValue) {
-								temporaryOutput = output;
-							}
+							temporaryOutput = output;
 						}
 					}
 
-					if (lastExecutedValue === newValue) {
-						lastOutputValue = output;
-						io.setOutputDataDynamic('response', lastOutputValue);
-						callbacks.setStatus('success');
-					}
+					lastOutputValue = output;
+					io.setOutputDataDynamic('response', lastOutputValue);
+					callbacks.setStatus('success');
 				} catch (error) {
 					let errorMessage = 'Unknown error';
 					if (error instanceof Error) {

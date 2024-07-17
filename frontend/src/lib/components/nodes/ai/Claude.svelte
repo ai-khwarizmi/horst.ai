@@ -28,7 +28,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		const apiKey = get(anthropic_key) as string;
@@ -36,19 +35,12 @@
 		const systemPrompt = io.getInputData('prompt_system') as string;
 		const userPrompt = io.getInputData('prompt_user') as string;
 
-		const newValue = JSON.stringify({ systemPrompt, userPrompt, apiKey: apiKey });
-
 		if (systemPrompt && userPrompt) {
-			if (!forceExecute && newValue === lastExecutedValue) {
-				return;
-			}
-			lastExecutedValue = newValue;
 			if (!apiKey) {
 				callbacks.setErrors([SPECIAL_ERRORS.ANTHROPIC_API_KEY_MISSING]);
 				return;
 			}
 			lastOutputValue = null;
-			lastExecutedValue = newValue;
 			temporaryOutput = '';
 			io.setOutputDataDynamic('response', null);
 
@@ -71,17 +63,13 @@
 				for await (const chunk of stream) {
 					if (chunk.type === 'content_block_delta') {
 						output += (chunk as any).delta.text || '';
-						if (lastExecutedValue === newValue) {
-							temporaryOutput = output;
-						}
+						temporaryOutput = output;
 					}
 				}
 
-				if (lastExecutedValue === newValue) {
-					lastOutputValue = output;
-					io.setOutputDataDynamic('response', lastOutputValue);
-					callbacks.setStatus('success');
-				}
+				lastOutputValue = output;
+				io.setOutputDataDynamic('response', lastOutputValue);
+				callbacks.setStatus('success');
 			} catch (error) {
 				console.error('Error calling Claude: ', error);
 				callbacks.setErrors(['Error calling Claude', JSON.stringify(error)]);
@@ -105,7 +93,6 @@
 		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
-	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	onMount(() => {

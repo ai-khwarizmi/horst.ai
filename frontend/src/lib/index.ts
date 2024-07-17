@@ -135,13 +135,11 @@ function processNodeStatuses() {
 	const areAnyNodesRunning = Array.from(runningNodes.values()).some((value) => value);
 	const areAnyNodesWaiting = Array.from(waitingNodes.values()).some((value) => value);
 	if (!areAnyNodesRunning && !areAnyNodesWaiting) {
-		console.log('!!!!No nodes are running or waiting');
 		if (get(state).isPlaying) {
-			console.log('!!!!Setting isPlaying to false');
 			get(state).isPlaying.set(false);
 		}
 	}
-
+	/*
 	const nodeStatuses = Array.from(new Set([...waitingNodes.keys(), ...runningNodes.keys()])).map(
 		(id) => ({
 			id,
@@ -150,6 +148,7 @@ function processNodeStatuses() {
 		})
 	);
 	console.table(nodeStatuses);
+	*/
 }
 
 waitingForChangedOutputs.subscribe(() => processNodeStatuses());

@@ -14,7 +14,6 @@
 
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		forceExecute: boolean,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
 	) => {
 		try {
@@ -27,22 +26,7 @@
 			const topP = io.getInputData('top_p') as number;
 			const stream = io.getInputData('stream') as boolean;
 
-			const newValue = JSON.stringify({
-				systemPrompt,
-				userPrompt,
-				apiKey,
-				model,
-				maxTokens,
-				temperature,
-				topP,
-				stream
-			});
-
 			if (systemPrompt && userPrompt) {
-				if (!forceExecute && newValue === lastExecutedValue) {
-					return;
-				}
-				lastExecutedValue = newValue;
 				if (!apiKey) {
 					callbacks.setErrors([SPECIAL_ERRORS.PERPLEXITY_API_KEY_MISSING]);
 					return;
@@ -74,25 +58,19 @@
 						let output = '';
 						for await (const chunk of streamPerplexityResponse(response)) {
 							output += chunk;
-							if (lastExecutedValue === newValue) {
-								temporaryOutput = output;
-							}
+							temporaryOutput = output;
 						}
 
-						if (lastExecutedValue === newValue) {
-							lastOutputValue = output;
-							io.setOutputDataDynamic('response', lastOutputValue);
-							callbacks.setStatus('success');
-						}
+						lastOutputValue = output;
+						io.setOutputDataDynamic('response', lastOutputValue);
+						callbacks.setStatus('success');
 					} else {
 						const data = await wrap(response.json());
 						const output = data.choices[0].message.content;
 
-						if (lastExecutedValue === newValue) {
-							lastOutputValue = output;
-							io.setOutputDataDynamic('response', lastOutputValue);
-							callbacks.setStatus('success');
-						}
+						lastOutputValue = output;
+						io.setOutputDataDynamic('response', lastOutputValue);
+						callbacks.setStatus('success');
 					}
 				} catch (error) {
 					callbacks.setErrors(['Error calling Perplexity API', JSON.stringify(error)]);
@@ -190,7 +168,6 @@
 		isInputUnsupported: () => Promise.resolve({ unsupported: false })
 	});
 
-	let lastExecutedValue: null | string = null;
 	let lastOutputValue: null | string = '';
 
 	onMount(() => {
