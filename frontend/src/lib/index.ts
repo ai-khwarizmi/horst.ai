@@ -28,7 +28,7 @@ export const state: Writable<State> = writable({
 	nodes: writable([]),
 	edges: writable([]),
 	viewport: writable({ x: 0, y: 0, zoom: 1 }),
-	gridSnap: 0,
+	gridSnap: 20,
 	optionalInputsEnabled: {} as Record<string, Record<string, boolean>>,
 
 	// Type A
@@ -89,7 +89,7 @@ export const projectType = derived(state, ($state) => {
 });
 
 export const gridSnap = derived(state, ($state) => {
-	const snap = $state.gridSnap || 1;
+	const snap = $state.gridSnap || 20;
 	return [snap, snap] satisfies [number, number];
 });
 

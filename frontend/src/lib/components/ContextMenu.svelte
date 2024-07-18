@@ -11,7 +11,7 @@
 	} from 'lucide-svelte';
 	import { addNode, removeNode } from '$lib/utils';
 	import * as ContextMenu from '$lib/components/ui/context-menu';
-	import { commandOpen, createNodeParams, nodes, state } from '..';
+	import { commandOpen, createNodeParams, gridSnap, nodes, state } from '..';
 	import type { XYPosition } from '@xyflow/svelte';
 	import { registeredNodes, type CustomNodeName } from '@/nodes';
 
@@ -62,7 +62,7 @@
 	const toggleSnapMode = (e: CustomEvent) => {
 		e.preventDefault();
 		const snapModes = [0, 20, 40, 60];
-		const currentIndex = snapModes.indexOf($state.gridSnap ?? 0);
+		const currentIndex = snapModes.indexOf($gridSnap[0] ?? 0);
 		const nextIndex = (currentIndex + 1) % snapModes.length;
 		$state.gridSnap = snapModes[nextIndex];
 	};
@@ -168,7 +168,7 @@
 						Grid Snap: Large
 					{:else}
 						<Magnet class="w-4 h-4 mr-2" />
-						Grid Snap: Off
+						Grid Snap: {$state.gridSnap}
 					{/if}
 				</ContextMenu.Item>
 			{:else if contextMenuData.type === 'node'}

@@ -43,6 +43,7 @@
 	import HotkeysPopup from './popups/HotkeysPopup.svelte';
 	import WebsocketStatus from './WebsocketStatus.svelte';
 	import PlayPause from './PlayPause.svelte';
+	import WelcomePopup from './popups/WelcomePopup.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -142,6 +143,7 @@
 	<OpenFilePopup />
 	<SaveFilePopup />
 	<ContextMenu />
+	<WelcomePopup />
 	<SvelteFlow
 		nodes={$state.nodes}
 		edges={$state.edges}
