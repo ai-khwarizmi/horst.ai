@@ -14,7 +14,7 @@
 		PARSED_VALUE: 'parsed_value'
 	};
 
-	let currentOutput: string;
+	let currentOutput: any;
 
 	const parseJsonPath = (obj: any, path: string) => {
 		const parts = path.split(/[.[\]]+/).filter(Boolean);
@@ -41,6 +41,7 @@
 
 			if (!jsonInput || !path) {
 				callbacks.setStatus('idle');
+				currentOutput = null;
 				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
 				return;
 			}
@@ -48,15 +49,15 @@
 			try {
 				const jsonObject = typeof jsonInput === 'string' ? JSON.parse(jsonInput) : jsonInput;
 				const parsedValue = parseJsonPath(jsonObject, path);
-				const stringifiedValue = JSON.stringify(parsedValue);
-				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, stringifiedValue);
-				currentOutput = stringifiedValue;
+				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, parsedValue);
+				currentOutput = parsedValue;
 				callbacks.setStatus('success');
 			} catch (error: any) {
 				callbacks.setErrors(['Error parsing JSON or extracting value', error.message]);
 				io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
 			}
 		} catch (error: any) {
+			currentOutput = null;
 			console.error('error', error);
 			callbacks.setErrors(['Error parsing JSON or extracting value', error.message]);
 			io.setOutputDataDynamic(OUTPUT_IDS.PARSED_VALUE, null);
@@ -77,7 +78,7 @@
 				}
 			}
 		],
-		outputs: [{ id: OUTPUT_IDS.PARSED_VALUE, type: 'text', label: 'Parsed Value' }],
+		outputs: [{ id: OUTPUT_IDS.PARSED_VALUE, type: 'any', label: 'Parsed Value' }],
 		onExecute: onExecute,
 		isInputUnsupported: async () => {
 			return { unsupported: false };
