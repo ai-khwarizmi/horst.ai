@@ -34,6 +34,7 @@
 
 		const systemPrompt = io.getInputData('prompt_system') as string;
 		const userPrompt = io.getInputData('prompt_user') as string;
+		const model = io.getInputData('model') as string;
 
 		if (systemPrompt && userPrompt) {
 			if (!apiKey) {
@@ -54,7 +55,7 @@
 					getAnthropic().messages.create({
 						max_tokens: 1024,
 						messages: messages,
-						model: 'claude-3-5-sonnet-20240620',
+						model: model,
 						stream: true
 					})
 				);
@@ -86,7 +87,25 @@
 		nodeId: id,
 		inputs: [
 			{ id: 'prompt_system', type: 'text', label: 'System Prompt' },
-			{ id: 'prompt_user', type: 'text', label: 'User Prompt' }
+			{ id: 'prompt_user', type: 'text', label: 'User Prompt' },
+			{
+				id: 'model',
+				type: 'text',
+				label: 'Model',
+				input: {
+					inputOptionType: 'dropdown',
+					options: [
+						'claude-3-5-sonnet-20240620',
+						'claude-3-opus-20240229',
+						'claude-3-sonnet-20240229',
+						'claude-3-haiku-20240307',
+						'claude-2.1',
+						'claude-2.0',
+						'claude-instant-1.2'
+					],
+					default: 'claude-3-5-sonnet-20240620'
+				}
+			}
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
 		onExecute: onExecute,

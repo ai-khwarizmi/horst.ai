@@ -1,45 +1,58 @@
 <script lang="ts">
 	import { Play, Square, RotateCcw } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
-	import { get } from 'svelte/store';
 	import { cn } from '$lib/utils.js';
 	import { state } from '$lib';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import { projectId } from '..';
 
-	function startPlay() {
-		get(state).isPlaying.set(true);
+	const keyPreffix = 'horst.ai.auto.play.enabled_';
+
+	function saveAutoPlayState(projectId: string, value: boolean) {
+		if (browser) {
+			localStorage.setItem(`${keyPreffix}${projectId}`, JSON.stringify(value));
+		}
 	}
 
-	function stopPlay() {
-		get(state).isPlaying.set(false);
-		get(state).autoPlay.set(false);
+	function getAutoPlayState(projectId: string): boolean {
+		if (browser) {
+			const savedState = localStorage.getItem(`${keyPreffix}${projectId}`);
+			return savedState ? JSON.parse(savedState) : false;
+		}
+		return false;
 	}
 
-	function restart() {
-		get(state).isPlaying.set(false);
-		setTimeout(startPlay, 0);
+	let autoPlay: boolean;
+
+	onMount(() => {
+		return projectId.subscribe((currentProjectId) => {
+			autoPlay = getAutoPlayState(currentProjectId);
+			$state.autoPlay.set(autoPlay);
+			if (autoPlay) $state.isPlaying.set(false);
+		});
+	});
+
+	$: if (browser && autoPlay !== undefined) {
+		saveAutoPlayState($projectId, autoPlay);
+		$state.autoPlay.set(autoPlay);
+		if (autoPlay) $state.isPlaying.set(false);
 	}
 
-	$: autoPlay = $state.autoPlay;
 	$: isPlaying = $state.isPlaying;
-	$: if ($autoPlay) {
-		console.log('Auto-play enabled');
-		get(state).isPlaying.set(false);
-	} else {
-		console.log('Auto-play disabled');
-	}
 </script>
 
 <div class="play-pause-component flex items-center gap-2 play-pause-no-select">
 	<label
 		class="relative inline-flex items-center cursor-pointer mr-2 px-3 py-2 rounded-md bg-background hover:bg-accent transition-colors border border-input"
 	>
-		<input type="checkbox" class="sr-only peer" bind:checked={$autoPlay} />
+		<input type="checkbox" class="sr-only peer" bind:checked={autoPlay} />
 		<div
 			class="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"
 		></div>
-		<span class="ml-3 text-sm font-medium text-foreground {$autoPlay ? 'pl-5 pr-7' : ''}"
-			>Auto
-			{#if $autoPlay}
+		<span class="ml-3 text-sm font-medium text-foreground {autoPlay ? 'pl-5 pr-7' : ''}">
+			Auto
+			{#if autoPlay}
 				<div
 					class="absolute inset-0 border-2 border-green-500 animate-glow-border rounded-md"
 				></div>
@@ -47,12 +60,12 @@
 		</span>
 	</label>
 
-	{#if !$autoPlay}
+	{#if !autoPlay}
 		<div class="relative">
 			<Button
 				variant="outline"
 				size="icon"
-				on:click={startPlay}
+				on:click={() => $state.isPlaying.set(true)}
 				disabled={$isPlaying}
 				class={cn(
 					'bg-background hover:bg-accent hover:text-accent-foreground',
@@ -72,20 +85,26 @@
 	<Button
 		variant="outline"
 		size="icon"
-		on:click={stopPlay}
-		disabled={!$isPlaying && !$autoPlay}
+		on:click={() => {
+			$state.isPlaying.set(false);
+			$state.autoPlay.set(false);
+		}}
+		disabled={!$isPlaying && !autoPlay}
 		class={cn(
 			'bg-background hover:bg-accent hover:text-accent-foreground',
 			!$isPlaying ? 'text-muted-foreground' : 'text-primary'
 		)}
 	>
-		<Square class={cn('h-4 w-4', ($isPlaying || $autoPlay) && 'text-red-500')} />
+		<Square class={cn('h-4 w-4', ($isPlaying || autoPlay) && 'text-red-500')} />
 	</Button>
 
 	<Button
 		variant="outline"
 		size="icon"
-		on:click={restart}
+		on:click={() => {
+			$state.isPlaying.set(false);
+			setTimeout(() => $state.isPlaying.set(true), 0);
+		}}
 		class="bg-background hover:bg-accent hover:text-accent-foreground text-primary"
 	>
 		<RotateCcw class="h-4 w-4" />
@@ -94,24 +113,6 @@
 
 <style>
 	@keyframes spin-border {
-		0% {
-			clip-path: inset(0 0 95% 0);
-		}
-		25% {
-			clip-path: inset(0 0 0 95%);
-		}
-		50% {
-			clip-path: inset(95% 0 0 0);
-		}
-		75% {
-			clip-path: inset(0 95% 0 0);
-		}
-		100% {
-			clip-path: inset(0 0 95% 0);
-		}
-	}
-
-	@keyframes spin-border-slow {
 		0% {
 			clip-path: inset(0 0 95% 0);
 		}
@@ -149,18 +150,11 @@
 		animation: spin-border 1.5s linear infinite;
 	}
 
-	.play-pause-component :global(.animate-spin-border-slow) {
-		animation: spin-border-slow 20s linear infinite;
-	}
-
 	.play-pause-component :global(.animate-glow-border) {
 		animation: glow-border 3s ease-in-out infinite;
 	}
 
 	.play-pause-no-select {
-		-webkit-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
 		user-select: none;
 	}
 

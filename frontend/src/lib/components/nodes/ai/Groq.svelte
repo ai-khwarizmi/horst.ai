@@ -46,7 +46,7 @@
 
 			if (systemPrompt && userPrompt) {
 				if (!apiKey) {
-					callbacks.setErrors([SPECIAL_ERRORS.OPENAI_API_KEY_MISSING]);
+					callbacks.setErrors([SPECIAL_ERRORS.GROQ_API_KEY_MISSING]);
 					return;
 				}
 				lastOutputValue = null;

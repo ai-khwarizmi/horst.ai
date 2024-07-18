@@ -45,6 +45,7 @@
 			const logitBias = io.getInputData('logit_bias') as string;
 			const user = io.getInputData('user') as string;
 			const files = io.getInputData('files') as HorstFile[];
+			const responseFormat = io.getInputData('response_format') as string;
 
 			if (systemPrompt && userPrompt) {
 				if (!apiKey) {
@@ -104,6 +105,8 @@
 					if (frequencyPenalty) request.frequency_penalty = frequencyPenalty;
 					if (logitBias) request.logit_bias = JSON.parse(logitBias);
 					if (user) request.user = user;
+					if (responseFormat && (responseFormat === 'text' || responseFormat === 'json_object'))
+						request.response_format = { type: responseFormat };
 
 					const stream = await wrap(getOpenai().chat.completions.create(request));
 
@@ -203,6 +206,17 @@
 				label: 'Max Tokens',
 				optional: true,
 				input: basicInputOptionInput()
+			},
+			{
+				id: 'response_format',
+				type: 'text',
+				label: 'Response Format',
+				optional: true,
+				input: {
+					inputOptionType: 'dropdown',
+					options: ['text', 'json_object'],
+					default: 'text'
+				}
 			},
 			{
 				id: 'temperature',

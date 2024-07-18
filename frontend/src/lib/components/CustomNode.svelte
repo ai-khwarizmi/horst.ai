@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, getNodeColors, NodeIOHandler, removeNode } from '$lib/utils';
+	import { cn, getNodeColors, removeNode } from '$lib/utils';
 	import {
 		type OnExecuteCallbacks,
 		type NodeStatus,
@@ -23,6 +23,7 @@
 	import { Sheet, SheetContent, SheetTrigger, SheetClose } from '$lib/components/ui/sheet';
 	import { optionalInputsEnabled } from '../index';
 	import { sendNodeMoveResize } from '@/project/cloud';
+	import type { NodeIOHandler } from '@/nodeIoHandler';
 
 	export let selectable: boolean = false;
 	export let deletable: boolean = false;
