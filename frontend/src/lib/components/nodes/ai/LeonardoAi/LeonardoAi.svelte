@@ -325,6 +325,10 @@
 		};
 	};
 
+	const resetDynamicState = () => {
+		lastOutputValue = null;
+	};
+
 	const _io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
@@ -781,7 +785,8 @@
 		],
 		outputs: [{ id: 'image_urls', type: 'array', label: 'Image URLs' }],
 		onExecute: onExecute,
-		isInputUnsupported: isInputUnsupported
+		isInputUnsupported: isInputUnsupported,
+		resetDynamicState
 	});
 
 	let lastOutputValue: HorstFile[] | null = null;

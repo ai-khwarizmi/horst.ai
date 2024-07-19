@@ -14,7 +14,8 @@
 		inputs: [{ id: 'num', type: 'number' }],
 		outputs: [{ id: 'str', type: 'text' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 </script>
 

@@ -25,6 +25,10 @@
 
 	export let id: string;
 
+	const resetDynamicState = () => {
+		temporaryOutput = '';
+	};
+
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
 		wrap: <T>(promise: Promise<T>) => Promise<T>
@@ -220,7 +224,8 @@
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState
 	});
 
 	let lastOutputValue: null | string = '';

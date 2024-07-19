@@ -29,7 +29,8 @@
 		],
 		outputs: [{ id: 'identical', type: 'boolean' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 
 	let currentOutput: boolean | null = null;

@@ -16,6 +16,20 @@ import {
 import { debounce } from 'lodash-es';
 import { HorstFile } from './utils/horstfile';
 
+export type OnExecuteFunction<TInput extends string, TOutput extends string> = (
+	callbacks: OnExecuteCallbacks,
+	wrap: <T>(promise: Promise<T>) => Promise<T>,
+	io: NodeIOHandler<TInput, TOutput>
+) => Promise<void>;
+
+export type IsInputUnsupportedFunction = (
+	inputId: string,
+	data: Record<string, any>
+) => Promise<{
+	unsupported: boolean;
+	message?: string;
+}>;
+
 export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	public nodeId: string;
 	readonly inputs = writable<Input<TInput>[]>([]);
@@ -29,20 +43,10 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	executePending: boolean = false;
 	playsRemaining: number = 0;
 
-	onExecuteCallbacks: OnExecuteCallbacks | null = null;
-	isInputUnsupported: (
-		inputId: string,
-		data: Record<string, any>
-	) => Promise<{
-		unsupported: boolean;
-		message?: string;
-	}>;
-	_onExecute: (
-		callbacks: OnExecuteCallbacks,
-		wrap: <T>(promise: Promise<T>) => Promise<T>,
-		io: NodeIOHandler<TInput, TOutput>
-	) => Promise<void>;
+	isInputUnsupported: IsInputUnsupportedFunction;
 
+	private onExecuteCallbacks: OnExecuteCallbacks | null = null;
+	private _onExecute: OnExecuteFunction<TInput, TOutput>;
 	private _debouncedExecute = debounce(async (callbacks: OnExecuteCallbacks) => {
 		await this._runOnExecute(callbacks);
 		console.log('debounced execute done', this.nodeId);
@@ -51,26 +55,20 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 			return n;
 		});
 	}, 500);
+	private _resetDynamicState: () => void;
 
 	constructor(args: {
 		nodeId: string;
 		inputs: Input<TInput>[];
 		outputs: Output<TOutput>[];
-		onExecute: (
-			callbacks: OnExecuteCallbacks,
-			wrap: <T>(promise: Promise<T>) => Promise<T>,
-			io: NodeIOHandler<TInput, TOutput>
-		) => Promise<void>;
-		isInputUnsupported: (
-			inputId: string,
-			data: Record<string, any>
-		) => Promise<{
-			unsupported: boolean;
-			message?: string;
-		}>;
+
+		onExecute: OnExecuteFunction<TInput, TOutput>;
+		isInputUnsupported: IsInputUnsupportedFunction;
+		resetDynamicState: () => void;
 	}) {
 		this.isInputUnsupported = args.isInputUnsupported;
 		this._onExecute = args.onExecute;
+		this._resetDynamicState = args.resetDynamicState;
 
 		this.nodeId = args.nodeId;
 		this.inputs.set(args.inputs);
@@ -89,9 +87,20 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		);
 	}
 
+	/*
+	this resets the dynamic state of the node
+	*/
+	resetNode() {
+		state.update((s) => {
+			s.outputDataDynamic[this.nodeId] = {};
+			return s;
+		});
+		this._resetDynamicState();
+	}
+
 	onToggleAutoPlay = (value: boolean) => {
 		if (value && this.executePending) {
-			this.onExecute(this.onExecuteCallbacks!);
+			this.onExecute();
 		}
 	};
 
@@ -100,7 +109,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		if (value) {
 			this.playsRemaining = 1;
 			if (this.executePending) {
-				this.onExecute(this.onExecuteCallbacks!);
+				this.onExecute();
 			}
 		} else {
 			this.playsRemaining = 0;
@@ -115,8 +124,8 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		this._debouncedExecute(callbacks);
 	}
 
-	onExecute(callbacks: OnExecuteCallbacks) {
-		this.runDebounceExecute(callbacks);
+	onExecute() {
+		this.runDebounceExecute(this.onExecuteCallbacks!);
 	}
 
 	private _runOnExecute = async (callbacks: OnExecuteCallbacks) => {
@@ -302,7 +311,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 				if (get(state).isPlaying) {
 					this.playsRemaining = 1;
 				}
-				this.onExecute(this.onExecuteCallbacks!);
+				this.onExecute();
 				this.updateUnsupportedInputs().catch(console.error);
 			}
 			return changed;

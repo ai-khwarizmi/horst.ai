@@ -121,6 +121,11 @@
 		}
 	};
 
+	const resetDynamicState = () => {
+		temporaryOutput = '';
+		lastOutputValue = null;
+	};
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
@@ -220,7 +225,8 @@
 		onExecute,
 		isInputUnsupported: async () => {
 			return { unsupported: false };
-		}
+		},
+		resetDynamicState
 	});
 </script>
 

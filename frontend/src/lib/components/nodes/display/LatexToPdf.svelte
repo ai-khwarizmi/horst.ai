@@ -8,6 +8,12 @@
 
 	let cleanedLatexCode: string | null = null;
 
+	const resetDynamicState = () => {
+		cleanedLatexCode = null;
+		lastCompiledCode = null;
+		pdfUrl.set(null);
+	};
+
 	async function onExecute(callbacks: OnExecuteCallbacks) {
 		const latexCode = io.getInputData('code') as string;
 		if (lastCompiledCode === latexCode) {
@@ -43,7 +49,8 @@
 		inputs: [{ id: 'code', type: 'text', label: 'LaTeX code' }],
 		outputs: [],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState
 	});
 
 	let lastCompiledCode: string | null = null;

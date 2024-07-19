@@ -87,7 +87,7 @@
 	};
 
 	export const manuallyExecuteNode = () => {
-		io.onExecute(onExecuteCallbacks);
+		io.onExecute();
 	};
 
 	const connectToNodeOnMount = () => {

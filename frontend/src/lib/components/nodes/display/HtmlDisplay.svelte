@@ -7,6 +7,11 @@
 	let lastDrawData: string | null = null;
 	let data: string | null = null;
 
+	const resetDynamicState = () => {
+		lastDrawData = null;
+		data = null;
+	};
+
 	const onExecute = async () => {
 		const input = io.getInputData('html') ?? null;
 		if (input !== lastDrawData) {
@@ -24,7 +29,8 @@
 		inputs: [{ id: 'html', type: 'text' }],
 		outputs: [],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState
 	});
 
 	function cleanHtmlString(input: string): string {

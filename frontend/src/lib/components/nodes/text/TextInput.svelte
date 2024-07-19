@@ -22,7 +22,8 @@
 		inputs: [],
 		outputs: [{ id: 'text', type: 'text' }],
 		onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 
 	onMount(() => {

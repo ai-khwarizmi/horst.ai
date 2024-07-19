@@ -29,7 +29,8 @@
 		],
 		outputs: [{ id: 'text', type: 'text' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 
 	let currentOutput: string | null = null;

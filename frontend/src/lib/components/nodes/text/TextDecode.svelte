@@ -16,7 +16,8 @@
 		inputs: [{ id: 'encoded', type: 'text', label: 'Base64' }],
 		outputs: [{ id: 'data', type: 'text' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 </script>
 

@@ -83,6 +83,10 @@
 		}
 	};
 
+	const resetDynamicState = () => {
+		temporaryOutput = '';
+	};
+
 	const io = new NodeIOHandler({
 		nodeId: id,
 		inputs: [
@@ -109,7 +113,8 @@
 		],
 		outputs: [{ id: 'response', type: 'text', label: 'Response' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState
 	});
 
 	let lastOutputValue: null | string = '';

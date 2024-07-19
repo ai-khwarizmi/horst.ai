@@ -44,7 +44,8 @@
 		onExecute,
 		isInputUnsupported: async () => {
 			return { unsupported: false };
-		}
+		},
+		resetDynamicState: () => {}
 	});
 	function copyToClipboard() {
 		if (data) {

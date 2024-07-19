@@ -19,7 +19,8 @@
 		onExecute: async (_callbacks, _wrap) => {},
 		isInputUnsupported: async (_inputId, _data) => {
 			return { unsupported: false };
-		}
+		},
+		resetDynamicState: () => {}
 	});
 
 	onMount(() => {

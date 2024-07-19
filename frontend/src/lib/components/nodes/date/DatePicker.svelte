@@ -14,7 +14,8 @@
 		inputs: [],
 		outputs: [{ id: 'text', type: 'text' }],
 		onExecute: async () => {},
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState: () => {}
 	});
 
 	let value: DateValue | undefined = undefined;

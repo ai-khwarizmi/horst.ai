@@ -27,9 +27,14 @@
 	const VALID_IMAGE_QUALITIES = ['standard', 'hd'];
 	const VALID_IMAGE_MODELS = ['dall-e-2', 'dall-e-3'];
 
+	const resetDynamicState = () => {
+		lastOutputValue = '';
+	};
+
 	const onExecute = async (
 		callbacks: OnExecuteCallbacks,
-		wrap: <T>(promise: Promise<T>) => Promise<T>
+		wrap: <T>(promise: Promise<T>) => Promise<T>,
+		io: NodeIOHandler<any, any>
 	) => {
 		const apiKey = get(openai_key) as string;
 
@@ -132,7 +137,8 @@
 		],
 		outputs: [{ id: 'image_url', type: 'text', label: 'Image URL' }],
 		onExecute: onExecute,
-		isInputUnsupported: () => Promise.resolve({ unsupported: false })
+		isInputUnsupported: () => Promise.resolve({ unsupported: false }),
+		resetDynamicState
 	});
 
 	let lastOutputValue: null | string = '';
