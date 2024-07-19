@@ -22,7 +22,7 @@
 	import Button from './ui/button/button.svelte';
 	import { isMobile } from './Mobile.svelte';
 	import PackageJson from '../../../package.json';
-	import { usesClerk } from '@/auth/Clerk';
+	import { usesClerk, session } from '@/auth/Clerk';
 	import { openSaveFilePopup } from './popups/SaveFilePopup.svelte';
 	import { projectName } from '$lib';
 	import { commandOpen } from '$lib';
@@ -30,6 +30,7 @@
 	import { openProjectSettings } from './ProjectSettings.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import { openHotkeysPopup } from './popups/HotkeysPopup.svelte';
+	import { recentProjectsOpen } from '$lib';
 
 	export let projectId: string | undefined;
 
@@ -68,15 +69,28 @@
 					{/if} + N
 				</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
+			{#if usesClerk && $session}
+				<DropdownMenu.Item on:click={() => recentProjectsOpen.set(true)}>
+					<Folder class="mr-2 size-3.5" />
+					Open Project
+					<DropdownMenu.Shortcut>
+						{#if navigator.userAgent.match('Mac')}
+							⌘
+						{:else}
+							Ctrl
+						{/if} + O
+					</DropdownMenu.Shortcut>
+				</DropdownMenu.Item>
+			{/if}
 			<DropdownMenu.Item on:click={loadGraphFromUploadedFile}>
 				<Folder class="mr-2 size-3.5" />
-				Open
+				Open Local File
 				<DropdownMenu.Shortcut>
 					{#if navigator.userAgent.match('Mac')}
 						⌘
 					{:else}
 						Ctrl
-					{/if} + O
+					{/if} + Shift + O
 				</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
 			<DropdownMenu.Sub>

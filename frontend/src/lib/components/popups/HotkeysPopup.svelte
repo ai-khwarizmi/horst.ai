@@ -17,6 +17,8 @@
 	import type { Edge, Node } from '@xyflow/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { browser } from '$app/environment';
+	import { recentProjectsOpen } from '$lib';
+	import { loadGraphFromUploadedFile } from '@/project/file';
 
 	const { screenToFlowPosition } = useSvelteFlow();
 
@@ -33,6 +35,16 @@
 			key: ['Space', '/', 'k'],
 			modifier: 'ctrlOrCmd',
 			description: 'Open node palette'
+		},
+		openProject: {
+			key: 'O',
+			modifier: 'ctrlOrCmd',
+			description: 'Open project'
+		},
+		openLocalFile: {
+			key: 'O',
+			modifier: 'ctrlOrCmdShift',
+			description: 'Open local file'
 		},
 		closeCommandPalette: { key: 'Escape', description: 'Close node palette' },
 		selectAllNodes: { key: 'a', modifier: 'ctrlOrCmd', description: 'Select all nodes' },
@@ -54,6 +66,8 @@
 	export const handleKeyDown = (e: KeyboardEvent) => {
 		handleHotkeysMenu(e);
 		handleCommandOpen(e);
+		handleOpenProject(e);
+		handleOpenLocalFile(e);
 		handleCopyPaste(e);
 		handleSelectAll(e);
 	};
@@ -88,6 +102,20 @@
 		if (e.key === hotkeys.closeCommandPalette.key) {
 			e.preventDefault();
 			commandOpen.set(false);
+		}
+	};
+
+	const handleOpenProject = (e: KeyboardEvent) => {
+		if (e.key === 'o' && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+			e.preventDefault();
+			recentProjectsOpen.set(true);
+		}
+	};
+
+	const handleOpenLocalFile = (e: KeyboardEvent) => {
+		if (e.key.toLowerCase() === 'o' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+			e.preventDefault();
+			loadGraphFromUploadedFile();
 		}
 	};
 
@@ -251,7 +279,7 @@
 	};
 </script>
 
-<svelte:document on:keydown={handleKeyDown} />
+<svelte:window on:keydown={handleKeyDown} />
 
 <Dialog.Root bind:open={$open}>
 	<Dialog.Content class="w-[900px]">
