@@ -172,7 +172,7 @@ const debouncedHandleChanges = debounce(() => {
 	Object.values(nodeIOHandlers).forEach((ioHandler) => {
 		ioHandler.onOutputsChanged();
 	});
-}, 50);
+}, 0);
 
 outputDataDynamic.subscribe(() => {
 	debouncedHandleChanges();
