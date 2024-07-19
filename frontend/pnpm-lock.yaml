@@ -17,6 +17,9 @@ importers:
       '@internationalized/date':
         specifier: ^3.5.4
         version: 3.5.4
+      '@mux/mux-player':
+        specifier: ^2.8.0
+        version: 2.8.0
       '@sveltejs/adapter-static':
         specifier: ^3.0.2
         version: 3.0.2(@sveltejs/kit@2.5.17(@sveltejs/vite-plugin-svelte@3.1.1(svelte@4.2.18)(vite@5.3.2(@types/node@20.14.2)))(svelte@4.2.18)(vite@5.3.2(@types/node@20.14.2)))
@@ -534,6 +537,15 @@ packages:
     peerDependencies:
       svelte: '>=3 <5'
 
+  '@mux/mux-player@2.8.0':
+    resolution: {integrity: sha512-qVuLRIFx5IquyBohKbGc8YU7eccRiYeaWBlfbhQcEWI5fSIrn5Lf8YOwlJN0k3TAEWCvX3PXBBr+X77HHH/2wg==}
+
+  '@mux/mux-video@0.20.0':
+    resolution: {integrity: sha512-KFfsy3MVwd3QiTdkm65JTUA+XZ3OKqaEp5FLAiHYHnl+3fffZhM14Kqd8HhDFVoDEtGAOiMmXV0DPa3/f/IFlg==}
+
+  '@mux/playback-core@0.25.0':
+    resolution: {integrity: sha512-4sqHZ6uKrt8WC6hywHDQihgU0oyy84PTKe9LVzLUI6WXx7nFUeS9nMUPgkGRzlW5xZOXxKiZVAOSMx9AhzMouQ==}
+
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -953,6 +965,9 @@ packages:
     resolution: {integrity: sha512-ItanGBMrmRV7Py2Z+Xhs7cT+FNt5K0vPL4p9EZ/UX/Mu7hFbkxSjKF2KVtPwX7UYWp7dRKnrTvReflgrItJbdw==}
     engines: {node: '>=6'}
 
+  castable-video@1.0.10:
+    resolution: {integrity: sha512-tJgUv+8/zE191y8EKojvB0eKIyKA9obIttd6Wpdm6x2qBmuwZ7wDgzVCSmf5cN2v9jBiuu0s7O5poz8a8cFX/w==}
+
   chalk@2.4.2:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}
     engines: {node: '>=4'}
@@ -1061,6 +1076,9 @@ packages:
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+
+  custom-media-element@1.3.2:
+    resolution: {integrity: sha512-nDyMobZgoAVqz7mA8rsn7i1/6bjH6N9ab2Ge7LyyNxrvxAq7zQJPg8i3u2VH7wEB+Y1T1+C3/h1G774/D+ZLag==}
 
   d3-color@3.1.0:
     resolution: {integrity: sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==}
@@ -1417,6 +1435,9 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
+  hls.js@1.5.13:
+    resolution: {integrity: sha512-xRgKo84nsC7clEvSfIdgn/Tc0NOT+d7vdiL/wvkLO+0k0juc26NRBPPG1SfB8pd5bHXIjMW/F5VM8VYYkOYYdw==}
+
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
@@ -1622,6 +1643,12 @@ packages:
   mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
 
+  media-chrome@3.2.4:
+    resolution: {integrity: sha512-QtkqvAiKCVf5mSN6cWKOkBPSAwgamFS52DdIyOlsVrlz+shRWTsyOihZRFRSddx//r+ZKt9SlYJJFgtVmSUvUg==}
+
+  media-tracks@0.3.3:
+    resolution: {integrity: sha512-9P2FuUHnZZ3iji+2RQk7Zkh5AmZTnOG5fODACnjhCVveX1McY3jmCRHofIEI+yTBqplz7LXy48c7fQ3Uigp88w==}
+
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -1699,6 +1726,9 @@ packages:
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  mux-embed@5.2.1:
+    resolution: {integrity: sha512-NukHw91xeEVDBeXVDBpi2BvXNix7gSuvdtyvOph5yR/ROn1hHbTlcYWoKQyCyJX9frsF00UROEul+S8wPzU3aQ==}
 
   mz@2.7.0:
     resolution: {integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==}
@@ -2869,6 +2899,24 @@ snapshots:
       nanoid: 5.0.7
       svelte: 4.2.18
 
+  '@mux/mux-player@2.8.0':
+    dependencies:
+      '@mux/mux-video': 0.20.0
+      '@mux/playback-core': 0.25.0
+      media-chrome: 3.2.4
+
+  '@mux/mux-video@0.20.0':
+    dependencies:
+      '@mux/playback-core': 0.25.0
+      castable-video: 1.0.10
+      custom-media-element: 1.3.2
+      media-tracks: 0.3.3
+
+  '@mux/playback-core@0.25.0':
+    dependencies:
+      hls.js: 1.5.13
+      mux-embed: 5.2.1
+
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -3326,6 +3374,10 @@ snapshots:
       - supports-color
     optional: true
 
+  castable-video@1.0.10:
+    dependencies:
+      custom-media-element: 1.3.2
+
   chalk@2.4.2:
     dependencies:
       ansi-styles: 3.2.1
@@ -3438,6 +3490,8 @@ snapshots:
   csstype@3.1.1: {}
 
   csstype@3.1.3: {}
+
+  custom-media-element@1.3.2: {}
 
   d3-color@3.1.0: {}
 
@@ -3841,6 +3895,8 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  hls.js@1.5.13: {}
+
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
@@ -4009,6 +4065,10 @@ snapshots:
 
   mdn-data@2.0.30: {}
 
+  media-chrome@3.2.4: {}
+
+  media-tracks@0.3.3: {}
+
   merge2@1.4.1: {}
 
   micromatch@4.0.7:
@@ -4071,6 +4131,8 @@ snapshots:
   ms@2.1.2: {}
 
   ms@2.1.3: {}
+
+  mux-embed@5.2.1: {}
 
   mz@2.7.0:
     dependencies:

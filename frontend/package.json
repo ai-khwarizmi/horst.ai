@@ -58,6 +58,7 @@
 		"@anthropic-ai/sdk": "^0.24.2",
 		"@clerk/clerk-js": "^5.7.2",
 		"@internationalized/date": "^3.5.4",
+		"@mux/mux-player": "^2.8.0",
 		"@sveltejs/adapter-static": "^3.0.2",
 		"@sveltejs/kit": "^2.5.17",
 		"@xyflow/svelte": "^0.1.7",

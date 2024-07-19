@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import Checkbox from '../ui/checkbox/checkbox.svelte';
 	import PackageJson from '../../../../package.json';
+	import '@mux/mux-player';
 
 	const open = writable(false);
 	let dontShowAgain = false;
@@ -57,11 +58,17 @@
 				</p>
 			</div>
 			<div class="flex flex-col justify-center items-center mt-2">
-				<video controls class="w-2/3 h-full" controlsList="nodownload">
-					<source src="https://static.horst.ai/horst_demo.mp4" type="video/mp4" />
-					<track kind="captions" srclang="en" label="English" />
-					Your browser does not support the video tag.
-				</video>
+				<mux-player
+					src="https://static.horst.ai/horst_demo.mp4"
+					type="video/mp4"
+					metadata={{
+						video_id: 'horst_demo',
+						video_title: 'Horst.ai Demo'
+					}}
+					controls
+					class="w-2/3 h-full"
+					accentColor="rgb(255 255 255)"
+				/>
 			</div>
 		</div>
 		<Dialog.Footer class="flex items-center justify-between">
