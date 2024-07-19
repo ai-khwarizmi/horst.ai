@@ -128,6 +128,19 @@ export const nodeIOHandlers: Record<string, NodeIOHandler<any, any>> = {};
 export const executionsRunning = writable<Map<string, boolean>>(new Map());
 export const waitingForChangedOutputs = writable<Map<string, boolean>>(new Map());
 
+export function resetDynamicState() {
+	for (const ioHandler of Object.values(nodeIOHandlers)) {
+		ioHandler.resetDynamicState();
+	}
+	state.update((s) => {
+		s.outputDataDynamic = {};
+		s.inputData = {};
+		s.inputDataWithoutPlaceholder = {};
+		return s;
+	});
+	debouncedHandleChanges();
+}
+
 function processNodeStatuses() {
 	const waitingNodes = get(waitingForChangedOutputs);
 	const runningNodes = get(executionsRunning);
@@ -155,6 +168,7 @@ waitingForChangedOutputs.subscribe(() => processNodeStatuses());
 executionsRunning.subscribe(() => processNodeStatuses());
 
 const debouncedHandleChanges = debounce(() => {
+	console.log('debounceHandleChanges...');
 	Object.values(nodeIOHandlers).forEach((ioHandler) => {
 		ioHandler.onOutputsChanged();
 	});

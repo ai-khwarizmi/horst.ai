@@ -90,7 +90,7 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 	/*
 	this resets the dynamic state of the node
 	*/
-	resetNode() {
+	resetDynamicState() {
 		state.update((s) => {
 			s.outputDataDynamic[this.nodeId] = {};
 			return s;
@@ -133,18 +133,18 @@ export class NodeIOHandler<TInput extends string, TOutput extends string> {
 		const _autoPlay = get(get(autoPlay));
 		if (!_autoPlay && !_isPlaying) {
 			this.executePending = true;
-			//console.log('not executing. will execute when autoPlay or isPlaying is true ', this.nodeId);
+			console.log('not executing. will execute when autoPlay or isPlaying is true ', this.nodeId);
 			return;
 		} else if (_autoPlay === true) {
-			//console.log('autoPlay is true, executing node ', this.nodeId);
+			console.log('autoPlay is true, executing node ', this.nodeId);
 		} else if (_isPlaying && this.playsRemaining > 0) {
-			//console.log(
-			//	'isPlaying is true, but playsRemaining is greater than 0, executing node ',
-			//	this.nodeId
-			//);
+			console.log(
+				'isPlaying is true, but playsRemaining is greater than 0, executing node ',
+				this.nodeId
+			);
 			this.playsRemaining--;
 		} else if (_isPlaying && this.playsRemaining <= 0) {
-			//console.log('isPlaying is true, but playsRemaining is 0, NOT executing node ', this.nodeId);
+			console.log('isPlaying is true, but playsRemaining is 0, NOT executing node ', this.nodeId);
 			this.executePending = true;
 			return;
 		}

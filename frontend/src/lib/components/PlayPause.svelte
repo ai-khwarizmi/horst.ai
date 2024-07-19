@@ -2,7 +2,7 @@
 	import { Play, Square, RotateCcw } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { cn } from '$lib/utils.js';
-	import { state } from '$lib';
+	import { resetDynamicState, state } from '$lib';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { projectId } from '..';
@@ -102,8 +102,7 @@
 		variant="outline"
 		size="icon"
 		on:click={() => {
-			$state.isPlaying.set(false);
-			setTimeout(() => $state.isPlaying.set(true), 0);
+			resetDynamicState();
 		}}
 		class="bg-background hover:bg-accent hover:text-accent-foreground text-primary"
 	>
