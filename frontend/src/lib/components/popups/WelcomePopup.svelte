@@ -56,13 +56,13 @@
 					>.
 				</p>
 			</div>
-			<!-- <div>
-				<h2 class="text-xl font-semibold mb-2">Example Projects</h2>
-				<p>Here are some example projects to get you started:</p>
-				<ul class="list-disc list-inside mt-2">
-					<li>todo^^</li>
-				</ul>
-			</div> -->
+			<div class="flex flex-col justify-center items-center mt-2">
+				<video controls class="w-2/3 h-full" controlsList="nodownload">
+					<source src="https://static.horst.ai/horst_demo.mp4" type="video/mp4" />
+					<track kind="captions" srclang="en" label="English" />
+					Your browser does not support the video tag.
+				</video>
+			</div>
 		</div>
 		<Dialog.Footer class="flex items-center justify-between">
 			<div class="flex items-center space-x-2">
