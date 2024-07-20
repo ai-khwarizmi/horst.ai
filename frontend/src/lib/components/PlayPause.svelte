@@ -2,44 +2,45 @@
 	import { Play, Square, RotateCcw } from 'lucide-svelte';
 	import Button from './ui/button/button.svelte';
 	import { cn } from '$lib/utils.js';
-	import { resetDynamicState, state } from '$lib';
+	import { resetDynamicState, state, projectId } from '$lib';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { projectId } from '..';
 
-	const keyPreffix = 'horst.ai.auto.play.enabled_';
+	const AUTO_PLAY_KEY_PREFIX = 'horst.ai.auto.play.enabled_';
+
+	let autoPlay: boolean;
+	$: isPlaying = $state.isPlaying;
 
 	function saveAutoPlayState(projectId: string, value: boolean) {
 		if (browser) {
-			localStorage.setItem(`${keyPreffix}${projectId}`, JSON.stringify(value));
+			localStorage.setItem(`${AUTO_PLAY_KEY_PREFIX}${projectId}`, JSON.stringify(value));
 		}
 	}
 
 	function getAutoPlayState(projectId: string): boolean {
 		if (browser) {
-			const savedState = localStorage.getItem(`${keyPreffix}${projectId}`);
+			const savedState = localStorage.getItem(`${AUTO_PLAY_KEY_PREFIX}${projectId}`);
 			return savedState ? JSON.parse(savedState) : false;
 		}
 		return false;
 	}
 
-	let autoPlay: boolean;
+	function updateAutoPlayState() {
+		$state.autoPlay.set(autoPlay);
+		if (autoPlay) $state.isPlaying.set(false);
+	}
 
 	onMount(() => {
 		return projectId.subscribe((currentProjectId) => {
 			autoPlay = getAutoPlayState(currentProjectId);
-			$state.autoPlay.set(autoPlay);
-			if (autoPlay) $state.isPlaying.set(false);
+			updateAutoPlayState();
 		});
 	});
 
 	$: if (browser && autoPlay !== undefined) {
 		saveAutoPlayState($projectId, autoPlay);
-		$state.autoPlay.set(autoPlay);
-		if (autoPlay) $state.isPlaying.set(false);
+		updateAutoPlayState();
 	}
-
-	$: isPlaying = $state.isPlaying;
 </script>
 
 <div class="play-pause-component flex items-center gap-2 play-pause-no-select">
@@ -87,12 +88,14 @@
 		size="icon"
 		on:click={() => {
 			$state.isPlaying.set(false);
+			autoPlay = false;
 			$state.autoPlay.set(false);
+			updateAutoPlayState();
 		}}
 		disabled={!$isPlaying && !autoPlay}
 		class={cn(
 			'bg-background hover:bg-accent hover:text-accent-foreground',
-			!$isPlaying ? 'text-muted-foreground' : 'text-primary'
+			!$isPlaying && !autoPlay ? 'text-muted-foreground' : 'text-primary'
 		)}
 	>
 		<Square class={cn('h-4 w-4', ($isPlaying || autoPlay) && 'text-red-500')} />
@@ -101,9 +104,7 @@
 	<Button
 		variant="outline"
 		size="icon"
-		on:click={() => {
-			resetDynamicState();
-		}}
+		on:click={resetDynamicState}
 		class="bg-background hover:bg-accent hover:text-accent-foreground text-primary"
 	>
 		<RotateCcw class="h-4 w-4" />
