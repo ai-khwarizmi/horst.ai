@@ -5,11 +5,12 @@
 	import { resetDynamicState, state, projectId } from '$lib';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { get } from 'svelte/store';
 
 	const AUTO_PLAY_KEY_PREFIX = 'horst.ai.auto.play.enabled_';
 
-	let autoPlay: boolean;
 	$: isPlaying = $state.isPlaying;
+	$: autoPlay = $state.autoPlay;
 
 	function saveAutoPlayState(projectId: string, value: boolean) {
 		if (browser) {
@@ -25,21 +26,19 @@
 		return false;
 	}
 
-	function updateAutoPlayState() {
-		$state.autoPlay.set(autoPlay);
-		if (autoPlay) $state.isPlaying.set(false);
-	}
-
 	onMount(() => {
 		return projectId.subscribe((currentProjectId) => {
-			autoPlay = getAutoPlayState(currentProjectId);
-			updateAutoPlayState();
+			state.update((s) => {
+				s.autoPlay.set(getAutoPlayState(currentProjectId));
+				if (get(s.autoPlay)) s.isPlaying.set(false);
+				return s;
+			});
 		});
 	});
 
-	$: if (browser && autoPlay !== undefined) {
-		saveAutoPlayState($projectId, autoPlay);
-		updateAutoPlayState();
+	$: if (browser && $autoPlay !== undefined) {
+		saveAutoPlayState($projectId, $autoPlay);
+		if ($autoPlay) $state.isPlaying.set(false);
 	}
 </script>
 
@@ -47,13 +46,13 @@
 	<label
 		class="relative inline-flex items-center cursor-pointer mr-2 px-3 py-2 rounded-md bg-background hover:bg-accent transition-colors border border-input"
 	>
-		<input type="checkbox" class="sr-only peer" bind:checked={autoPlay} />
+		<input type="checkbox" class="sr-only peer" bind:checked={$autoPlay} />
 		<div
 			class="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"
 		></div>
-		<span class="ml-3 text-sm font-medium text-foreground {autoPlay ? 'pl-5 pr-7' : ''}">
+		<span class="ml-3 text-sm font-medium text-foreground {$autoPlay ? 'pl-5 pr-7' : ''}">
 			Auto
-			{#if autoPlay}
+			{#if $autoPlay}
 				<div
 					class="absolute inset-0 border-2 border-green-500 animate-glow-border rounded-md"
 				></div>
@@ -61,7 +60,7 @@
 		</span>
 	</label>
 
-	{#if !autoPlay}
+	{#if !$autoPlay}
 		<div class="relative">
 			<Button
 				variant="outline"
@@ -88,17 +87,15 @@
 		size="icon"
 		on:click={() => {
 			$state.isPlaying.set(false);
-			autoPlay = false;
 			$state.autoPlay.set(false);
-			updateAutoPlayState();
 		}}
-		disabled={!$isPlaying && !autoPlay}
+		disabled={!$isPlaying && !$autoPlay}
 		class={cn(
 			'bg-background hover:bg-accent hover:text-accent-foreground',
-			!$isPlaying && !autoPlay ? 'text-muted-foreground' : 'text-primary'
+			!$isPlaying && !$autoPlay ? 'text-muted-foreground' : 'text-primary'
 		)}
 	>
-		<Square class={cn('h-4 w-4', ($isPlaying || autoPlay) && 'text-red-500')} />
+		<Square class={cn('h-4 w-4', ($isPlaying || $autoPlay) && 'text-red-500')} />
 	</Button>
 
 	<Button
