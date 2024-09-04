@@ -16,23 +16,22 @@
 		Handshake,
 		Clock,
 		Settings,
-		FilePlus
+		FilePlus,
+		LogOut
 	} from 'lucide-svelte';
 	import { openApiKeySettings } from './settings/APIKeys.svelte';
 	import Button from './ui/button/button.svelte';
 	import { isMobile } from './Mobile.svelte';
 	import PackageJson from '../../../package.json';
-	import { usesClerk, session } from '@/auth/Clerk';
+	import { usesClerk, session, clerk } from '@/auth/Clerk';
 	import { openSaveFilePopup } from './popups/SaveFilePopup.svelte';
-	import { projectName } from '$lib';
+	import { projectName, projectId } from '$lib';
 	import { commandOpen } from '$lib';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/project/file';
 	import { openProjectSettings } from './ProjectSettings.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import { openHotkeysPopup } from './popups/HotkeysPopup.svelte';
 	import { recentProjectsOpen } from '$lib';
-
-	export let projectId: string | undefined;
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'o' && (e.metaKey || e.ctrlKey)) {
@@ -116,7 +115,7 @@
 					<DropdownMenu.Separator />
 				</DropdownMenu.SubContent>
 			</DropdownMenu.Sub>
-			{#if usesClerk && (!projectId || projectId.startsWith('local'))}
+			{#if usesClerk && (!$projectId || $projectId.startsWith('local'))}
 				<DropdownMenu.Item on:click={openSaveFilePopup}>
 					<Download class="mr-2 size-3.5" />
 					Save as..
@@ -186,15 +185,21 @@
 						</DropdownMenu.Shortcut>
 					</DropdownMenu.Item>
 				</DropdownMenu.SubContent>
+				<DropdownMenu.Item href={PackageJson.repository.url} target="_blank" class="cursor-pointer">
+					<LucideGithub class="mr-2 size-3.5" />
+					Source
+					<DropdownMenu.Shortcut>
+						<ExternalLinkIcon class="size-3.5" />
+					</DropdownMenu.Shortcut>
+				</DropdownMenu.Item>
 			</DropdownMenu.Sub>
 			<DropdownMenu.Separator />
-			<DropdownMenu.Item href={PackageJson.repository.url} target="_blank" class="cursor-pointer">
-				<LucideGithub class="mr-2 size-3.5" />
-				Source
-				<DropdownMenu.Shortcut>
-					<ExternalLinkIcon class="size-3.5" />
-				</DropdownMenu.Shortcut>
-			</DropdownMenu.Item>
+			{#if $session}
+				<DropdownMenu.Item on:click={() => $clerk?.signOut()}>
+					<LogOut class="mr-2 size-3.5" />
+					Sign Out
+				</DropdownMenu.Item>
+			{/if}
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 	<Button

@@ -18,7 +18,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
 	import { isMobile } from '@/components/Mobile.svelte';
-	import { Info } from 'lucide-svelte';
+	import { Info, Share2 } from 'lucide-svelte';
 	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	import PackageJson from '../../../package.json';
@@ -26,7 +26,6 @@
 	import type { ConnectWith } from '@/types';
 	import ProjectSettings from '@/components/ProjectSettings.svelte';
 	import ClerkSigninButton from '@/auth/ClerkSigninButton.svelte';
-	import ClerkSignoutButton from '@/auth/ClerkSignoutButton.svelte';
 	import ClerkProfileButton from '@/auth/ClerkProfileButton.svelte';
 	import SaveFilePopup from './popups/SaveFilePopup.svelte';
 	import { cn } from '$lib/utils';
@@ -44,6 +43,7 @@
 	import WebsocketStatus from './WebsocketStatus.svelte';
 	import PlayPause from './PlayPause.svelte';
 	import WelcomePopup from './popups/WelcomePopup.svelte';
+	import ShareGraph, { openShareGraphModal } from './file/ShareGraph.svelte';
 
 	export let projectId: string | undefined = undefined;
 
@@ -144,6 +144,7 @@
 	<SaveFilePopup />
 	<ContextMenu />
 	<WelcomePopup />
+	<ShareGraph />
 	<SvelteFlow
 		nodes={$state.nodes}
 		edges={$state.edges}
@@ -184,13 +185,26 @@
 						How to Use
 					{/if}
 				</Button>
+
+				{#if $session && projectId}
+					<Button
+						variant="outline"
+						size={$isMobile ? 'icon' : 'sm'}
+						class="ml-auto pointer-events-auto h-10"
+						on:click={openShareGraphModal}
+					>
+						<Share2 class={cn('size-3.5', !$isMobile && 'mr-2')} />
+						{#if !$isMobile}
+							Share
+						{/if}
+					</Button>
+				{/if}
 				<ClerkSigninButton />
 				<ClerkProfileButton />
-				<ClerkSignoutButton />
 			</div>
 		</Panel>
 		<Panel position="top-left" class="pointer-events-none">
-			<TopMenuBar {projectId} />
+			<TopMenuBar />
 		</Panel>
 		<Panel position="bottom-center">
 			<BottomBar />
