@@ -14,10 +14,12 @@
 		previewImage: string;
 	}[] = [];
 	let loaded = false;
+	let loading = false;
 
 	onMount(async () => {
 		recentProjectsOpen.subscribe(async (value) => {
 			loaded = false;
+			loading = true;
 			recentProjects = [];
 			if (value) {
 				try {
@@ -27,9 +29,10 @@
 					fetchedProjects.sort((a: any, b: any) => b.updatedAt - a.updatedAt);
 					recentProjects = fetchedProjects;
 					loaded = true;
+					loading = false;
 				} catch (error) {
 					console.error('Failed to fetch recent projects:', error);
-					// Optionally, set an error state here
+					loading = false;
 				}
 			}
 		});
@@ -114,6 +117,25 @@
 				<Dialog.Footer>
 					<Button on:click={() => recentProjectsOpen.set(false)}>Close</Button>
 				</Dialog.Footer>
+			</Dialog.Content>
+		</Dialog.Portal>
+	</Dialog.Root>
+{:else}
+	<Dialog.Root bind:open={$recentProjectsOpen}>
+		<Dialog.Portal>
+			<Dialog.Overlay class="transparent-overlay" />
+			<Dialog.Content class="w-full max-w-3xl max-h-[95vh] flex flex-col">
+				<Dialog.Header>
+					<Dialog.Title>Recent Projects</Dialog.Title>
+					{#if loading}
+						<Dialog.Description>Loading your recent projects...</Dialog.Description>
+					{:else}
+						<Dialog.Description>Failed to load your recent projects.</Dialog.Description>
+					{/if}
+					<Dialog.Close>
+						<Button variant="outline" on:click={() => recentProjectsOpen.set(false)}>Close</Button>
+					</Dialog.Close>
+				</Dialog.Header>
 			</Dialog.Content>
 		</Dialog.Portal>
 	</Dialog.Root>

@@ -2,7 +2,7 @@ import { isValidEdge, isValidGraph, isValidNode, isValidViewPort } from '@/utils
 import { FILE_VERSION } from '@/utils/version';
 import { toast } from 'svelte-sonner';
 import { edges, nodes, projectType, state, viewport } from '..';
-import { get } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { _getGraphFromLocalStorage, _saveToLocalStorage } from './local';
 import {
 	_connectToCloud,
@@ -17,6 +17,15 @@ import { session } from '@/auth/Clerk';
 import { debounce } from 'lodash-es';
 import type { Node } from '@xyflow/svelte';
 import { replaceState } from '$app/navigation';
+
+export const graphToImport = writable<SaveFileFormat | CloudSaveFileFormat | null>(null);
+
+/**
+ * A function to warn the user about the risks of importing graphs, prompts, or applications created by other users.
+ */
+export const importGraph = (graph: SaveFileFormat | CloudSaveFileFormat) => {
+	graphToImport.set(graph);
+};
 
 export function getSaveData(
 	_includeData: boolean,

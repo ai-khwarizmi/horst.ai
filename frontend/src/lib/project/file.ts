@@ -1,5 +1,5 @@
 import { fullSuperJSON } from '@/utils/horstfile';
-import { getSaveData, loadFromGraph } from '.';
+import { getSaveData, importGraph } from '.';
 import { toast } from 'svelte-sonner';
 import type { SaveFileFormat } from '@/types';
 
@@ -24,7 +24,7 @@ export const loadFromFile = async (file: File) => {
 	const text = await file.text();
 	console.log('loadFromFile', text);
 	const graph = fullSuperJSON.parse<SaveFileFormat>(text);
-	return loadFromGraph(graph);
+	return importGraph(graph);
 };
 
 export const saveGraphToJson = () => {

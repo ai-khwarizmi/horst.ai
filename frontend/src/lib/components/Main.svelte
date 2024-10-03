@@ -18,7 +18,7 @@
 	import Button from '@/components/ui/button/button.svelte';
 	import FileDropper from '@/components/file/FileDropper.svelte';
 	import { isMobile } from '@/components/Mobile.svelte';
-	import { Info, Share2 } from 'lucide-svelte';
+	import { Info, Share2, Loader } from 'lucide-svelte';
 	import NewFilePopup from '@/components/popups/NewFilePopup.svelte';
 
 	import PackageJson from '../../../package.json';
@@ -44,6 +44,8 @@
 	import PlayPause from './PlayPause.svelte';
 	import WelcomePopup from './popups/WelcomePopup.svelte';
 	import ShareGraph, { openShareGraphModal } from './file/ShareGraph.svelte';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { subscription, subscribe, billing } from '@/project/cloud';
 
 	export let projectId: string | undefined = undefined;
 
@@ -131,6 +133,23 @@
 	const edgeTypes = {
 		custom: CustomEdge
 	};
+
+	let checkingOut = false;
+	const handleSubscribe = async () => {
+		if (checkingOut) return;
+		checkingOut = true;
+		const { sessionUrl } = await subscribe();
+		window.open(sessionUrl, '_blank');
+		checkingOut = false;
+	};
+
+	const handleBilling = async () => {
+		if (checkingOut) return;
+		checkingOut = true;
+		const { sessionUrl } = await billing();
+		window.open(sessionUrl, '_blank');
+		checkingOut = false;
+	};
 </script>
 
 <main>
@@ -199,6 +218,21 @@
 						{/if}
 					</Button>
 				{/if}
+
+				{#if $session}
+					{#if !$subscription}
+						<Button on:click={handleSubscribe} disabled={checkingOut}>
+							{#if checkingOut}
+								<Loader class="size-3.5 animate-spin" />
+							{:else}
+								Subscribe
+							{/if}
+						</Button>
+					{:else}
+						<Button variant="outline" on:click={handleBilling}>Billing</Button>
+					{/if}
+				{/if}
+
 				<ClerkSigninButton />
 				<ClerkProfileButton />
 			</div>

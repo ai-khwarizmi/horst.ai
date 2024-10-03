@@ -5,6 +5,7 @@
 	import Mobile from '@/components/Mobile.svelte';
 	import { attemptClerkInit, clerkLoaded, usesClerk } from '@/auth/Clerk';
 	import { onMount } from 'svelte';
+	import ImportModal from '@/components/import/ImportModal.svelte';
 
 	onMount(() => {
 		attemptClerkInit();
@@ -15,6 +16,7 @@
 {#if !usesClerk || $clerkLoaded}
 	<Toaster />
 	<Mobile />
+	<ImportModal />
 
 	<slot />
 {:else}

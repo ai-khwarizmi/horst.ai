@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
+import { loadSubscription, subscription } from '@/project/cloud';
 import * as CLERK from '@clerk/clerk-js';
 import { writable } from 'svelte/store';
 
@@ -52,8 +53,10 @@ const initClerk = (clerk: CLERK.Clerk) => {
 				email,
 				emailVerified
 			});
+			loadSubscription();
 		} else {
 			session.set(null);
+			subscription.set(null);
 		}
 	});
 };

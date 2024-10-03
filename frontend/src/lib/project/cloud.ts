@@ -380,3 +380,86 @@ export const fetchRecentProjects = async () => {
 	const data = await response.json();
 	return data.projects;
 };
+
+export const subscription = writable<{
+	id: string;
+	status: string;
+	start_date: number;
+	cancel_at: number | null;
+	canceled_at: number | null;
+	ended_at: number | null;
+} | null>(null);
+
+export const loadSubscription = async () => {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+
+	if (!token) {
+		throw new Error('Not authenticated');
+	}
+
+	const response = await fetch(`${API_HOST.toString()}stripe/subscription`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch subscription');
+	}
+
+	const data = await response.json();
+	subscription.set(data.subscription);
+};
+
+export const subscribe = async () => {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+
+	if (!token) {
+		throw new Error('Not authenticated');
+	}
+
+	const response = await fetch(`${API_HOST.toString()}stripe/checkout`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to subscribe');
+	}
+
+	const data = await response.json();
+	const { sessionUrl } = data.checkout;
+
+	return { sessionUrl };
+};
+
+export const billing = async () => {
+	const clerkClient = get(clerk);
+	const token = await clerkClient?.session?.getToken();
+
+	if (!token) {
+		throw new Error('Not authenticated');
+	}
+
+	const response = await fetch(`${API_HOST.toString()}stripe/dashboard`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to fetch billing');
+	}
+
+	const data = await response.json();
+	return data.dashboard as { sessionUrl: string };
+};

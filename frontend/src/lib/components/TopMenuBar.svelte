@@ -92,29 +92,6 @@
 					{/if} + Shift + O
 				</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
-			<DropdownMenu.Sub>
-				<DropdownMenu.SubTrigger>
-					<Clock class="mr-2 size-3.5" />
-					Recent
-				</DropdownMenu.SubTrigger>
-				<DropdownMenu.SubContent class="w-40">
-					<DropdownMenu.Label>Cloud</DropdownMenu.Label>
-					<DropdownMenu.Item disabled>No recent files</DropdownMenu.Item>
-					<DropdownMenu.Label class="flex justify-between">Local</DropdownMenu.Label>
-					<!--
-					re-add once we have cloud list of projects
-					{#each projects.slice(0, 5) as project}
-						<DropdownMenu.Item href="/project/{project.id}">
-							{project.name}
-						</DropdownMenu.Item>
-					{/each}
-					{#if projects.length == 0}
-						<DropdownMenu.Item disabled>No recent files</DropdownMenu.Item>
-					{/if}
-					-->
-					<DropdownMenu.Separator />
-				</DropdownMenu.SubContent>
-			</DropdownMenu.Sub>
 			{#if usesClerk && (!$projectId || $projectId.startsWith('local'))}
 				<DropdownMenu.Item on:click={openSaveFilePopup}>
 					<Download class="mr-2 size-3.5" />
