@@ -44,7 +44,6 @@
 	import PlayPause from './PlayPause.svelte';
 	import WelcomePopup from './popups/WelcomePopup.svelte';
 	import ShareGraph, { openShareGraphModal } from './file/ShareGraph.svelte';
-	import * as Dialog from '$lib/components/ui/dialog';
 	import { subscription, subscribe, billing } from '@/project/cloud';
 
 	export let projectId: string | undefined = undefined;

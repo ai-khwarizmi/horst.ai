@@ -14,7 +14,6 @@
 		ExternalLinkIcon,
 		UsersRound,
 		Handshake,
-		Clock,
 		Settings,
 		FilePlus,
 		LogOut
