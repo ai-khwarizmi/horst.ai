@@ -1,10 +1,12 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
 	import Button from '../ui/button/button.svelte';
 	import { onMount } from 'svelte';
 	import { createNewProject, loadCloudProject } from '@/project';
 	import { recentProjectsOpen } from '@/index';
 	import { fetchRecentProjects, previewImageFileNameToUrl } from '@/project/cloud';
+	import { Loader } from 'lucide-svelte';
+
+	export let projectCount: number = 0;
 
 	let recentProjects: {
 		projectId: string;
@@ -34,6 +36,8 @@
 			}
 		});
 	});
+
+	$: projectCount = recentProjects.length;
 
 	async function openProject(_projectId: string) {
 		try {
@@ -69,54 +73,57 @@
 </script>
 
 {#if loaded}
-	<Dialog.Root bind:open={$recentProjectsOpen}>
-		<Dialog.Portal>
-			<Dialog.Overlay class="transparent-overlay" />
-			<Dialog.Content class="w-full max-w-3xl max-h-[95vh] flex flex-col">
-				<Dialog.Header>
-					<Dialog.Title>Recent Projects</Dialog.Title>
-				</Dialog.Header>
-				<div class="flex-grow overflow-y-auto">
-					<div class="grid grid-cols-3 gap-4 p-4">
-						<button
-							class="project-item text-left cursor-pointer hover:bg-gray-200 rounded-lg p-2 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
-							on:click={_createNewProject}
-						>
-							<div
-								class="aspect-video bg-blue-200 rounded-md mb-2 flex items-center justify-center"
-							>
-								<span class="text-4xl text-blue-500">+</span>
-							</div>
-							<p class="text-sm font-medium truncate">New Project</p>
-							<p class="text-xs text-gray-500">Create a new project</p>
-						</button>
-						{#each recentProjects as project}
-							<button
-								class="project-item text-left cursor-pointer hover:bg-gray-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
-								on:click={() => openProject(project.projectId)}
-							>
-								<div class="aspect-video bg-gray-200 rounded-md mb-2">
-									{#if project.previewImage}
-										<img
-											src={previewImageFileNameToUrl(project.previewImage)}
-											alt="Project Preview"
-										/>
-									{/if}
-								</div>
-								<p class="text-sm font-medium truncate">
-									{project.projectName || 'Untitled Project'}
-								</p>
-								<p class="text-xs text-gray-500">{formatRelativeTime(project.updatedAt)}</p>
-							</button>
-						{/each}
+	{#if recentProjects.length === 0}
+		<main class="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+			<div
+				class="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm"
+			>
+				<div class="flex flex-col items-center gap-1 text-center">
+					<h3 class="text-2xl font-bold tracking-tight">You have no projects</h3>
+					<p class="text-muted-foreground text-sm">Create a new project to get started.</p>
+					<div class="flex gap-2">
+						<Button class="mt-4" on:click={_createNewProject}>Create a new project</Button>
+						<Button class="mt-4" variant="outline" disabled>Import a project</Button>
 					</div>
 				</div>
-				<Dialog.Footer>
-					<Button on:click={() => recentProjectsOpen.set(false)}>Close</Button>
-				</Dialog.Footer>
-			</Dialog.Content>
-		</Dialog.Portal>
-	</Dialog.Root>
+			</div>
+		</main>
+	{:else}
+		<div class="flex-grow overflow-y-auto">
+			<div class="grid grid-cols-3 gap-4 p-4">
+				<button
+					class="project-item text-left cursor-pointer rounded-lg p-2 bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
+					on:click={_createNewProject}
+				>
+					<div class="aspect-video bg-blue-500 rounded-md mb-2 flex items-center justify-center">
+						<span class="text-4xl text-blue-500">+</span>
+					</div>
+					<p class="text-sm font-medium truncate">New Project</p>
+					<p class="text-xs text-gray-500">Create a new project</p>
+				</button>
+				{#each recentProjects as project}
+					<button
+						class="project-item text-left cursor-pointer hover:bg-gray-100 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50"
+						on:click={() => openProject(project.projectId)}
+					>
+						<div class="aspect-video bg-gray-200 rounded-md mb-2">
+							{#if project.previewImage}
+								<img src={previewImageFileNameToUrl(project.previewImage)} alt="Project Preview" />
+							{/if}
+						</div>
+						<p class="text-sm font-medium truncate">
+							{project.projectName || 'Untitled Project'}
+						</p>
+						<p class="text-xs text-gray-500">{formatRelativeTime(project.updatedAt)}</p>
+					</button>
+				{/each}
+			</div>
+		</div>
+	{/if}
+{:else}
+	<div class="flex-grow flex items-center justify-center">
+		<Loader class="w-10 h-10 animate-spin" />
+	</div>
 {/if}
 
 <style>

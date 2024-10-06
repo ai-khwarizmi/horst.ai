@@ -15,7 +15,6 @@
 		UsersRound,
 		Handshake,
 		Clock,
-		Settings,
 		FilePlus,
 		LogOut
 	} from 'lucide-svelte';
@@ -25,10 +24,9 @@
 	import PackageJson from '../../../package.json';
 	import { usesClerk, session, clerk } from '@/auth/Clerk';
 	import { openSaveFilePopup } from './popups/SaveFilePopup.svelte';
-	import { projectName, projectId } from '$lib';
+	import { projectId } from '$lib';
 	import { commandOpen } from '$lib';
 	import { loadGraphFromUploadedFile, saveGraphToJson } from '@/project/file';
-	import { openProjectSettings } from './ProjectSettings.svelte';
 	import { openNewFilePopup } from './popups/NewFilePopup.svelte';
 	import { openHotkeysPopup } from './popups/HotkeysPopup.svelte';
 	import { recentProjectsOpen } from '$lib';
@@ -202,18 +200,6 @@
 			{/if}
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
-	<Button
-		variant="outline"
-		class="pointer-events-auto max-w-52 justify-start items-center gap-2"
-		on:click={openProjectSettings}
-	>
-		<span class="text-ellipsis overflow-hidden whitespace-nowrap pr-1">
-			{$projectName || 'Untitled'}
-		</span>
-		<div class="ml-auto">
-			<Settings class="size-3.5" />
-		</div>
-	</Button>
 	{#if !$isMobile}
 		<div class="w-4 h-[1px] bg-gray-500"></div>
 		<Button variant="secondary" size="sm" on:click={openApiKeySettings} class="pointer-events-auto">
